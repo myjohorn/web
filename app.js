@@ -86,7 +86,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Toggle date input displays based on inquiry type selection
     inquiryType.addEventListener('change', () => {
-        if (inquiryType.value === 'stay') {
+        const val = inquiryType.value;
+        if (val === 'stay' || val === 'stay_car') {
             stayDateFields.classList.remove('hidden');
             calendarWrapper.classList.remove('hidden');
         } else {
@@ -117,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = JSON.parse(localStorage.getItem('johorn_requests') || '[]');
         const locked = [];
         data.forEach(item => {
-            if (item.type === 'stay' && item.status === 'approved' && item.checkin && item.checkout) {
+            if ((item.type === 'stay' || item.type === 'stay_car') && item.status === 'approved' && item.checkin && item.checkout) {
                 let start = new Date(item.checkin);
                 let end = new Date(item.checkout);
                 while (start <= end) {
@@ -271,10 +272,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const contact = document.getElementById('clientContact').value.trim();
         const notes = document.getElementById('additionalNotes').value.trim();
 
-        // Validate stay date inputs if type is stay
-        if (type === 'stay') {
+        // Validate stay date inputs if type is stay or stay_car
+        if (type === 'stay' || type === 'stay_car') {
             if (!checkinDate || !checkoutDate) {
-                alert('숙소 예약을 위해 체크인 및 체크아웃 날짜를 달력에서 선택해 주세요.');
+                alert('예약을 위해 체크인 및 체크아웃 날짜를 달력에서 선택해 주세요.');
                 return;
             }
         }
@@ -288,8 +289,8 @@ document.addEventListener('DOMContentLoaded', () => {
             notes: notes,
             status: 'pending',
             dateCreated: new Date().toLocaleDateString(),
-            checkin: type === 'stay' ? checkinDate.toISOString().split('T')[0] : null,
-            checkout: type === 'stay' ? checkoutDate.toISOString().split('T')[0] : null
+            checkin: (type === 'stay' || type === 'stay_car') ? checkinDate.toISOString().split('T')[0] : null,
+            checkout: (type === 'stay' || type === 'stay_car') ? checkoutDate.toISOString().split('T')[0] : null
         };
 
         // Save to LocalStorage
@@ -298,10 +299,12 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('johorn_requests', JSON.stringify(requests));
 
         // Alert Success
-        if (type === 'stay') {
-            alert('Teega Stay 예약 신청이 성공적으로 접수되었습니다. 관리자 승인 후 최종 확정됩니다.');
+        if (type === 'stay_car') {
+            alert('티가 Stay + 프리미엄 렌트카 패키지 예약 신청이 정상 접수되었습니다. 관리자 승인 후 연락드리겠습니다.');
+        } else if (type === 'stay') {
+            alert('Teega Stay 숙소 단독 예약 신청이 접수되었습니다. 관리자 승인 후 연락드리겠습니다.');
         } else {
-            alert('이주정착 & 국제학교 상담 신청이 정상적으로 완료되었습니다. 조속히 기재해 주신 연락처로 피드백 드리겠습니다.');
+            alert('이주정착 & 국제학교 상담 신청이 정상적으로 완료되었습니다. 조속히 피드백 드리겠습니다.');
         }
 
         // Reset state
@@ -345,10 +348,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 {
                     id: 2,
-                    type: 'stay',
+                    type: 'stay_car',
                     name: '이서연',
                     contact: 'Kakao: seoyeon_johor',
-                    notes: '답사 일정에 맞춰 3베드룸 렌트 신청합니다. 아이 2명 동반 예정입니다.',
+                    notes: '답사 일정에 맞춰 3베드룸 렌트와 폭스바겐 티구안 패키지 차량 렌트 신청합니다.',
                     status: 'approved',
                     dateCreated: '2026/07/02',
                     checkin: '2026-07-15',
@@ -387,6 +390,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Filter Data
         const filtered = data.filter(item => {
             if (currentFilter === 'all') return true;
+            if (currentFilter === 'stay') {
+                return item.type === 'stay' || item.type === 'stay_car';
+            }
             return item.type === currentFilter;
         });
 
@@ -399,11 +405,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const tr = document.createElement('tr');
 
             // Format category badge
-            const typeLabel = item.type === 'stay' ? '숙소 예약' : '컨설팅 상담';
+            let typeLabel = '컨설팅 상담';
+            if (item.type === 'stay') typeLabel = '숙소 단독';
+            if (item.type === 'stay_car') typeLabel = '숙소+차량 패키지';
 
             // Format dates
             let scheduleStr = item.dateCreated;
-            if (item.type === 'stay' && item.checkin && item.checkout) {
+            if ((item.type === 'stay' || item.type === 'stay_car') && item.checkin && item.checkout) {
                 scheduleStr = `${item.checkin} ~ ${item.checkout}`;
             }
 
