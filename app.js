@@ -607,9 +607,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const mockInstagramData = [
         {
-            image_local: 'assets/stay_living.jpg',
+            image_local: 'assets/stay_room6.jpg',
             url: 'https://instagram.com/myjohorn',
-            caption: '조호바루의 따뜻한 오후. 햇살 가득 품은 티가 레지던스 거실입니다. #조호바루한달살기 #티가레지던스 #조호엔',
+            caption: '테라스 아래로 보이는 멋진 수영장 야경. 밤에도 아름다운 티가 레지던스입니다. #조호바루한달살기 #티가레지던스 #조호엔',
             likes: 42
         },
         {
@@ -625,7 +625,7 @@ document.addEventListener('DOMContentLoaded', () => {
             likes: 51
         },
         {
-            image_local: 'assets/stay_living.jpg',
+            image_local: 'assets/stay_room7.jpg',
             url: 'https://instagram.com/myjohorn',
             caption: '조호바루 국제학교 답사 및 이주 정착 컨설팅, 2026년 가을 학기 모집 진행 중입니다! #국제학교답사 #말레이시아유학 #조호엔',
             likes: 49
@@ -651,7 +651,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const likesCount = feed.likes !== undefined ? feed.likes : 0;
 
             card.innerHTML = `
-                <img src="${feed.image_local}" alt="Instagram Post" onerror="this.src='assets/stay_living.jpg'">
+                <img src="${feed.image_local}" alt="Instagram Post" onerror="this.src='assets/stay_balcony.jpg'">
                 <div class="instagram-overlay">
                     <p>${feed.caption || 'Instagram Post'}</p>
                     <div style="font-size: 13px; color: rgba(255,255,255,0.9); margin-bottom: 10px; display: flex; align-items: center; gap: 5px;">
