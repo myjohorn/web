@@ -1,6 +1,20 @@
 // Application Core State and Logic for JohorN & Teega Residence
 document.addEventListener('DOMContentLoaded', () => {
     
+    // Force play hero background video on mobile/Safari load
+    const heroVideo = document.querySelector('.hero-image-wrapper video');
+    if (heroVideo) {
+        heroVideo.play().catch(error => {
+            console.log("Autoplay prevented or video not ready:", error);
+        });
+        // iOS Safari 15+ background auto-play fallback on first user interaction
+        document.body.addEventListener('touchstart', () => {
+            if (heroVideo.paused) {
+                heroVideo.play();
+            }
+        }, { once: true });
+    }
+    
     // ----------------------------------------------------
     // 1. Navigation & Mobile Menu Setup
     // ----------------------------------------------------
