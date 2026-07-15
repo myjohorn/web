@@ -18,11 +18,17 @@
     --transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
+html {
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+}
+
 body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
     line-height: 1.6;
     font-size: 16px;
+    overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
 }
 
@@ -264,6 +270,10 @@ section {
     grid-template-columns: 1.2fr 0.8fr;
     gap: 80px;
     align-items: center;
+}
+
+.school-tour-grid {
+    grid-template-columns: 0.8fr 1.2fr;
 }
 
 .intro-content h3 {
@@ -852,6 +862,7 @@ footer {
 @media (max-width: 992px) {
     .hero-grid,
     .intro-grid,
+    .school-tour-grid,
     .stay-info-grid,
     .booking-grid {
         grid-template-columns: 1fr;
