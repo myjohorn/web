@@ -109,6 +109,37 @@ async function run() {
             };
         });
 
+        // 1. Check for deletions on Google Calendar to propagate back to Firebase requests
+        const activeGcalIds = new Set(events.map(evt => evt.id));
+        console.log("Checking for local Firebase reservations deleted on Google Calendar to sync back...");
+        const firebaseRequestsUrl = "https://johorn-booking-default-rtdb.asia-southeast1.firebasedatabase.app/requests.json";
+        const requestsRes = await fetch(firebaseRequestsUrl);
+        if (requestsRes.ok) {
+            const requests = await requestsRes.json() || {};
+            const keys = Object.keys(requests);
+            for (const key of keys) {
+                const req = requests[key];
+                if (req.type === 'stay' && req.gcalEventId) {
+                    const checkinDate = parseLocalDate(req.checkin);
+                    // Check if it falls within the searched GCal range [startOfMonth, endOfMonth]
+                    if (checkinDate >= startOfMonth && checkinDate <= endOfMonth) {
+                        if (!activeGcalIds.has(req.gcalEventId)) {
+                            console.log(`Propagating deletion: Booking '${req.name}' (${req.checkin} ~ ${req.checkout}) with GCal ID ${req.gcalEventId} is no longer in Google Calendar. Deleting from Firebase...`);
+                            const deleteUrl = `https://johorn-booking-default-rtdb.asia-southeast1.firebasedatabase.app/requests/${key}.json`;
+                            const delRes = await fetch(deleteUrl, { method: 'DELETE' });
+                            if (delRes.ok) {
+                                console.log(`Successfully deleted requests/${key} from Firebase.`);
+                            } else {
+                                console.error(`Failed to delete requests/${key} from Firebase: ${delRes.status}`);
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            console.error(`Failed to fetch requests from Firebase for deletion propagation: ${requestsRes.status}`);
+        }
+
         // Write to Firebase Realtime Database
         console.log("Writing cached events back to Firebase Realtime Database...");
         const firebaseCacheUrl = "https://johorn-booking-default-rtdb.asia-southeast1.firebasedatabase.app/settings/gcal_events_cache.json";
