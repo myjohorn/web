@@ -7,18 +7,28 @@ document.addEventListener('DOMContentLoaded', () => {
         // Programmatic configurations for mobile browsers to allow autoplay
         heroVideo.setAttribute('playsinline', '');
         heroVideo.setAttribute('webkit-playsinline', '');
+        heroVideo.setAttribute('preload', 'auto');
         heroVideo.muted = true;
         heroVideo.defaultMuted = true;
 
-        // Attempt initial autoplay
-        const playPromise = heroVideo.play();
-        if (playPromise !== undefined) {
-            playPromise.catch(error => {
-                console.log("Initial autoplay prevented or video not ready:", error);
-            });
-        }
+        // Try playing immediately if metadata is already loaded
+        const attemptPlay = () => {
+            const playPromise = heroVideo.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.log("Autoplay prevented or video not ready:", error);
+                });
+            }
+        };
 
-        // Robust mobile fallback: play on first user interaction
+        // Attempt initial autoplay
+        attemptPlay();
+
+        // Listen for metadata load and try playing again
+        heroVideo.addEventListener('loadedmetadata', attemptPlay);
+        heroVideo.addEventListener('canplay', attemptPlay);
+
+        // Robust mobile fallback: play on first user interaction (touch, click, key)
         const forcePlayVideo = () => {
             if (heroVideo.paused) {
                 heroVideo.play()
@@ -26,7 +36,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         cleanupListeners();
                     })
                     .catch(err => {
-                        console.log("Playback failed on user interaction:", err);
+                        console.log("Playback failed on user interaction, retry on canplay:", err);
+                        heroVideo.addEventListener('canplay', () => {
+                            heroVideo.play().then(cleanupListeners).catch(e => console.log(e));
+                        }, { once: true });
                     });
             } else {
                 cleanupListeners();
