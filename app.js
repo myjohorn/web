@@ -350,6 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const name = document.getElementById('consultName').value.trim();
         const contact = document.getElementById('consultContact').value.trim();
+        const targetSchool = document.getElementById('consultSchool').value.trim();
         const targetDate = document.getElementById('consultTargetDate').value.trim();
         const notesRaw = document.getElementById('consultNotes').value.trim();
 
@@ -357,10 +358,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const categories = [];
         const checkboxes = document.querySelectorAll('input[name="consultCategory"]:checked');
         checkboxes.forEach(cb => {
-            if (cb.value === 'settlement') categories.push('이주정착 지원');
-            if (cb.value === 'tour') categories.push('국제학교 답사');
-            if (cb.value === 'admission') categories.push('입학대행');
-            if (cb.value === 'other') categories.push('기타 현지문의');
+            if (cb.value === 'settlement') categories.push('이주정착 서비스');
+            if (cb.value === 'tour') categories.push('국제학교 답사 서비스');
+            if (cb.value === 'admission') categories.push('입학대행 서비스');
         });
 
         if (categories.length === 0) {
@@ -368,8 +368,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Format notes with category and target date
-        const notes = `[희망분야]: ${categories.join(', ')}\n[예정시기]: ${targetDate || '미정'}\n\n[상세내용]:\n${notesRaw}`;
+        // Format notes with category, school, and target date
+        const notes = `[희망분야]: ${categories.join(', ')}\n[희망학교]: ${targetSchool || '미정/없음'}\n[예정시기]: ${targetDate || '미정'}\n\n[상세내용]:\n${notesRaw}`;
 
         // Structure Request Data
         const newRequest = {
