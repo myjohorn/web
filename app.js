@@ -1090,6 +1090,27 @@ document.addEventListener('DOMContentLoaded', () => {
         return dateStr;
     }
 
+    // Fetch user's calendar list to aid setup/debugging
+    async function fetchCalendarList() {
+        if (!isGcalConnected()) return [];
+        const token = localStorage.getItem('gcal_access_token');
+        const url = `https://www.googleapis.com/calendar/v3/users/me/calendarList`;
+        
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (!response.ok) throw new Error('Failed to fetch calendar list');
+            const data = await response.json();
+            return data.items || [];
+        } catch (err) {
+            console.error('Error fetching calendar list:', err);
+            return [];
+        }
+    }
+
     // Asynchronously fetch Google Calendar events and trigger calendar rendering
     async function loadGcalEventsForCurrentMonth() {
         if (!isGcalConnected()) {
@@ -1108,7 +1129,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const events = await fetchGcalEvents(timeMin, timeMax);
-            showGcalDebug(`구글 API 응답 수신: 일정 ${events.length}개 발견`);
+            const calendars = await fetchCalendarList();
+            
+            const calDetails = calendars.map(c => `[${c.summary} (ID: ${c.id})]`).join(', ');
             
             gcalEventsCache = events.map(evt => {
                 const start = evt.start.date || evt.start.dateTime;
@@ -1122,7 +1145,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             });
 
-            showGcalDebug(`동기화 완료: ${gcalEventsCache.length}개 일정 매핑됨 (${gcalEventsCache.map(e => e.summary).join(', ') || '없음'})`);
+            const matchNames = gcalEventsCache.map(e => e.summary).join(', ') || '없음';
+            showGcalDebug(`동기화 완료: ${gcalEventsCache.length}개 일정 매핑됨 (${matchNames}).\n\n내 계정 캘린더 목록: ${calDetails}`);
 
             // Trigger calendars rendering with GCal events in cache
             renderCalendar();
