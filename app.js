@@ -1133,8 +1133,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        const isEdit = typeof booking.id === 'string' || booking.gcalEventId;
-        const gcalEventId = typeof booking.id === 'string' ? booking.id : booking.gcalEventId;
+        const isEdit = !!booking.gcalEventId || (booking.isGcal && booking.id);
+        const gcalEventId = booking.gcalEventId || (booking.isGcal ? booking.id : null);
 
         let url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
         let method = 'POST';
@@ -1581,7 +1581,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isGcalOnly) {
                     if (isGcalConnectedVal) {
                         alert('구글 캘린더 예약을 수정 중입니다...');
-                        const gcalId = await saveGcalEvent(bookingObj);
+                        const editObj = { ...bookingObj, isGcal: true };
+                        const gcalId = await saveGcalEvent(editObj);
                         if (gcalId) {
                             alert('구글 캘린더 예약이 성공적으로 수정되었습니다.');
                         } else {
@@ -1667,7 +1668,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!confirmDel) return;
 
             const isGcalConnectedVal = isGcalConnected();
-            const isGcalOnly = isNaN(idVal); // String GCal ID
+            const isLocalRequest = johornRequests.some(item => item.id.toString() === idVal.toString());
+            const isGcalOnly = !isLocalRequest;
 
             if (isGcalOnly) {
                 if (isGcalConnectedVal) {
