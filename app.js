@@ -1545,6 +1545,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Save Reservation from Admin Form
     if (adminResSaveBtn) {
         adminResSaveBtn.addEventListener('click', async () => {
+            // 1. Enforce Google Calendar connection check to maintain data integrity
+            const isGcalConnectedVal = isGcalConnected();
+            if (!isGcalConnectedVal) {
+                alert('구글 캘린더 연동이 필요합니다. 상단의 [구글 계정 연동하기] 버튼을 눌러 연동을 완료한 후 다시 시도해 주세요.');
+                const settingsPanel = document.querySelector('.admin-panel');
+                if (settingsPanel) {
+                    settingsPanel.scrollIntoView({ behavior: 'smooth' });
+                }
+                return;
+            }
+
             const idVal = adminResIdInput.value;
             const nameVal = adminResNameInput.value.trim();
             const contactVal = adminResContactInput.value.trim();
@@ -1563,7 +1574,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const data = johornRequests;
-            const isGcalConnectedVal = isGcalConnected();
             
             const bookingObj = {
                 id: idVal,
@@ -1664,10 +1674,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const idVal = adminResIdInput.value;
             if (!idVal) return;
 
+            // 1. Enforce Google Calendar connection check to maintain data integrity
+            const isGcalConnectedVal = isGcalConnected();
+            if (!isGcalConnectedVal) {
+                alert('구글 캘린더 연동이 필요합니다. 상단의 [구글 계정 연동하기] 버튼을 눌러 연동을 완료한 후 다시 시도해 주세요.');
+                const settingsPanel = document.querySelector('.admin-panel');
+                if (settingsPanel) {
+                    settingsPanel.scrollIntoView({ behavior: 'smooth' });
+                }
+                return;
+            }
+
             const confirmDel = confirm('이 예약을 정말 삭제하시겠습니까?');
             if (!confirmDel) return;
 
-            const isGcalConnectedVal = isGcalConnected();
             const isLocalRequest = johornRequests.some(item => item.id.toString() === idVal.toString());
             const isGcalOnly = !isLocalRequest;
 
