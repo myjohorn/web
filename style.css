@@ -604,7 +604,7 @@ section {
 
 .calendar-days-grid {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     text-align: center;
     font-size: 12px;
     font-weight: 600;
@@ -614,7 +614,7 @@ section {
 
 .calendar-dates-grid {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     row-gap: 5px;
 }
 
@@ -1327,6 +1327,7 @@ footer {
     flex-direction: column !important;
     justify-content: center !important;
     padding: 2px !important;
+    min-width: 0 !important;
 }
 
 .calendar-cell .date-num {
