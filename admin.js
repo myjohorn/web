@@ -60,6 +60,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return dateStr;
     }
 
+    // Helper: secure SHA-256 hash using Web Crypto API (requires no external libraries)
+    async function sha256(message) {
+        const msgBuffer = new TextEncoder().encode(message);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return hashHex;
+    }
+
     // ----------------------------------------------------
     // 2. DOM Selectors
     // ----------------------------------------------------
@@ -110,6 +119,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
     // 3. Admin Authentication Login Flow
     // ----------------------------------------------------
+    let storedPasswordHash = '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'; // default: '1234'
+    db.ref('settings/admin_password').on('value', (snapshot) => {
+        const hash = snapshot.val();
+        if (hash) {
+            storedPasswordHash = hash;
+        }
+    });
+
     // Check if session storage indicates we are logged in
     if (sessionStorage.getItem('admin_logged_in') === 'true') {
         adminLoginSection.classList.add('hidden');
@@ -124,15 +141,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function handleAdminLogin() {
+    async function handleAdminLogin() {
         const password = adminPasswordInput.value;
-        if (password === '1234') { // Default admin password
+        const typedHash = await sha256(password);
+        if (typedHash === storedPasswordHash) {
             sessionStorage.setItem('admin_logged_in', 'true');
             adminLoginSection.classList.add('hidden');
             adminDashboardSection.style.display = 'block';
             initializeDashboard();
         } else {
-            alert('비밀번호가 올바르지 않습니다. (기본 비밀번호: 1234)');
+            alert('비밀번호가 올바르지 않습니다.');
         }
     }
 
@@ -190,6 +208,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 4. Initialize Google OAuth GIS clients
         initializeGisClient();
+
+        // 5. Initialize password management handlers
+        initializePasswordSettings();
     }
 
     function initializeMockData() {
@@ -220,6 +241,66 @@ document.addEventListener('DOMContentLoaded', () => {
                 db.ref('requests').set(mockData);
             }
         });
+    }
+
+    function initializePasswordSettings() {
+        const togglePasswordSettings = document.getElementById('togglePasswordSettings');
+        const passwordSettingsBody = document.getElementById('passwordSettingsBody');
+        const changePasswordBtn = document.getElementById('changePasswordBtn');
+
+        if (togglePasswordSettings && passwordSettingsBody) {
+            togglePasswordSettings.addEventListener('click', () => {
+                passwordSettingsBody.classList.toggle('hidden');
+            });
+        }
+
+        if (changePasswordBtn) {
+            changePasswordBtn.addEventListener('click', async () => {
+                const currentPwd = document.getElementById('currentPasswordInput').value;
+                const newPwd = document.getElementById('newPasswordInput').value;
+                const confirmPwd = document.getElementById('confirmNewPasswordInput').value;
+
+                if (!currentPwd || !newPwd || !confirmPwd) {
+                    alert('모든 비밀번호 필드를 입력해 주세요.');
+                    return;
+                }
+
+                const currentHash = await sha256(currentPwd);
+                if (currentHash !== storedPasswordHash) {
+                    alert('현재 비밀번호가 올바르지 않습니다.');
+                    return;
+                }
+
+                if (newPwd !== confirmPwd) {
+                    alert('새 비밀번호와 비밀번호 확인이 일치하지 않습니다.');
+                    return;
+                }
+
+                if (newPwd.length < 4) {
+                    alert('비밀번호는 최소 4글자 이상이어야 합니다.');
+                    return;
+                }
+
+                const newHash = await sha256(newPwd);
+                
+                try {
+                    await db.ref('settings/admin_password').set(newHash);
+                    alert('비밀번호가 성공적으로 변경되었습니다!');
+                    
+                    // Reset input fields
+                    document.getElementById('currentPasswordInput').value = '';
+                    document.getElementById('newPasswordInput').value = '';
+                    document.getElementById('confirmNewPasswordInput').value = '';
+                    
+                    // Collapse settings body
+                    if (passwordSettingsBody) {
+                        passwordSettingsBody.classList.add('hidden');
+                    }
+                } catch (err) {
+                    alert(`비밀번호 변경 실패: ${err.message}`);
+                }
+            });
+        }
     }
 
     // ----------------------------------------------------

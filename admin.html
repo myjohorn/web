@@ -105,6 +105,43 @@
                         </div>
                     </div>
 
+                    <!-- Admin Password Settings -->
+                    <div class="admin-panel password-settings-panel" style="background: var(--white); padding: 25px 30px; border: 1px solid var(--border-color); margin-bottom: 30px; border-radius: 4px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" id="togglePasswordSettings">
+                            <h4 style="margin: 0; font-size: 15px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-key" style="color: var(--accent-color);"></i> 어드민 비밀번호 관리
+                            </h4>
+                            <span class="status-badge status-approved" style="font-size: 11px;">보안 활성</span>
+                        </div>
+                        
+                        <div id="passwordSettingsBody" class="hidden" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5; text-align: left;">
+                                어드민 콘솔 접속 비밀번호를 안전한 값으로 변경합니다.
+                            </p>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="currentPasswordInput" style="font-size: 12px; font-weight: 500; margin-bottom: 5px; display: block; text-align: left;">현재 비밀번호</label>
+                                    <input type="password" id="currentPasswordInput" class="form-control" placeholder="현재 비밀번호 입력" style="font-size: 12px; padding: 10px;">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="newPasswordInput" style="font-size: 12px; font-weight: 500; margin-bottom: 5px; display: block; text-align: left;">새 비밀번호</label>
+                                    <input type="password" id="newPasswordInput" class="form-control" placeholder="새 비밀번호 입력" style="font-size: 12px; padding: 10px;">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="confirmNewPasswordInput" style="font-size: 12px; font-weight: 500; margin-bottom: 5px; display: block; text-align: left;">새 비밀번호 확인</label>
+                                    <input type="password" id="confirmNewPasswordInput" class="form-control" placeholder="새 비밀번호 다시 입력" style="font-size: 12px; padding: 10px;">
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 10px; align-items: center; justify-content: flex-end;">
+                                <button type="button" id="changePasswordBtn" class="btn btn-primary" style="padding: 10px 20px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                                    <i class="fa-solid fa-lock"></i> 비밀번호 변경하기
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="admin-table-wrapper">
                         <table class="admin-table">
                             <thead>
