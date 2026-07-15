@@ -1133,6 +1133,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const calDetails = calendars.map(c => `[${c.summary} (ID: ${c.id})]`).join(', ');
             
+            // Raw events details to inspect what GCal API returned
+            const rawEventDetails = events.map(e => {
+                const sDate = e.start.date || e.start.dateTime || '';
+                return `${e.summary || '제목 없음'}(${sDate.split('T')[0]})`;
+            }).join(', ');
+
             gcalEventsCache = events.map(evt => {
                 const start = evt.start.date || evt.start.dateTime;
                 const end = evt.end.date || evt.end.dateTime;
@@ -1146,7 +1152,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const matchNames = gcalEventsCache.map(e => e.summary).join(', ') || '없음';
-            showGcalDebug(`동기화 완료: ${gcalEventsCache.length}개 일정 매핑됨 (${matchNames}).\n\n내 계정 캘린더 목록: ${calDetails}`);
+            showGcalDebug(`동기화 완료: ${gcalEventsCache.length}개 일정 매핑됨 (${matchNames}).\n\n[API 원본 응답]: ${rawEventDetails || '없음'}\n\n내 계정 캘린더 목록: ${calDetails}`);
 
             // Trigger calendars rendering with GCal events in cache
             renderCalendar();
