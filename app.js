@@ -4,15 +4,45 @@ document.addEventListener('DOMContentLoaded', () => {
     // Force play hero background video on mobile/Safari load
     const heroVideo = document.querySelector('.hero-image-wrapper video');
     if (heroVideo) {
-        heroVideo.play().catch(error => {
-            console.log("Autoplay prevented or video not ready:", error);
-        });
-        // iOS Safari 15+ background auto-play fallback on first user interaction
-        document.body.addEventListener('touchstart', () => {
+        // Programmatic configurations for mobile browsers to allow autoplay
+        heroVideo.setAttribute('playsinline', '');
+        heroVideo.setAttribute('webkit-playsinline', '');
+        heroVideo.muted = true;
+        heroVideo.defaultMuted = true;
+
+        // Attempt initial autoplay
+        const playPromise = heroVideo.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                console.log("Initial autoplay prevented or video not ready:", error);
+            });
+        }
+
+        // Robust mobile fallback: play on first user interaction
+        const forcePlayVideo = () => {
             if (heroVideo.paused) {
-                heroVideo.play();
+                heroVideo.play()
+                    .then(() => {
+                        cleanupListeners();
+                    })
+                    .catch(err => {
+                        console.log("Playback failed on user interaction:", err);
+                    });
+            } else {
+                cleanupListeners();
             }
-        }, { once: true });
+        };
+
+        const events = ['touchstart', 'click', 'keydown'];
+        const cleanupListeners = () => {
+            events.forEach(event => {
+                document.body.removeEventListener(event, forcePlayVideo);
+            });
+        };
+
+        events.forEach(event => {
+            document.body.addEventListener(event, forcePlayVideo, { passive: true });
+        });
     }
     
     // ----------------------------------------------------
