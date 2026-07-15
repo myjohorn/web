@@ -987,13 +987,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     showGcalDebug(`[조회 중] 캘린더 [${cal.summary}] 검색 중...`);
                     
                     const token = localStorage.getItem('gcal_access_token');
-                    const apiKey = localStorage.getItem('gcal_api_key') || '';
                     let url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cal.id)}/events`;
                     url += `?timeMin=${encodeURIComponent(timeMin)}`;
                     url += `&timeMax=${encodeURIComponent(timeMax)}`;
                     url += `&singleEvents=true`;
                     url += `&maxResults=100`;
-                    if (apiKey) url += `&key=${encodeURIComponent(apiKey)}`;
 
                     const response = await fetch(url, {
                         headers: { 'Authorization': `Bearer ${token}` }
@@ -1025,14 +1023,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isGcalConnected()) return [];
         const token = localStorage.getItem('gcal_access_token');
         const calendarId = localStorage.getItem('gcal_calendar_id') || 'primary';
-        const apiKey = localStorage.getItem('gcal_api_key') || '';
         
         let url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
         url += `?timeMin=${encodeURIComponent(timeMin)}`;
         url += `&timeMax=${encodeURIComponent(timeMax)}`;
         url += `&singleEvents=true`;
         url += `&maxResults=250`;
-        if (apiKey) url += `&key=${encodeURIComponent(apiKey)}`;
         
         try {
             const response = await fetch(url, {
