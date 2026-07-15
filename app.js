@@ -29,6 +29,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize Firebase Realtime Database
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+
+    // Helper: format Date object to YYYY-MM-DD in local time (timezone-safe)
+    function getLocalDateString(date) {
+        if (!date) return '';
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
+    // Helper: parse YYYY-MM-DD string into local midnight Date object (timezone-safe)
+    function parseLocalDate(dateStr) {
+        if (!dateStr) return null;
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) return new Date(dateStr); // Fallback
+        return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    }
     
     // Hero Video Autoplay & Control Overlay (Mobile Friendly)
     const heroVideo = document.getElementById('heroVideo');
@@ -272,10 +289,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // 1. Merge local storage bookings (Status: approved/완료)
         data.forEach(item => {
             if (item.type === 'stay' && item.status === 'approved' && item.checkin && item.checkout) {
-                let start = new Date(item.checkin);
-                let end = new Date(item.checkout);
+                let start = parseLocalDate(item.checkin);
+                let end = parseLocalDate(item.checkout);
                 while (start <= end) {
-                    const dateStr = start.toISOString().split('T')[0];
+                    const dateStr = getLocalDateString(start);
                     if (!map[dateStr]) {
                         map[dateStr] = [];
                     }
@@ -294,10 +311,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 2. Merge Google Calendar events from cache
         gcalEventsCache.forEach(evt => {
-            let start = new Date(evt.start);
-            let end = new Date(evt.end);
+            let start = parseLocalDate(evt.start);
+            let end = parseLocalDate(evt.end);
             while (start <= end) {
-                const dateStr = start.toISOString().split('T')[0];
+                const dateStr = getLocalDateString(start);
                 
                 // Extract clean name from GCal event summary (Format: "[숙소예약] 홍길동" or "홍길동")
                 const name = evt.summary.replace('\[숙소예약\]', '').trim();
@@ -357,7 +374,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cell.className = 'calendar-cell';
 
             const thisDate = new Date(currentYear, currentMonth, day);
-            const dateStr = thisDate.toISOString().split('T')[0];
+            const dateStr = getLocalDateString(thisDate);
 
             // Highlight today
             if (thisDate.toDateString() === today.toDateString()) {
@@ -388,10 +405,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Highlight selected range
-            if (checkinDate && dateStr === checkinDate.toISOString().split('T')[0]) {
+            if (checkinDate && dateStr === getLocalDateString(checkinDate)) {
                 cell.classList.add('selected');
             }
-            if (checkoutDate && dateStr === checkoutDate.toISOString().split('T')[0]) {
+            if (checkoutDate && dateStr === getLocalDateString(checkoutDate)) {
                 cell.classList.add('selected');
             }
             if (checkinDate && checkoutDate && thisDate > checkinDate && thisDate < checkoutDate) {
@@ -505,8 +522,8 @@ document.addEventListener('DOMContentLoaded', () => {
             notes: notes,
             status: 'pending',
             dateCreated: new Date().toLocaleDateString(),
-            checkin: checkinDate.toISOString().split('T')[0],
-            checkout: checkoutDate.toISOString().split('T')[0]
+            checkin: getLocalDateString(checkinDate),
+            checkout: getLocalDateString(checkoutDate)
         };
 
         // Save to Firebase
@@ -1063,8 +1080,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const calendarId = localStorage.getItem('gcal_calendar_id') || 'primary';
         
         // GCal allday end date must be exclusive (+1 day)
-        const checkinDate = new Date(booking.checkin);
-        const checkoutDate = new Date(booking.checkout);
+        const checkoutDate = parseLocalDate(booking.checkout);
         const exclusiveCheckout = new Date(checkoutDate);
         exclusiveCheckout.setDate(exclusiveCheckout.getDate() + 1);
         
@@ -1075,7 +1091,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 date: booking.checkin
             },
             end: {
-                date: exclusiveCheckout.toISOString().split('T')[0]
+                date: getLocalDateString(exclusiveCheckout)
             }
         };
 
@@ -1142,9 +1158,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function adjustGcalEndDate(isStartDateOnly, isEndDateOnly, endStr) {
         const dateStr = endStr.split('T')[0];
         if (isStartDateOnly && isEndDateOnly) {
-            const d = new Date(dateStr);
+            const d = parseLocalDate(dateStr);
             d.setDate(d.getDate() - 1);
-            return d.toISOString().split('T')[0];
+            return getLocalDateString(d);
         }
         return dateStr;
     }
@@ -1311,7 +1327,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cell.className = 'calendar-cell';
             
             const thisDate = new Date(adminYear, adminMonth, day);
-            const dateStr = thisDate.toISOString().split('T')[0];
+            const dateStr = getLocalDateString(thisDate);
 
             if (thisDate.toDateString() === today.toDateString()) {
                 cell.classList.add('today');
@@ -1373,7 +1389,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     cell.classList.add('active-select');
                     if (adminResDeleteBtn) adminResDeleteBtn.classList.add('hidden');
                     
-                    const clickedDateStr = thisDate.toISOString().split('T')[0];
+                    const clickedDateStr = getLocalDateString(thisDate);
                     const checkinVal = adminResCheckinInput.value;
                     const checkoutVal = adminResCheckoutInput.value;
 
@@ -1404,7 +1420,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (adminResDeleteBtn) adminResDeleteBtn.classList.add('hidden');
 
                     // Set dates in form
-                    const clickedDateStr = thisDate.toISOString().split('T')[0];
+                    const clickedDateStr = getLocalDateString(thisDate);
                     const checkinVal = adminResCheckinInput.value;
                     const checkoutVal = adminResCheckoutInput.value;
 
@@ -1565,7 +1581,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     contact: contactVal,
                     notes: memoVal,
                     status: 'approved', // Direct bookings are auto-approved
-                    dateCreated: new Date().toISOString().split('T')[0].replace(/-/g, '/'),
+                    dateCreated: getLocalDateString(new Date()).replace(/-/g, '/'),
                     checkin: checkinVal,
                     checkout: checkoutVal,
                     gcalEventId: syncedGcalId || null
