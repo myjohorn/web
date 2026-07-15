@@ -1040,30 +1040,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fetch Events via direct Google Calendar REST API
     async function fetchGcalEvents(timeMin, timeMax) {
-        const apiKey = localStorage.getItem('gcal_api_key');
-        const calendarId = localStorage.getItem('gcal_calendar_id') || 'primary';
+        if (!isGcalConnected()) return [];
         const token = localStorage.getItem('gcal_access_token');
-        const connected = isGcalConnected();
-
-        if (!connected && !apiKey) return [];
-
+        const calendarId = localStorage.getItem('gcal_calendar_id') || 'primary';
+        
         let url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
         url += `?timeMin=${encodeURIComponent(timeMin)}`;
         url += `&timeMax=${encodeURIComponent(timeMax)}`;
         url += `&singleEvents=true`;
         url += `&maxResults=250`;
-
-        if (!connected) {
-            url += `&key=${apiKey}`;
-        }
-
+        
         try {
-            const headers = {};
-            if (connected && token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
-
-            const response = await fetch(url, { headers });
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
             if (!response.ok) {
                 if (response.status === 401) {
                     // Access token is invalid or expired
@@ -1197,13 +1189,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Asynchronously fetch Google Calendar events and trigger calendar rendering
     async function loadGcalEventsForCurrentMonth() {
         const connected = isGcalConnected();
-        const apiKey = localStorage.getItem('gcal_api_key');
-        
-        if (!connected && !apiKey) {
-            gcalEventsCache = [];
-            showGcalDebug('구글 연동 해제됨 또는 세션 없음');
-            return;
-        }
+        if (!connected) return; // Guests read from Firebase Cache listener instead!
 
         const startOfMonth = new Date(currentYear, currentMonth - 1, 20); // Prev month buffer
         const endOfMonth = new Date(currentYear, currentMonth + 1, 10);  // Next month buffer
@@ -1217,14 +1203,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const events = await fetchGcalEvents(timeMin, timeMax);
             
             // Only fetch calendar list if admin is connected (requires OAuth authorization)
-            let calDetails = '일반 방문자 조회';
-            if (connected) {
-                try {
-                    const calendars = await fetchCalendarList();
-                    calDetails = calendars.map(c => `[${c.summary} (ID: ${c.id})]`).join(', ');
-                } catch (err) {
-                    console.warn('Calendar list fetch failed:', err);
-                }
+            let calDetails = '없음';
+            try {
+                const calendars = await fetchCalendarList();
+                calDetails = calendars.map(c => `[${c.summary} (ID: ${c.id})]`).join(', ');
+            } catch (err) {
+                console.warn('Calendar list fetch failed:', err);
             }
             
             // Raw events details to inspect what GCal API returned
@@ -1244,6 +1228,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     end: adjustGcalEndDate(!!evt.start.date, !!evt.end.date, end)
                 };
             });
+
+            // Write GCal cache to Firebase so guests can see them!
+            db.ref('settings/gcal_events_cache').set(gcalEventsCache);
 
             const matchNames = gcalEventsCache.map(e => e.summary).join(', ') || '없음';
             showGcalDebug(`동기화 완료: ${gcalEventsCache.length}개 일정 매핑됨 (${matchNames}).\n\n[API 원본 응답]: ${rawEventDetails || '없음'}\n\n내 계정 캘린더 목록: ${calDetails}`);
@@ -1270,7 +1257,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (gcalCalendarId) gcalCalendarId.value = val.calendarId || 'primary';
             
             updateGcalUI(isGcalConnected());
-            loadGcalEventsForCurrentMonth();
+            if (isGcalConnected()) {
+                loadGcalEventsForCurrentMonth();
+            }
         }
     });
 
@@ -1292,6 +1281,15 @@ document.addEventListener('DOMContentLoaded', () => {
         renderAdminCalendar();
         if (!document.getElementById('adminDashboard').classList.contains('hidden')) {
             renderAdminDashboard();
+        }
+    });
+
+    // Listen for GCal events cache in Firebase (for guests to display GCal bookings securely)
+    db.ref('settings/gcal_events_cache').on('value', (snapshot) => {
+        if (!isGcalConnected()) {
+            gcalEventsCache = snapshot.val() || [];
+            renderCalendar();
+            renderAdminCalendar();
         }
     });
 
