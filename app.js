@@ -11,6 +11,25 @@ document.addEventListener('DOMContentLoaded', () => {
     let tokenClient;
     let gcalEventsCache = [];
     
+    // Global Reservations Cache (Synchronized with Firebase Realtime Database)
+    let johornRequests = [];
+
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAgWQBqwEF_qWBLPmvoUsDEqB_gFbRH2xw",
+      authDomain: "johorn-booking.firebaseapp.com",
+      databaseURL: "https://johorn-booking-default-rtdb.asia-southeast1.firebasedatabase.app/",
+      projectId: "johorn-booking",
+      storageBucket: "johorn-booking.firebasestorage.app",
+      messagingSenderId: "872157980397",
+      appId: "1:872157980397:web:f5518fa42bd79835338ee4",
+      measurementId: "G-6RJ2YY46S1"
+    };
+
+    // Initialize Firebase Realtime Database
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    
     // Hero Video Autoplay & Control Overlay (Mobile Friendly)
     const heroVideo = document.getElementById('heroVideo');
     const videoOverlay = document.getElementById('videoControlOverlay');
@@ -247,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fetch approved bookings map to lock dates
     function getLockedDatesMap() {
-        const data = JSON.parse(localStorage.getItem('johorn_requests') || '[]');
+        const data = johornRequests;
         const map = {};
         
         // 1. Merge local storage bookings (Status: approved/완료)
@@ -473,7 +492,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Structure Request Data
         const newRequest = {
-            id: Date.now(),
             type: 'stay',
             name: name,
             contact: contact,
@@ -484,10 +502,8 @@ document.addEventListener('DOMContentLoaded', () => {
             checkout: checkoutDate.toISOString().split('T')[0]
         };
 
-        // Save to LocalStorage
-        const requests = JSON.parse(localStorage.getItem('johorn_requests') || '[]');
-        requests.push(newRequest);
-        localStorage.setItem('johorn_requests', JSON.stringify(requests));
+        // Save to Firebase
+        db.ref('requests').push(newRequest);
 
         alert('Teega Residence 숙소 예약 신청이 접수되었습니다. 관리자 승인 후 연락드리겠습니다.');
 
@@ -497,12 +513,6 @@ document.addEventListener('DOMContentLoaded', () => {
         checkoutDate = null;
         checkinDisplay.textContent = '달력에서 선택해 주세요';
         checkoutDisplay.textContent = '달력에서 선택해 주세요';
-        renderCalendar();
-        
-        // Refresh admin dashboard table if currently viewing it
-        if (!document.getElementById('adminDashboard').classList.contains('hidden')) {
-            renderAdminDashboard();
-        }
     });
 
     // Form 2: Consulting Inquiry Form Submission
@@ -534,7 +544,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Structure Request Data
         const newRequest = {
-            id: Date.now(),
             type: 'consulting',
             name: name,
             contact: contact,
@@ -545,20 +554,13 @@ document.addEventListener('DOMContentLoaded', () => {
             checkout: null
         };
 
-        // Save to LocalStorage
-        const requests = JSON.parse(localStorage.getItem('johorn_requests') || '[]');
-        requests.push(newRequest);
-        localStorage.setItem('johorn_requests', JSON.stringify(requests));
+        // Save to Firebase
+        db.ref('requests').push(newRequest);
 
         alert('이주정착 & 학교 상담 신청이 완료되었습니다. 조속히 피드백 드리겠습니다.');
 
         // Reset state
         consultingInquiryForm.reset();
-        
-        // Refresh admin dashboard table if currently viewing it
-        if (!document.getElementById('adminDashboard').classList.contains('hidden')) {
-            renderAdminDashboard();
-        }
     });
 
 
@@ -571,35 +573,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminDashboardSection = document.getElementById('adminDashboard');
     const adminTableBody = document.getElementById('adminTableBody');
 
-    // Load initial Mock Data to LocalStorage if empty
+    // Load initial Mock Data to Firebase if empty
     function initializeMockData() {
-        if (!localStorage.getItem('johorn_requests')) {
-            const mockData = [
-                {
-                    id: 1,
-                    type: 'consulting',
-                    name: '김민준',
-                    contact: '010-1234-5678',
-                    notes: '초등학교 3학년, 5학년 자녀 학기 맞춰 입학 대행 및 답사 조율 상담 원합니다.',
-                    status: 'pending',
-                    dateCreated: '2026/07/01',
-                    checkin: null,
-                    checkout: null
-                },
-                {
-                    id: 2,
-                    type: 'stay',
-                    name: '이서연',
-                    contact: 'Kakao: seoyeon_johor',
-                    notes: '답사 일정에 맞춰 3베드룸 렌트 신청합니다.',
-                    status: 'approved',
-                    dateCreated: '2026/07/02',
-                    checkin: '2026-07-15',
-                    checkout: '2026-07-20'
-                }
-            ];
-            localStorage.setItem('johorn_requests', JSON.stringify(mockData));
-        }
+        db.ref('requests').once('value', (snapshot) => {
+            if (!snapshot.exists()) {
+                const mockData = {
+                    "mock_1": {
+                        type: 'consulting',
+                        name: '김민준',
+                        contact: '010-1234-5678',
+                        notes: '초등학교 3학년, 5학년 자녀 학기 맞춰 입학 대행 및 답사 조율 상담 원합니다.',
+                        status: 'pending',
+                        dateCreated: '2026/07/01',
+                        checkin: null,
+                        checkout: null
+                    },
+                    "mock_2": {
+                        type: 'stay',
+                        name: '이서연',
+                        contact: 'Kakao: seoyeon_johor',
+                        notes: '답사 일정에 맞춰 3베드룸 렌트 신청합니다.',
+                        status: 'approved',
+                        dateCreated: '2026/07/02',
+                        checkin: '2026-07-15',
+                        checkout: '2026-07-20'
+                    }
+                };
+                db.ref('requests').set(mockData);
+            }
+        });
     }
     initializeMockData();
 
@@ -625,7 +627,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentFilter = 'all';
 
     function renderAdminDashboard() {
-        const data = JSON.parse(localStorage.getItem('johorn_requests') || '[]');
+        const data = johornRequests;
         adminTableBody.innerHTML = '';
 
         // Filter Data
@@ -704,28 +706,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add Change status listener to select tags
         document.querySelectorAll('.action-select').forEach(select => {
             select.addEventListener('change', (e) => {
-                const id = parseInt(e.target.getAttribute('data-id'));
+                const id = e.target.getAttribute('data-id');
                 const newStatus = e.target.value;
                 updateRequestStatus(id, newStatus);
             });
         });
     }
 
-    // Update Status and Refresh
+    // Update Status in Firebase (Realtime Database will automatically trigger UI refresh)
     function updateRequestStatus(id, newStatus) {
-        const data = JSON.parse(localStorage.getItem('johorn_requests') || '[]');
-        const updated = data.map(item => {
-            if (item.id === id) {
-                item.status = newStatus;
-            }
-            return item;
-        });
-        localStorage.setItem('johorn_requests', JSON.stringify(updated));
-        
-        // Re-render
-        renderAdminDashboard();
-        renderCalendar(); // Sync locked calendar dates immediately
-        renderAdminCalendar(); // Sync admin calendar immediately
+        db.ref(`requests/${id}/status`).set(newStatus);
     }
 
     // Filter Buttons logic
@@ -899,10 +889,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Save inputs to localStorage
+        // Save inputs to localStorage & Firebase Realtime Database (so they never evaporate)
         localStorage.setItem('gcal_client_id', clientId);
         localStorage.setItem('gcal_api_key', apiKey);
         localStorage.setItem('gcal_calendar_id', calendarId);
+
+        db.ref('settings/gcal').set({
+            clientId: clientId,
+            apiKey: apiKey,
+            calendarId: calendarId
+        });
 
         try {
             // Google Accounts Library Client Initialization (OAuth2 GIS)
@@ -1207,7 +1203,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             });
 
-            const matchNames = gcalEventsCache.map(e => e.summary).join(', ') || '없음';
             showGcalDebug(`동기화 완료: ${gcalEventsCache.length}개 일정 매핑됨 (${matchNames}).\n\n[API 원본 응답]: ${rawEventDetails || '없음'}\n\n내 계정 캘린더 목록: ${calDetails}`);
 
             // Trigger calendars rendering with GCal events in cache
@@ -1218,11 +1213,46 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Initial GCal state load
-    updateGcalUI(isGcalConnected());
-    if (isGcalConnected()) {
-        loadGcalEventsForCurrentMonth();
-    }
+    // Sync GCal settings from Firebase Realtime Database on startup & whenever changed
+    db.ref('settings/gcal').on('value', (snapshot) => {
+        const val = snapshot.val();
+        if (val) {
+            localStorage.setItem('gcal_client_id', val.clientId || '');
+            localStorage.setItem('gcal_api_key', val.apiKey || '');
+            localStorage.setItem('gcal_calendar_id', val.calendarId || 'primary');
+            
+            // Re-populate inputs in GCal settings UI
+            if (gcalClientId) gcalClientId.value = val.clientId || '';
+            if (gcalApiKey) gcalApiKey.value = val.apiKey || '';
+            if (gcalCalendarId) gcalCalendarId.value = val.calendarId || 'primary';
+            
+            updateGcalUI(isGcalConnected());
+            if (isGcalConnected()) {
+                loadGcalEventsForCurrentMonth();
+            }
+        }
+    });
+
+    // Listen for Real-Time Reservation Updates in Firebase
+    db.ref('requests').on('value', (snapshot) => {
+        const val = snapshot.val();
+        johornRequests = [];
+        if (val) {
+            Object.keys(val).forEach(key => {
+                johornRequests.push({
+                    id: key, // Firebase unique push ID
+                    ...val[key]
+                });
+            });
+        }
+        
+        // Re-render all views automatically whenever DB changes!
+        renderCalendar();
+        renderAdminCalendar();
+        if (!document.getElementById('adminDashboard').classList.contains('hidden')) {
+            renderAdminDashboard();
+        }
+    });
 
     // ----------------------------------------------------
     // Admin Calendar Implementation
@@ -1305,9 +1335,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         adminResMemoInput.value = booking.notes;
                         adminFormTitle.innerHTML = `<i class="fa-solid fa-calendar-check" style="margin-right: 6px;"></i> 구글 캘린더 예약 수정 / 상세`;
                     } else {
-                        // Fetch full booking data by ID
-                        const data = JSON.parse(localStorage.getItem('johorn_requests') || '[]');
-                        const fullItem = data.find(item => item.id === booking.id);
+                        // Fetch full booking data by ID from Firebase requests cache
+                        const data = johornRequests;
+                        const fullItem = data.find(item => item.id.toString() === booking.id.toString());
                         if (fullItem) {
                             adminResIdInput.value = fullItem.id;
                             adminResNameInput.value = fullItem.name;
@@ -1419,7 +1449,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const data = JSON.parse(localStorage.getItem('johorn_requests') || '[]');
+            const data = johornRequests;
             const isGcalConnectedVal = isGcalConnected();
             
             const bookingObj = {
@@ -1432,7 +1462,8 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             if (idVal) {
-                const isGcalOnly = isNaN(idVal); // GCal string ID
+                const isLocalRequest = johornRequests.some(item => item.id.toString() === idVal.toString());
+                const isGcalOnly = !isLocalRequest;
                 
                 if (isGcalOnly) {
                     if (isGcalConnectedVal) {
@@ -1449,9 +1480,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         return;
                     }
                 } else {
-                    // Local booking edit
-                    const targetId = parseInt(idVal);
-                    const existingItem = data.find(item => item.id === targetId);
+                    // Local Firebase booking edit
+                    const targetId = idVal;
+                    const existingItem = data.find(item => item.id.toString() === targetId.toString());
                     
                     let syncedGcalId = null;
                     if (isGcalConnectedVal) {
@@ -1460,18 +1491,20 @@ document.addEventListener('DOMContentLoaded', () => {
                         syncedGcalId = await saveGcalEvent(bookingObj);
                     }
 
-                    const updated = data.map(item => {
-                        if (item.id === targetId) {
-                            item.name = nameVal;
-                            item.contact = contactVal;
-                            item.checkin = checkinVal;
-                            item.checkout = checkoutVal;
-                            item.notes = memoVal;
-                            if (syncedGcalId) item.gcalEventId = syncedGcalId;
-                        }
-                        return item;
-                    });
-                    localStorage.setItem('johorn_requests', JSON.stringify(updated));
+                    const updateObj = {
+                        name: nameVal,
+                        contact: contactVal,
+                        checkin: checkinVal,
+                        checkout: checkoutVal,
+                        notes: memoVal
+                    };
+                    if (syncedGcalId) {
+                        updateObj.gcalEventId = syncedGcalId;
+                    } else if (existingItem && existingItem.gcalEventId) {
+                        updateObj.gcalEventId = existingItem.gcalEventId;
+                    }
+
+                    db.ref(`requests/${targetId}`).update(updateObj);
                     alert('예약이 수정되었습니다.');
                 }
             } else {
@@ -1483,7 +1516,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const newRes = {
-                    id: Date.now(),
                     type: 'stay',
                     name: nameVal,
                     contact: contactVal,
@@ -1494,8 +1526,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     checkout: checkoutVal,
                     gcalEventId: syncedGcalId || null
                 };
-                data.push(newRes);
-                localStorage.setItem('johorn_requests', JSON.stringify(data));
+                
+                db.ref('requests').push(newRes);
                 
                 if (syncedGcalId) {
                     alert('구글 캘린더에 예약이 등록되었습니다.');
@@ -1539,10 +1571,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
             } else {
-                // Local storage booking deletion
-                const targetId = parseInt(idVal);
-                const data = JSON.parse(localStorage.getItem('johorn_requests') || '[]');
-                const targetItem = data.find(item => item.id === targetId);
+                // Local Firebase database booking deletion
+                const targetId = idVal;
+                const targetItem = johornRequests.find(item => item.id.toString() === targetId.toString());
 
                 // If connected and synced, delete from GCal
                 if (isGcalConnectedVal && targetItem && targetItem.gcalEventId) {
@@ -1550,15 +1581,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     await deleteGcalEvent(targetItem.gcalEventId);
                 }
 
-                // Filter out of local requests
-                const filtered = data.filter(item => item.id !== targetId);
-                localStorage.setItem('johorn_requests', JSON.stringify(filtered));
+                // Remove from Firebase Realtime Database
+                db.ref(`requests/${targetId}`).remove();
                 alert('예약이 삭제되었습니다.');
             }
 
-            // Reset and refresh
+            // Reset and load latest GCal events (Firebase requests listener automatically updates the UI)
             resetAdminResForm();
-            renderAdminDashboard();
             await loadGcalEventsForCurrentMonth();
         });
     }
