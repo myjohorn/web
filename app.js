@@ -837,6 +837,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const gcalConnectBtn = document.getElementById('gcalConnectBtn');
     const gcalDisconnectBtn = document.getElementById('gcalDisconnectBtn');
     const adminResDeleteBtn = document.getElementById('adminResDeleteBtn');
+    const gcalDebugInfo = document.getElementById('gcalDebugInfo');
+    const gcalDebugText = document.getElementById('gcalDebugText');
+
+    function showGcalDebug(msg) {
+        if (gcalDebugInfo && gcalDebugText) {
+            gcalDebugInfo.style.display = 'block';
+            gcalDebugText.textContent = msg;
+        }
+    }
 
     // Toggle GCal settings display
     if (toggleGcalSettings && gcalSettingsBody) {
@@ -1085,6 +1094,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadGcalEventsForCurrentMonth() {
         if (!isGcalConnected()) {
             gcalEventsCache = [];
+            showGcalDebug('구글 연동 해제됨 또는 세션 없음');
             return;
         }
 
@@ -1094,23 +1104,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const timeMin = startOfMonth.toISOString();
         const timeMax = endOfMonth.toISOString();
 
-        const events = await fetchGcalEvents(timeMin, timeMax);
-        
-        gcalEventsCache = events.map(evt => {
-            const start = evt.start.date || evt.start.dateTime;
-            const end = evt.end.date || evt.end.dateTime;
-            return {
-                id: evt.id,
-                summary: evt.summary || '예약 완료',
-                description: evt.description || '',
-                start: start.split('T')[0],
-                end: adjustGcalEndDate(!!evt.start.date, !!evt.end.date, end)
-            };
-        });
+        showGcalDebug(`일정 조회 요청 중... 범위: ${timeMin.split('T')[0]} ~ ${timeMax.split('T')[0]}`);
 
-        // Trigger calendars rendering with GCal events in cache
-        renderCalendar();
-        renderAdminCalendar();
+        try {
+            const events = await fetchGcalEvents(timeMin, timeMax);
+            showGcalDebug(`구글 API 응답 수신: 일정 ${events.length}개 발견`);
+            
+            gcalEventsCache = events.map(evt => {
+                const start = evt.start.date || evt.start.dateTime;
+                const end = evt.end.date || evt.end.dateTime;
+                return {
+                    id: evt.id,
+                    summary: evt.summary || '예약 완료',
+                    description: evt.description || '',
+                    start: start.split('T')[0],
+                    end: adjustGcalEndDate(!!evt.start.date, !!evt.end.date, end)
+                };
+            });
+
+            showGcalDebug(`동기화 완료: ${gcalEventsCache.length}개 일정 매핑됨 (${gcalEventsCache.map(e => e.summary).join(', ') || '없음'})`);
+
+            // Trigger calendars rendering with GCal events in cache
+            renderCalendar();
+            renderAdminCalendar();
+        } catch (e) {
+            showGcalDebug(`오류 발생: ${e.message}`);
+        }
     }
 
     // Initial GCal state load
