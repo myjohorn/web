@@ -795,8 +795,17 @@ section {
     background-color: var(--bg-secondary);
 }
 
+.admin-table tbody tr {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
 .admin-table tbody tr:hover {
-    background-color: var(--bg-primary);
+    background-color: var(--bg-secondary) !important;
+}
+
+.admin-table tbody tr.selected-row {
+    background-color: rgba(122, 114, 101, 0.15) !important;
 }
 
 .status-badge {

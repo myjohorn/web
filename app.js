@@ -692,6 +692,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = johornRequests;
         adminTableBody.innerHTML = '';
 
+        // Reset details panel when dashboard re-renders
+        const detailPanel = document.getElementById('adminDetailPanel');
+        if (detailPanel) {
+            detailPanel.classList.add('hidden');
+        }
+
         // Filter Data
         const filtered = data.filter(item => {
             if (currentFilter === 'all') return true;
@@ -762,6 +768,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
             `;
 
+            // Row Click Listener for detailed view
+            tr.addEventListener('click', (e) => {
+                // Prevent details panel from showing up if clicking on actions select box
+                if (e.target.classList.contains('action-select') || e.target.tagName === 'OPTION') {
+                    return;
+                }
+                
+                // Highlight row
+                document.querySelectorAll('#adminTableBody tr').forEach(row => row.classList.remove('selected-row'));
+                tr.classList.add('selected-row');
+                
+                showRequestDetails(item);
+            });
+
             adminTableBody.appendChild(tr);
         });
 
@@ -778,6 +798,72 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update Status in Firebase (Realtime Database will automatically trigger UI refresh)
     function updateRequestStatus(id, newStatus) {
         db.ref(`requests/${id}/status`).set(newStatus);
+    }
+
+    // Show detailed info below the table when a row is clicked
+    function showRequestDetails(item) {
+        const detailPanel = document.getElementById('adminDetailPanel');
+        const detailContent = document.getElementById('adminDetailContent');
+        if (!detailPanel || !detailContent) return;
+
+        let badgeClass = 'status-pending';
+        if (item.status === 'approved') badgeClass = 'status-approved';
+        if (item.status === 'rejected') badgeClass = 'status-rejected';
+
+        let statusLabel = '대기중';
+        if (item.type === 'stay') {
+            if (item.status === 'pending') statusLabel = '예약접수';
+            if (item.status === 'approved') statusLabel = '예약완료';
+            if (item.status === 'rejected') statusLabel = '예약반려';
+        } else {
+            if (item.status === 'pending') statusLabel = '상담접수';
+            if (item.status === 'approved') statusLabel = '상담완료';
+            if (item.status === 'rejected') statusLabel = '상담반려';
+        }
+
+        let contentMarkup = '';
+        if (item.type === 'stay') {
+            contentMarkup = `
+                <div class="detail-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                    <div>
+                        <p style="margin-bottom: 8px;"><strong>구분:</strong> <span style="color: var(--accent-color); font-weight: 600;">숙소 예약 신청</span></p>
+                        <p style="margin-bottom: 8px;"><strong>신청자 성함:</strong> ${item.name}</p>
+                        <p style="margin-bottom: 8px;"><strong>연락처:</strong> ${item.contact}</p>
+                        <p style="margin-bottom: 8px;"><strong>접수일시:</strong> ${item.dateCreated || '-'}</p>
+                    </div>
+                    <div>
+                        <p style="margin-bottom: 8px;"><strong>체크인 날짜:</strong> ${item.checkin}</p>
+                        <p style="margin-bottom: 8px;"><strong>체크아웃 날짜:</strong> ${item.checkout}</p>
+                        <p style="margin-bottom: 8px;"><strong>현재 상태:</strong> <span class="status-badge ${badgeClass}">${statusLabel}</span></p>
+                    </div>
+                </div>
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                    <strong style="display: block; margin-bottom: 10px; font-size: 14px; color: var(--text-primary);">상세 내역 / 요청 사항:</strong>
+                    <pre style="margin: 0; font-family: inherit; white-space: pre-wrap; font-size: 13px; color: var(--text-secondary); background: #fcfbfa; padding: 15px; border: 1px solid var(--border-color); border-radius: 4px; line-height: 1.6; text-align: left;">${item.notes || '없음'}</pre>
+                </div>
+            `;
+        } else {
+            contentMarkup = `
+                <div class="detail-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                    <div>
+                        <p style="margin-bottom: 8px;"><strong>구분:</strong> <span style="color: var(--accent-color); font-weight: 600;">이주정착 & 국제학교 상담 문의</span></p>
+                        <p style="margin-bottom: 8px;"><strong>신청자 성함:</strong> ${item.name}</p>
+                        <p style="margin-bottom: 8px;"><strong>연락처:</strong> ${item.contact}</p>
+                    </div>
+                    <div>
+                        <p style="margin-bottom: 8px;"><strong>접수일시:</strong> ${item.dateCreated || '-'}</p>
+                        <p style="margin-bottom: 8px;"><strong>현재 상태:</strong> <span class="status-badge ${badgeClass}">${statusLabel}</span></p>
+                    </div>
+                </div>
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                    <strong style="display: block; margin-bottom: 10px; font-size: 14px; color: var(--text-primary);">상세 상담 문의 내역:</strong>
+                    <pre style="margin: 0; font-family: inherit; white-space: pre-wrap; font-size: 13px; color: var(--text-secondary); background: #fcfbfa; padding: 15px; border: 1px solid var(--border-color); border-radius: 4px; line-height: 1.6; text-align: left;">${item.notes || '없음'}</pre>
+                </div>
+            `;
+        }
+
+        detailContent.innerHTML = contentMarkup;
+        detailPanel.classList.remove('hidden');
     }
 
     // Filter Buttons logic
