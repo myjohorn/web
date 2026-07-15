@@ -60,13 +60,97 @@ document.addEventListener('DOMContentLoaded', () => {
         return dateStr;
     }
 
-    // Helper: secure SHA-256 hash using Web Crypto API (requires no external libraries)
-    async function sha256(message) {
-        const msgBuffer = new TextEncoder().encode(message);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        return hashHex;
+    // Helper: secure SHA-256 hash in pure JS (no browser Web Crypto API dependencies, works in HTTP & HTTPS)
+    function sha256(ascii) {
+        function rightRotate(value, amount) {
+            return (value >>> amount) | (value << (32 - amount));
+        }
+        
+        var mathPow = Math.pow;
+        var maxWord = mathPow(2, 32);
+        var lengthProperty = 'length';
+        var i, j;
+        var result = '';
+
+        var words = [];
+        var asciiLength = ascii[lengthProperty] * 8;
+        
+        var hash = sha256.h = sha256.h || [];
+        var k = sha256.k = sha256.k || [];
+        var primeCounter = k[lengthProperty];
+
+        var isPrime = function(n) {
+            var divisor = 2;
+            while (n % divisor) {
+                divisor++;
+            }
+            return n === divisor;
+        };
+
+        var candidate = 2;
+        while (primeCounter < 64) {
+            if (isPrime(candidate)) {
+                if (primeCounter < 8) {
+                    hash[primeCounter] = (mathPow(candidate, .5) * maxWord) | 0;
+                }
+                k[primeCounter] = (mathPow(candidate, 1/3) * maxWord) | 0;
+                primeCounter++;
+            }
+            candidate++;
+        }
+        
+        ascii += '\x80';
+        while (ascii[lengthProperty] % 64 - 56) {
+            ascii += '\x00';
+        }
+        
+        for (i = 0; i < ascii[lengthProperty]; i++) {
+            j = ascii.charCodeAt(i);
+            if (j >> 8) return;
+            words[i >> 2] |= j << ((3 - i % 4) * 8);
+        }
+        words[words[lengthProperty]] = ((asciiLength / maxWord) | 0);
+        words[words[lengthProperty]] = (asciiLength | 0);
+        
+        var workingHash = hash.slice(0);
+        for (i = 0; i < words[lengthProperty]; i += 16) {
+            var w = words.slice(i, i + 16);
+            var oldHash = workingHash.slice(0);
+            
+            for (j = 0; j < 64; j++) {
+                var wj = w[j];
+                if (j >= 16) {
+                    var s0 = rightRotate(w[j - 15], 7) ^ rightRotate(w[j - 15], 18) ^ (w[j - 15] >>> 3);
+                    var s1 = rightRotate(w[j - 2], 17) ^ rightRotate(w[j - 2], 19) ^ (w[j - 2] >>> 10);
+                    wj = w[j] = (w[j - 16] + s0 + w[j - 7] + s1) | 0;
+                }
+                
+                var ch = (workingHash[4] & workingHash[5]) ^ (~workingHash[4] & workingHash[6]);
+                var maj = (workingHash[0] & workingHash[1]) ^ (workingHash[0] & workingHash[2]) ^ (workingHash[1] & workingHash[2]);
+                var sigma0 = rightRotate(workingHash[0], 2) ^ rightRotate(workingHash[0], 13) ^ rightRotate(workingHash[0], 22);
+                var sigma1 = rightRotate(workingHash[4], 6) ^ rightRotate(workingHash[4], 11) ^ rightRotate(workingHash[4], 25);
+                var temp1 = (wj + workingHash[7] + sigma1 + ch + k[j]) | 0;
+                var temp2 = (sigma0 + maj) | 0;
+                
+                workingHash = [(temp1 + temp2) | 0].concat(workingHash);
+                workingHash[4] = (workingHash[4] + temp1) | 0;
+                workingHash.length = 8;
+            }
+            
+            for (j = 0; j < 8; j++) {
+                workingHash[j] = (workingHash[j] + oldHash[j]) | 0;
+            }
+        }
+        
+        for (i = 0; i < 8; i++) {
+            var word = workingHash[i];
+            if (word < 0) {
+                word = 4294967296 + word;
+            }
+            var hex = word.toString(16);
+            result += ('00000000' + hex).slice(-8);
+        }
+        return result;
     }
 
     // ----------------------------------------------------
@@ -141,9 +225,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    async function handleAdminLogin() {
+    function handleAdminLogin() {
         const password = adminPasswordInput.value;
-        const typedHash = await sha256(password);
+        const typedHash = sha256(password);
         if (typedHash === storedPasswordHash) {
             sessionStorage.setItem('admin_logged_in', 'true');
             adminLoginSection.classList.add('hidden');
@@ -265,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                const currentHash = await sha256(currentPwd);
+                const currentHash = sha256(currentPwd);
                 if (currentHash !== storedPasswordHash) {
                     alert('현재 비밀번호가 올바르지 않습니다.');
                     return;
@@ -281,7 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                const newHash = await sha256(newPwd);
+                const newHash = sha256(newPwd);
                 
                 try {
                     await db.ref('settings/admin_password').set(newHash);
