@@ -53,7 +53,10 @@
                     </div>
                 </div>
                 <div class="hero-image-wrapper">
-                    <img src="assets/stay_living.jpg" alt="Teega Residence Living Room at Puteri Harbour">
+                    <video autoplay muted loop playsinline poster="assets/stay_living.jpg">
+                        <source src="assets/view.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
                 </div>
             </div>
         </section>
@@ -274,18 +277,31 @@
             <div class="container">
                 <div class="section-header">
                     <span class="section-tag">Booking & Contact</span>
-                    <h2>상담(예약)신청</h2>
-                    <p class="section-desc">컨설팅 상담 신청 또는 Teega Residence 숙소 예약을 한 번에 신청하실 수 있습니다.</p>
+                    <h2>상담 & 예약 신청</h2>
+                    <p class="section-desc">아래에서 원하시는 신청 항목을 선택하시면 맞춤형 신청 양식이 제공됩니다.</p>
                 </div>
 
-                <div class="booking-grid">
+                <!-- Booking/Consulting selector tabs -->
+                <div class="booking-selector">
+                    <button type="button" class="booking-tab-btn active" id="tabStayBtn">
+                        <i class="fa-solid fa-hotel"></i>
+                        <span>Teega Stay 숙소 예약 신청</span>
+                    </button>
+                    <button type="button" class="booking-tab-btn" id="tabConsultingBtn">
+                        <i class="fa-solid fa-comments"></i>
+                        <span>이주정착 & 학교 상담 신청</span>
+                    </button>
+                </div>
+
+                <!-- Interface 1: Teega Stay Booking (Grid: Calendar + Form) -->
+                <div class="booking-grid" id="stayInterface">
                     <!-- Left: Interactive Calendar -->
                     <div class="calendar-wrapper" id="calendarWrapper">
                         <div class="calendar-header">
                             <h3 id="currentMonthYear">2026년 7월</h3>
                             <div class="calendar-nav">
-                                <button id="prevMonthBtn" aria-label="이전 달"><i class="fa-solid fa-chevron-left"></i></button>
-                                <button id="nextMonthBtn" aria-label="다음 달"><i class="fa-solid fa-chevron-right"></i></button>
+                                <button id="prevMonthBtn" type="button" aria-label="이전 달"><i class="fa-solid fa-chevron-left"></i></button>
+                                <button id="nextMonthBtn" type="button" aria-label="다음 달"><i class="fa-solid fa-chevron-right"></i></button>
                             </div>
                         </div>
                         <div class="calendar-days-grid">
@@ -295,51 +311,130 @@
                             <!-- JS will generate cells here -->
                         </div>
                         <p style="font-size: 13px; color: var(--text-secondary); margin-top:20px; text-align:center;">
-                            * 숙소 예약을 원하실 경우, 달력에서 체크인 날짜와 체크아웃 날짜를 차례대로 선택해 주세요.
+                            * 달력에서 체크인 날짜와 체크아웃 날짜를 차례대로 선택해 주세요.
                         </p>
                     </div>
 
-                    <!-- Right: Form -->
+                    <!-- Right: Stay Form -->
                     <div class="form-wrapper">
-                        <form id="inquiryForm">
+                        <form id="stayBookingForm">
+                            <h3 class="form-title"><i class="fa-solid fa-file-invoice"></i> 숙소 예약 정보</h3>
+                            
                             <div class="form-group">
-                                <label for="inquiryType">문의 및 예약 종류</label>
-                                <select id="inquiryType" class="form-control form-control-select" required>
-                                    <option value="stay">Teega Stay 숙소 예약 신청</option>
-                                    <option value="consulting">이주정착 & 국제학교 상담 신청</option>
-                                </select>
+                                <label for="stayClientName">성함</label>
+                                <input type="text" id="stayClientName" class="form-control" placeholder="성함을 입력해 주세요." required>
                             </div>
 
                             <div class="form-group">
-                                <label for="clientName">성함</label>
-                                <input type="text" id="clientName" class="form-control" placeholder="성함을 입력해 주세요." required>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="clientContact">연락처 (전화번호 또는 카카오톡 ID)</label>
-                                <input type="text" id="clientContact" class="form-control" placeholder="연락받으실 수단 및 ID를 입력해 주세요." required>
+                                <label for="stayClientContact">연락처 (전화번호 또는 카카오톡 ID)</label>
+                                <input type="text" id="stayClientContact" class="form-control" placeholder="연락받으실 수단 및 ID를 입력해 주세요." required>
                             </div>
 
                             <!-- Date fields for Stay Reservation -->
-                            <div id="stayDateFields">
+                            <div class="form-group">
                                 <div class="form-row">
-                                    <div class="form-group">
+                                    <div class="form-group" style="margin-bottom:0;">
                                         <label>선택한 체크인 날짜</label>
                                         <div class="date-display" id="checkinDisplay">달력에서 선택해 주세요</div>
                                     </div>
-                                    <div class="form-group">
+                                    <div class="form-group" style="margin-bottom:0;">
                                         <label>선택한 체크아웃 날짜</label>
                                         <div class="date-display" id="checkoutDisplay">달력에서 선택해 주세요</div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="form-group">
-                                <label for="additionalNotes">요청 사항 및 세부 문의</label>
-                                <textarea id="additionalNotes" class="form-control" rows="5" placeholder="인원 구성, 희망 일정, 또는 특별히 필요하신 내용을 기재해 주세요."></textarea>
+                            <div class="form-row" style="margin-bottom:25px;">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="stayAdults">투숙 인원 (성인)</label>
+                                    <select id="stayAdults" class="form-control form-control-select">
+                                        <option value="1">1명</option>
+                                        <option value="2">2명</option>
+                                        <option value="3">3명</option>
+                                        <option value="4" selected>4명</option>
+                                        <option value="5">5명</option>
+                                        <option value="6">6명</option>
+                                        <option value="7">7명</option>
+                                        <option value="8">8명 (최대)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="stayChildren">투숙 인원 (아동/영유아)</label>
+                                    <select id="stayChildren" class="form-control form-control-select">
+                                        <option value="0" selected>없음</option>
+                                        <option value="1">1명</option>
+                                        <option value="2">2명</option>
+                                        <option value="3">3명</option>
+                                        <option value="4">4명</option>
+                                    </select>
+                                </div>
                             </div>
 
-                            <button type="submit" class="btn btn-primary" style="width: 100%;">신청서 제출하기</button>
+                            <div class="form-group">
+                                <label for="stayNotes">요청 사항 (입출국 스케줄 등)</label>
+                                <textarea id="stayNotes" class="form-control" rows="4" placeholder="추가 문의사항이나 입출국 예정 시간 등을 적어주세요."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">숙소 예약 신청하기</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Interface 2: Consulting Inquiry (Single Column Centered Form) -->
+                <div class="consulting-interface-wrapper hidden" id="consultingInterface">
+                    <div class="form-wrapper" style="max-width: 700px; margin: 0 auto;">
+                        <form id="consultingInquiryForm">
+                            <h3 class="form-title"><i class="fa-solid fa-comments"></i> 이주정착 & 학교 상담 정보</h3>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="consultName">성함</label>
+                                    <input type="text" id="consultName" class="form-control" placeholder="성함을 입력해 주세요." required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="consultContact">연락처 (전화번호 또는 카카오톡 ID)</label>
+                                    <input type="text" id="consultContact" class="form-control" placeholder="연락처를 입력해 주세요." required>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>상담 희망 분야 (중복 선택 가능)</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" name="consultCategory" value="settlement" checked>
+                                        <span class="checkmark"></span>
+                                        이주정착 지원 (주거, 인프라 세팅)
+                                    </label>
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" name="consultCategory" value="tour">
+                                        <span class="checkmark"></span>
+                                        국제학교 답사 가이드
+                                    </label>
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" name="consultCategory" value="admission">
+                                        <span class="checkmark"></span>
+                                        입학대행 & 비자 취득
+                                    </label>
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" name="consultCategory" value="other">
+                                        <span class="checkmark"></span>
+                                        기타 현지 생활 문의
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="consultTargetDate">답사 또는 이주 예정 시기</label>
+                                <input type="text" id="consultTargetDate" class="form-control" placeholder="예: 2026년 9월 중순, 혹은 구체적인 날짜">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="consultNotes">상세 문의 내용</label>
+                                <textarea id="consultNotes" class="form-control" rows="6" placeholder="자녀의 나이/학년, 희망하시는 학교군, 주거 형태(예산 범위) 등 구체적으로 적어주시면 더욱 상세한 상담이 가능합니다." required></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">컨설팅 상담 신청하기</button>
                         </form>
                     </div>
                 </div>
