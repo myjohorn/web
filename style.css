@@ -1406,5 +1406,75 @@ footer {
     }
 }
 
+/* KakaoTalk Button Styles */
+.btn-kakaotalk {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 12px;
+    padding: 15px 35px;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-radius: 0;
+    text-decoration: none;
+    text-align: center;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: var(--transition);
+    
+    /* Initial state: Subtle secondary beige/grey button */
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-kakaotalk:hover {
+    border-color: var(--text-primary);
+}
+
+.btn-kakaotalk .kakao-logo {
+    flex-shrink: 0;
+    fill: currentColor;
+    transition: var(--transition);
+}
+
+/* Bright highlight state after form submission */
+.btn-kakaotalk.active-highlight {
+    background-color: #FEE500 !important; /* KakaoTalk Yellow */
+    color: #191919 !important; /* KakaoTalk dark text */
+    border-color: #FEE500 !important;
+    box-shadow: 0 4px 15px rgba(254, 229, 0, 0.4);
+    animation: kakao-pulse-bounce 2s infinite ease-in-out;
+}
+
+.btn-kakaotalk.active-highlight:hover {
+    background-color: #FADA0A !important;
+    border-color: #FADA0A !important;
+    box-shadow: 0 6px 20px rgba(254, 229, 0, 0.6);
+}
+
+/* Eye-catching micro-animation */
+@keyframes kakao-pulse-bounce {
+    0%, 100% {
+        transform: scale(1);
+    }
+    10% {
+        transform: scale(1.03) translateY(-2px);
+    }
+    20% {
+        transform: scale(0.98) translateY(1px);
+    }
+    30% {
+        transform: scale(1.02) translateY(-1px);
+    }
+    40% {
+        transform: scale(1);
+    }
+}
+
 
 

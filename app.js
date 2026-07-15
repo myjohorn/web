@@ -531,6 +531,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         alert('Teega Residence 숙소 예약 신청이 접수되었습니다. 관리자 승인 후 연락드리겠습니다.');
 
+        // Highlight the KakaoTalk chat button below to encourage immediate real-time chat
+        const stayKakaoBtn = document.getElementById('stayKakaoBtn');
+        if (stayKakaoBtn) {
+            stayKakaoBtn.classList.add('active-highlight');
+        }
+
         // Reset state
         stayBookingForm.reset();
         checkinDate = null;
@@ -582,6 +588,12 @@ document.addEventListener('DOMContentLoaded', () => {
         db.ref('requests').push(newRequest);
 
         alert('이주정착 & 학교 상담 신청이 완료되었습니다. 조속히 피드백 드리겠습니다.');
+
+        // Highlight the KakaoTalk chat button below to encourage immediate real-time chat
+        const consultKakaoBtn = document.getElementById('consultKakaoBtn');
+        if (consultKakaoBtn) {
+            consultKakaoBtn.classList.add('active-highlight');
+        }
 
         // Reset state
         consultingInquiryForm.reset();
