@@ -1,4 +1,8 @@
 // Application Core State and Logic for JohorN & Teega Residence
+window.onerror = function(message, source, lineno, colno, error) {
+    alert("자바스크립트 오류 발생:\n메시지: " + message + "\n위치: " + source + " (줄 번호: " + lineno + ")");
+    return false;
+};
 document.addEventListener('DOMContentLoaded', () => {
     
     // Hero Video Autoplay & Control Overlay (Mobile Friendly)
