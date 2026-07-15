@@ -239,6 +239,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function getLockedDatesMap() {
         const data = JSON.parse(localStorage.getItem('johorn_requests') || '[]');
         const map = {};
+        
+        // 1. Merge local storage bookings (Status: approved/완료)
         data.forEach(item => {
             if (item.type === 'stay' && item.status === 'approved' && item.checkin && item.checkout) {
                 let start = new Date(item.checkin);
@@ -257,6 +259,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+
+        // 2. Merge Google Calendar events from cache
+        gcalEventsCache.forEach(evt => {
+            let start = new Date(evt.start);
+            let end = new Date(evt.end);
+            while (start <= end) {
+                const dateStr = start.toISOString().split('T')[0];
+                
+                // Extract clean name from GCal event summary (Format: "[숙소예약] 홍길동" or "홍길동")
+                const name = evt.summary.replace('\[숙소예약\]', '').trim();
+                
+                map[dateStr] = {
+                    id: evt.id, // String ID from GCal
+                    name: name,
+                    contact: '',
+                    notes: evt.description || '',
+                    checkin: evt.start,
+                    checkout: evt.end,
+                    isGcal: true
+                };
+                start.setDate(start.getDate() + 1);
+            }
+        });
+        
         return map;
     }
 
@@ -392,6 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentMonth = 11;
             currentYear--;
         }
+        loadGcalEventsForCurrentMonth();
         renderCalendar();
     });
 
@@ -401,6 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentMonth = 0;
             currentYear++;
         }
+        loadGcalEventsForCurrentMonth();
         renderCalendar();
     });
 
@@ -784,6 +812,306 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ----------------------------------------------------
+    // Google Calendar API Integration State & Methods
+    // ----------------------------------------------------
+    let tokenClient;
+    let gcalEventsCache = [];
+
+    // DOM Elements for GCal settings
+    const toggleGcalSettings = document.getElementById('toggleGcalSettings');
+    const gcalSettingsBody = document.getElementById('gcalSettingsBody');
+    const gcalSyncStatusBadge = document.getElementById('gcalSyncStatusBadge');
+    
+    const gcalClientId = document.getElementById('gcalClientId');
+    const gcalApiKey = document.getElementById('gcalApiKey');
+    const gcalCalendarId = document.getElementById('gcalCalendarId');
+    
+    const gcalConnectBtn = document.getElementById('gcalConnectBtn');
+    const gcalDisconnectBtn = document.getElementById('gcalDisconnectBtn');
+    const adminResDeleteBtn = document.getElementById('adminResDeleteBtn');
+
+    // Toggle GCal settings display
+    if (toggleGcalSettings && gcalSettingsBody) {
+        toggleGcalSettings.addEventListener('click', () => {
+            gcalSettingsBody.classList.toggle('hidden');
+        });
+    }
+
+    // Check if GCal is connected and token is valid
+    function isGcalConnected() {
+        const connected = localStorage.getItem('gcal_connected') === 'true';
+        const expiry = parseInt(localStorage.getItem('gcal_token_expiry') || '0');
+        const token = localStorage.getItem('gcal_access_token');
+        return connected && token && Date.now() < expiry;
+    }
+
+    // Update GCal UI based on connection status
+    function updateGcalUI(isConnected) {
+        if (!gcalSyncStatusBadge) return;
+        
+        if (isConnected) {
+            const calendarId = localStorage.getItem('gcal_calendar_id') || 'primary';
+            gcalSyncStatusBadge.textContent = '연동 완료';
+            gcalSyncStatusBadge.className = 'status-badge status-approved';
+            
+            if (gcalConnectBtn) gcalConnectBtn.classList.add('hidden');
+            if (gcalDisconnectBtn) gcalDisconnectBtn.classList.remove('hidden');
+            
+            // Populate inputs from localStorage
+            if (gcalClientId) gcalClientId.value = localStorage.getItem('gcal_client_id') || '';
+            if (gcalApiKey) gcalApiKey.value = localStorage.getItem('gcal_api_key') || '';
+            if (gcalCalendarId) gcalCalendarId.value = calendarId;
+        } else {
+            gcalSyncStatusBadge.textContent = '연동 안됨';
+            gcalSyncStatusBadge.className = 'status-badge status-rejected';
+            
+            if (gcalConnectBtn) gcalConnectBtn.classList.remove('hidden');
+            if (gcalDisconnectBtn) gcalDisconnectBtn.classList.add('hidden');
+        }
+    }
+
+    // Initialize GIS Client and request OAuth access token
+    function connectGoogleCalendar() {
+        const clientId = gcalClientId.value.trim();
+        const apiKey = gcalApiKey.value.trim();
+        const calendarId = gcalCalendarId.value.trim() || 'primary';
+
+        if (!clientId) {
+            alert('Google OAuth Client ID가 필요합니다.');
+            return;
+        }
+
+        // Save inputs to localStorage
+        localStorage.setItem('gcal_client_id', clientId);
+        localStorage.setItem('gcal_api_key', apiKey);
+        localStorage.setItem('gcal_calendar_id', calendarId);
+
+        try {
+            // Google Accounts Library Client Initialization (OAuth2 GIS)
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: clientId,
+                scope: 'https://www.googleapis.com/auth/calendar.events',
+                callback: (tokenResponse) => {
+                    if (tokenResponse.error !== undefined) {
+                        alert(`구글 연동 실패: ${tokenResponse.error}`);
+                        throw tokenResponse;
+                    }
+                    
+                    // Save token details
+                    const expiryTime = Date.now() + (tokenResponse.expires_in * 1000);
+                    localStorage.setItem('gcal_access_token', tokenResponse.access_token);
+                    localStorage.setItem('gcal_token_expiry', expiryTime);
+                    localStorage.setItem('gcal_connected', 'true');
+                    
+                    alert('구글 캘린더 연동이 성공적으로 완료되었습니다!');
+                    
+                    updateGcalUI(true);
+                    loadGcalEventsForCurrentMonth(); // Fetch and re-render
+                },
+            });
+
+            // Request Token Popup
+            tokenClient.requestAccessToken({ prompt: 'consent' });
+
+        } catch (err) {
+            console.error('Error initializing Google accounts client:', err);
+            alert('구글 연동 라이브러리를 실행할 수 없습니다. 잠시 후 다시 시도해 주세요.');
+        }
+    }
+
+    // Disconnect Google Calendar
+    function disconnectGoogleCalendar() {
+        localStorage.removeItem('gcal_access_token');
+        localStorage.removeItem('gcal_token_expiry');
+        localStorage.setItem('gcal_connected', 'false');
+        
+        gcalEventsCache = [];
+        updateGcalUI(false);
+        
+        alert('구글 캘린더 연동이 해제되었습니다.');
+        
+        // Re-render calendars using local storage bookings only
+        renderCalendar();
+        renderAdminCalendar();
+    }
+
+    // Bind Connect/Disconnect buttons
+    if (gcalConnectBtn) {
+        gcalConnectBtn.addEventListener('click', connectGoogleCalendar);
+    }
+    if (gcalDisconnectBtn) {
+        gcalDisconnectBtn.addEventListener('click', disconnectGoogleCalendar);
+    }
+
+    // Fetch Events via direct Google Calendar REST API
+    async function fetchGcalEvents(timeMin, timeMax) {
+        if (!isGcalConnected()) return [];
+        const token = localStorage.getItem('gcal_access_token');
+        const calendarId = localStorage.getItem('gcal_calendar_id') || 'primary';
+        const apiKey = localStorage.getItem('gcal_api_key') || '';
+        
+        let url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
+        url += `?timeMin=${encodeURIComponent(timeMin)}`;
+        url += `?timeMax=${encodeURIComponent(timeMax)}`;
+        url += `&singleEvents=true`;
+        url += `&maxResults=250`;
+        if (apiKey) url += `&key=${encodeURIComponent(apiKey)}`;
+        
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (!response.ok) {
+                if (response.status === 401) {
+                    // Access token is invalid or expired
+                    localStorage.removeItem('gcal_access_token');
+                    updateGcalUI(false);
+                    console.warn('GCal Access Token expired (HTTP 401). Disconnected.');
+                }
+                throw new Error(`GCal fetch failed with status ${response.status}`);
+            }
+            const data = await response.json();
+            return data.items || [];
+        } catch (err) {
+            console.error('Error fetching Google Calendar events:', err);
+            return [];
+        }
+    }
+
+    // Create or Edit Event via Google Calendar REST API
+    async function saveGcalEvent(booking) {
+        if (!isGcalConnected()) return null;
+        const token = localStorage.getItem('gcal_access_token');
+        const calendarId = localStorage.getItem('gcal_calendar_id') || 'primary';
+        
+        // GCal allday end date must be exclusive (+1 day)
+        const checkinDate = new Date(booking.checkin);
+        const checkoutDate = new Date(booking.checkout);
+        const exclusiveCheckout = new Date(checkoutDate);
+        exclusiveCheckout.setDate(exclusiveCheckout.getDate() + 1);
+        
+        const eventBody = {
+            summary: `[숙소예약] ${booking.name}`,
+            description: `${booking.notes || ''}\n연락처: ${booking.contact || ''}`,
+            start: {
+                date: booking.checkin
+            },
+            end: {
+                date: exclusiveCheckout.toISOString().split('T')[0]
+            }
+        };
+
+        const isEdit = typeof booking.id === 'string' || booking.gcalEventId;
+        const gcalEventId = typeof booking.id === 'string' ? booking.id : booking.gcalEventId;
+
+        let url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
+        let method = 'POST';
+
+        if (isEdit && gcalEventId) {
+            url += `/${gcalEventId}`;
+            method = 'PUT';
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(eventBody)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to save GCal event: ${response.status}`);
+            }
+
+            const result = await response.json();
+            return result.id;
+        } catch (err) {
+            console.error('Error saving Google Calendar event:', err);
+            return null;
+        }
+    }
+
+    // Delete Event via Google Calendar REST API
+    async function deleteGcalEvent(gcalEventId) {
+        if (!isGcalConnected()) return false;
+        const token = localStorage.getItem('gcal_access_token');
+        const calendarId = localStorage.getItem('gcal_calendar_id') || 'primary';
+        
+        const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${gcalEventId}`;
+        
+        try {
+            const response = await fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to delete GCal event: ${response.status}`);
+            }
+            return true;
+        } catch (err) {
+            console.error('Error deleting Google Calendar event:', err);
+            return false;
+        }
+    }
+
+    // Helper to adjust Google Calendar date-only end date to inclusive check-out date
+    function adjustGcalEndDate(isStartDateOnly, isEndDateOnly, endStr) {
+        const dateStr = endStr.split('T')[0];
+        if (isStartDateOnly && isEndDateOnly) {
+            const d = new Date(dateStr);
+            d.setDate(d.getDate() - 1);
+            return d.toISOString().split('T')[0];
+        }
+        return dateStr;
+    }
+
+    // Asynchronously fetch Google Calendar events and trigger calendar rendering
+    async function loadGcalEventsForCurrentMonth() {
+        if (!isGcalConnected()) {
+            gcalEventsCache = [];
+            return;
+        }
+
+        const startOfMonth = new Date(currentYear, currentMonth - 1, 20); // Prev month buffer
+        const endOfMonth = new Date(currentYear, currentMonth + 1, 10);  // Next month buffer
+        
+        const timeMin = startOfMonth.toISOString();
+        const timeMax = endOfMonth.toISOString();
+
+        const events = await fetchGcalEvents(timeMin, timeMax);
+        
+        gcalEventsCache = events.map(evt => {
+            const start = evt.start.date || evt.start.dateTime;
+            const end = evt.end.date || evt.end.dateTime;
+            return {
+                id: evt.id,
+                summary: evt.summary || '예약 완료',
+                description: evt.description || '',
+                start: start.split('T')[0],
+                end: adjustGcalEndDate(!!evt.start.date, !!evt.end.date, end)
+            };
+        });
+
+        // Trigger calendars rendering with GCal events in cache
+        renderCalendar();
+        renderAdminCalendar();
+    }
+
+    // Initial GCal state load
+    updateGcalUI(isGcalConnected());
+    if (isGcalConnected()) {
+        loadGcalEventsForCurrentMonth();
+    }
+
+    // ----------------------------------------------------
     // Admin Calendar Implementation
     // ----------------------------------------------------
     let adminYear = 2026;
@@ -849,17 +1177,33 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.querySelectorAll('#adminCalendarDates .calendar-cell').forEach(c => c.classList.remove('active-select'));
                     cell.classList.add('active-select');
                     
-                    // Fetch full booking data by ID
-                    const data = JSON.parse(localStorage.getItem('johorn_requests') || '[]');
-                    const fullItem = data.find(item => item.id === booking.id);
-                    if (fullItem) {
-                        adminResIdInput.value = fullItem.id;
-                        adminResNameInput.value = fullItem.name;
-                        adminResContactInput.value = fullItem.contact || '';
-                        adminResCheckinInput.value = fullItem.checkin || '';
-                        adminResCheckoutInput.value = fullItem.checkout || '';
-                        adminResMemoInput.value = fullItem.notes || '';
-                        adminFormTitle.innerHTML = `<i class="fa-solid fa-calendar-check" style="margin-right: 6px;"></i> 숙소 예약 수정 / 상세 정보`;
+                    // Show Delete Button
+                    if (adminResDeleteBtn) {
+                        adminResDeleteBtn.classList.remove('hidden');
+                        adminResDeleteBtn.innerHTML = booking.isGcal ? '<i class="fa-solid fa-trash"></i> 구글에서 삭제' : '<i class="fa-solid fa-trash"></i> 예약 삭제';
+                    }
+
+                    if (booking.isGcal) {
+                        adminResIdInput.value = booking.id; // GCal string ID
+                        adminResNameInput.value = booking.name;
+                        adminResContactInput.value = booking.contact || '';
+                        adminResCheckinInput.value = booking.checkin;
+                        adminResCheckoutInput.value = booking.checkout;
+                        adminResMemoInput.value = booking.notes;
+                        adminFormTitle.innerHTML = `<i class="fa-solid fa-calendar-check" style="margin-right: 6px;"></i> 구글 캘린더 예약 수정 / 상세`;
+                    } else {
+                        // Fetch full booking data by ID
+                        const data = JSON.parse(localStorage.getItem('johorn_requests') || '[]');
+                        const fullItem = data.find(item => item.id === booking.id);
+                        if (fullItem) {
+                            adminResIdInput.value = fullItem.id;
+                            adminResNameInput.value = fullItem.name;
+                            adminResContactInput.value = fullItem.contact || '';
+                            adminResCheckinInput.value = fullItem.checkin || '';
+                            adminResCheckoutInput.value = fullItem.checkout || '';
+                            adminResMemoInput.value = fullItem.notes || '';
+                            adminFormTitle.innerHTML = `<i class="fa-solid fa-calendar-check" style="margin-right: 6px;"></i> 숙소 예약 수정 / 상세 정보`;
+                        }
                     }
                 });
             } else {
@@ -868,6 +1212,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Highlight active cell
                     document.querySelectorAll('#adminCalendarDates .calendar-cell').forEach(c => c.classList.remove('active-select'));
                     cell.classList.add('active-select');
+
+                    // Hide Delete Button
+                    if (adminResDeleteBtn) adminResDeleteBtn.classList.add('hidden');
 
                     // Set dates in form
                     const clickedDateStr = thisDate.toISOString().split('T')[0];
@@ -918,6 +1265,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 adminMonth = 11;
                 adminYear--;
             }
+            // Keep client calendar active range synced
+            currentMonth = adminMonth;
+            currentYear = adminYear;
+            loadGcalEventsForCurrentMonth();
             renderAdminCalendar();
         });
 
@@ -927,13 +1278,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 adminMonth = 0;
                 adminYear++;
             }
+            // Keep client calendar active range synced
+            currentMonth = adminMonth;
+            currentYear = adminYear;
+            loadGcalEventsForCurrentMonth();
             renderAdminCalendar();
         });
     }
 
     // Save Reservation from Admin Form
     if (adminResSaveBtn) {
-        adminResSaveBtn.addEventListener('click', () => {
+        adminResSaveBtn.addEventListener('click', async () => {
             const idVal = adminResIdInput.value;
             const nameVal = adminResNameInput.value.trim();
             const contactVal = adminResContactInput.value.trim();
@@ -952,46 +1307,146 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const data = JSON.parse(localStorage.getItem('johorn_requests') || '[]');
+            const isGcalConnectedVal = isGcalConnected();
+            
+            const bookingObj = {
+                id: idVal,
+                name: nameVal,
+                contact: contactVal,
+                checkin: checkinVal,
+                checkout: checkoutVal,
+                notes: memoVal
+            };
 
             if (idVal) {
-                // Edit existing reservation
-                const targetId = parseInt(idVal);
-                const updated = data.map(item => {
-                    if (item.id === targetId) {
-                        item.name = nameVal;
-                        item.contact = contactVal;
-                        item.checkin = checkinVal;
-                        item.checkout = checkoutVal;
-                        item.notes = memoVal;
+                const isGcalOnly = isNaN(idVal); // GCal string ID
+                
+                if (isGcalOnly) {
+                    if (isGcalConnectedVal) {
+                        alert('구글 캘린더 예약을 수정 중입니다...');
+                        const gcalId = await saveGcalEvent(bookingObj);
+                        if (gcalId) {
+                            alert('구글 캘린더 예약이 성공적으로 수정되었습니다.');
+                        } else {
+                            alert('구글 캘린더 예약 수정에 실패했습니다.');
+                            return;
+                        }
+                    } else {
+                        alert('구글 연동 상태가 아닙니다. 구글 예약을 수정할 수 없습니다.');
+                        return;
                     }
-                    return item;
-                });
-                localStorage.setItem('johorn_requests', JSON.stringify(updated));
-                alert('예약이 수정되었습니다.');
+                } else {
+                    // Local booking edit
+                    const targetId = parseInt(idVal);
+                    const existingItem = data.find(item => item.id === targetId);
+                    
+                    let syncedGcalId = null;
+                    if (isGcalConnectedVal) {
+                        alert('구글 캘린더 동기화 중...');
+                        bookingObj.gcalEventId = existingItem ? existingItem.gcalEventId : null;
+                        syncedGcalId = await saveGcalEvent(bookingObj);
+                    }
+
+                    const updated = data.map(item => {
+                        if (item.id === targetId) {
+                            item.name = nameVal;
+                            item.contact = contactVal;
+                            item.checkin = checkinVal;
+                            item.checkout = checkoutVal;
+                            item.notes = memoVal;
+                            if (syncedGcalId) item.gcalEventId = syncedGcalId;
+                        }
+                        return item;
+                    });
+                    localStorage.setItem('johorn_requests', JSON.stringify(updated));
+                    alert('예약이 수정되었습니다.');
+                }
             } else {
                 // Add new reservation directly (Status: approved/완료)
+                let syncedGcalId = null;
+                if (isGcalConnectedVal) {
+                    alert('구글 캘린더 동기화 중...');
+                    syncedGcalId = await saveGcalEvent(bookingObj);
+                }
+
                 const newRes = {
                     id: Date.now(),
                     type: 'stay',
                     name: nameVal,
                     contact: contactVal,
                     notes: memoVal,
-                    status: 'approved', // Direct reservations are confirmed immediately
+                    status: 'approved', // Direct bookings are auto-approved
                     dateCreated: new Date().toISOString().split('T')[0].replace(/-/g, '/'),
                     checkin: checkinVal,
-                    checkout: checkoutVal
+                    checkout: checkoutVal,
+                    gcalEventId: syncedGcalId || null
                 };
                 data.push(newRes);
                 localStorage.setItem('johorn_requests', JSON.stringify(data));
-                alert('예약이 성공적으로 등록되었습니다.');
+                
+                if (syncedGcalId) {
+                    alert('구글 캘린더에 예약이 등록되었습니다.');
+                } else {
+                    alert('예약이 성공적으로 등록되었습니다.');
+                }
             }
 
             // Reset form
             resetAdminResForm();
             // Refresh
             renderAdminDashboard();
-            renderAdminCalendar();
-            renderCalendar();
+            await loadGcalEventsForCurrentMonth();
+        });
+    }
+
+    // Delete Reservation Button Click Handler
+    if (adminResDeleteBtn) {
+        adminResDeleteBtn.addEventListener('click', async () => {
+            const idVal = adminResIdInput.value;
+            if (!idVal) return;
+
+            const confirmDel = confirm('이 예약을 정말 삭제하시겠습니까?');
+            if (!confirmDel) return;
+
+            const isGcalConnectedVal = isGcalConnected();
+            const isGcalOnly = isNaN(idVal); // String GCal ID
+
+            if (isGcalOnly) {
+                if (isGcalConnectedVal) {
+                    alert('구글 캘린더에서 예약을 삭제 중입니다...');
+                    const success = await deleteGcalEvent(idVal);
+                    if (success) {
+                        alert('구글 캘린더 예약이 성공적으로 삭제되었습니다.');
+                    } else {
+                        alert('구글 캘린더 예약 삭제에 실패했습니다.');
+                        return;
+                    }
+                } else {
+                    alert('구글 연동 상태가 아닙니다. 구글 예약을 삭제할 수 없습니다.');
+                    return;
+                }
+            } else {
+                // Local storage booking deletion
+                const targetId = parseInt(idVal);
+                const data = JSON.parse(localStorage.getItem('johorn_requests') || '[]');
+                const targetItem = data.find(item => item.id === targetId);
+
+                // If connected and synced, delete from GCal
+                if (isGcalConnectedVal && targetItem && targetItem.gcalEventId) {
+                    alert('구글 캘린더 예약 동기화 삭제 중...');
+                    await deleteGcalEvent(targetItem.gcalEventId);
+                }
+
+                // Filter out of local requests
+                const filtered = data.filter(item => item.id !== targetId);
+                localStorage.setItem('johorn_requests', JSON.stringify(filtered));
+                alert('예약이 삭제되었습니다.');
+            }
+
+            // Reset and refresh
+            resetAdminResForm();
+            renderAdminDashboard();
+            await loadGcalEventsForCurrentMonth();
         });
     }
 
@@ -1008,6 +1463,7 @@ document.addEventListener('DOMContentLoaded', () => {
         adminResCheckoutInput.value = '';
         adminResMemoInput.value = '';
         adminFormTitle.innerHTML = `<i class="fa-solid fa-calendar-plus" style="margin-right: 6px;"></i> 직접 예약 등록 / 상세 정보`;
+        if (adminResDeleteBtn) adminResDeleteBtn.classList.add('hidden');
         document.querySelectorAll('#adminCalendarDates .calendar-cell').forEach(c => c.classList.remove('active-select'));
     }
 
