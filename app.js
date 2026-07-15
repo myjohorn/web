@@ -990,7 +990,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const apiKey = localStorage.getItem('gcal_api_key') || '';
                     let url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cal.id)}/events`;
                     url += `?timeMin=${encodeURIComponent(timeMin)}`;
-                    url += `?timeMax=${encodeURIComponent(timeMax)}`;
+                    url += `&timeMax=${encodeURIComponent(timeMax)}`;
                     url += `&singleEvents=true`;
                     url += `&maxResults=100`;
                     if (apiKey) url += `&key=${encodeURIComponent(apiKey)}`;
@@ -1029,7 +1029,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         let url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
         url += `?timeMin=${encodeURIComponent(timeMin)}`;
-        url += `?timeMax=${encodeURIComponent(timeMax)}`;
+        url += `&timeMax=${encodeURIComponent(timeMax)}`;
         url += `&singleEvents=true`;
         url += `&maxResults=250`;
         if (apiKey) url += `&key=${encodeURIComponent(apiKey)}`;
