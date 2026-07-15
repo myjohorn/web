@@ -1040,22 +1040,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fetch Events via direct Google Calendar REST API
     async function fetchGcalEvents(timeMin, timeMax) {
-        if (!isGcalConnected()) return [];
-        const token = localStorage.getItem('gcal_access_token');
+        const apiKey = localStorage.getItem('gcal_api_key');
         const calendarId = localStorage.getItem('gcal_calendar_id') || 'primary';
-        
+        const token = localStorage.getItem('gcal_access_token');
+        const connected = isGcalConnected();
+
+        if (!connected && !apiKey) return [];
+
         let url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
         url += `?timeMin=${encodeURIComponent(timeMin)}`;
         url += `&timeMax=${encodeURIComponent(timeMax)}`;
         url += `&singleEvents=true`;
         url += `&maxResults=250`;
-        
+
+        if (!connected) {
+            url += `&key=${apiKey}`;
+        }
+
         try {
-            const response = await fetch(url, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const headers = {};
+            if (connected && token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(url, { headers });
             if (!response.ok) {
                 if (response.status === 401) {
                     // Access token is invalid or expired
@@ -1188,7 +1196,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Asynchronously fetch Google Calendar events and trigger calendar rendering
     async function loadGcalEventsForCurrentMonth() {
-        if (!isGcalConnected()) {
+        const connected = isGcalConnected();
+        const apiKey = localStorage.getItem('gcal_api_key');
+        
+        if (!connected && !apiKey) {
             gcalEventsCache = [];
             showGcalDebug('구글 연동 해제됨 또는 세션 없음');
             return;
@@ -1204,9 +1215,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const events = await fetchGcalEvents(timeMin, timeMax);
-            const calendars = await fetchCalendarList();
             
-            const calDetails = calendars.map(c => `[${c.summary} (ID: ${c.id})]`).join(', ');
+            // Only fetch calendar list if admin is connected (requires OAuth authorization)
+            let calDetails = '일반 방문자 조회';
+            if (connected) {
+                try {
+                    const calendars = await fetchCalendarList();
+                    calDetails = calendars.map(c => `[${c.summary} (ID: ${c.id})]`).join(', ');
+                } catch (err) {
+                    console.warn('Calendar list fetch failed:', err);
+                }
+            }
             
             // Raw events details to inspect what GCal API returned
             const rawEventDetails = events.map(e => {
@@ -1251,9 +1270,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (gcalCalendarId) gcalCalendarId.value = val.calendarId || 'primary';
             
             updateGcalUI(isGcalConnected());
-            if (isGcalConnected()) {
-                loadGcalEventsForCurrentMonth();
-            }
+            loadGcalEventsForCurrentMonth();
         }
     });
 
