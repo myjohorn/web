@@ -907,7 +907,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Google Accounts Library Client Initialization (OAuth2 GIS)
             tokenClient = google.accounts.oauth2.initTokenClient({
                 client_id: clientId,
-                scope: 'https://www.googleapis.com/auth/calendar.events',
+                scope: 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly',
                 callback: (tokenResponse) => {
                     if (tokenResponse.error !== undefined) {
                         alert(`구글 연동 실패: ${tokenResponse.error}`);
