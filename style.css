@@ -283,23 +283,9 @@ header.scrolled {
     transform: scale(0.95);
 }
 
-/* State when video is playing: hide the overlay */
+/* State when video is playing: hide the overlay completely */
 .video-control-overlay.playing {
-    background: rgba(0, 0, 0, 0);
-    opacity: 0;
-}
-
-/* Show a small floating play/pause control on hover when playing */
-.video-control-overlay.playing:hover {
-    background: rgba(0, 0, 0, 0.15);
-    opacity: 1;
-}
-
-.video-control-overlay.playing .play-trigger-btn {
-    width: 60px;
-    height: 60px;
-    font-size: 20px;
-    animation: none;
+    display: none !important;
 }
 
 /* Play button pulse animation */
