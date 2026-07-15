@@ -1,4 +1,4 @@
-// Application Core State and Logic for JohorN & Teega Stay
+// Application Core State and Logic for JohorN & Teega Residence
 document.addEventListener('DOMContentLoaded', () => {
     
     // ----------------------------------------------------
@@ -328,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
         requests.push(newRequest);
         localStorage.setItem('johorn_requests', JSON.stringify(requests));
 
-        alert('Teega Stay 숙소 예약 신청이 접수되었습니다. 관리자 승인 후 연락드리겠습니다.');
+        alert('Teega Residence 숙소 예약 신청이 접수되었습니다. 관리자 승인 후 연락드리겠습니다.');
 
         // Reset state
         stayBookingForm.reset();
