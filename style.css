@@ -231,6 +231,90 @@ header.scrolled {
     filter: grayscale(0%);
 }
 
+/* Video Control Overlay */
+.video-control-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: background 0.3s ease, opacity 0.3s ease;
+    z-index: 10;
+}
+
+/* Glassmorphic Play Trigger Button */
+.play-trigger-btn {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 28px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: playBtnPulse 2.5s infinite;
+}
+
+/* Offset play icon slightly to the right for optical centering */
+.play-trigger-btn .fa-play {
+    margin-left: 4px;
+}
+
+.video-control-overlay:hover .play-trigger-btn {
+    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    color: #ffffff;
+}
+
+.video-control-overlay:active .play-trigger-btn {
+    transform: scale(0.95);
+}
+
+/* State when video is playing: hide the overlay */
+.video-control-overlay.playing {
+    background: rgba(0, 0, 0, 0);
+    opacity: 0;
+}
+
+/* Show a small floating play/pause control on hover when playing */
+.video-control-overlay.playing:hover {
+    background: rgba(0, 0, 0, 0.15);
+    opacity: 1;
+}
+
+.video-control-overlay.playing .play-trigger-btn {
+    width: 60px;
+    height: 60px;
+    font-size: 20px;
+    animation: none;
+}
+
+/* Play button pulse animation */
+@keyframes playBtnPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 15px rgba(255, 255, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    }
+}
+
 /* Sections General */
 section {
     padding: 120px 0;

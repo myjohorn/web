@@ -52,11 +52,16 @@
                         <a href="#stay" class="btn btn-secondary">숙소임대 안내</a>
                     </div>
                 </div>
-                <div class="hero-image-wrapper">
-                    <video autoplay muted loop playsinline webkit-playsinline preload="auto" poster="assets/stay_balcony.jpg">
+                <div class="hero-image-wrapper" id="heroVideoWrapper">
+                    <video autoplay muted loop playsinline webkit-playsinline preload="auto" poster="assets/stay_balcony.jpg" id="heroVideo">
                         <source src="assets/view_no_audio.mp4?v=4" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
+                    <div class="video-control-overlay" id="videoControlOverlay">
+                        <div class="play-trigger-btn" id="playTriggerBtn">
+                            <i class="fa-solid fa-play" id="playBtnIcon"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>

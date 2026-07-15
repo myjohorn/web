@@ -1,60 +1,99 @@
 // Application Core State and Logic for JohorN & Teega Residence
 document.addEventListener('DOMContentLoaded', () => {
     
-    // Force play hero background video on mobile/Safari load
-    const heroVideo = document.querySelector('.hero-image-wrapper video');
-    if (heroVideo) {
-        // Programmatic configurations for mobile browsers to allow autoplay
+    // Hero Video Autoplay & Control Overlay (Mobile Friendly)
+    const heroVideo = document.getElementById('heroVideo');
+    const videoOverlay = document.getElementById('videoControlOverlay');
+    const playBtnIcon = document.getElementById('playBtnIcon');
+
+    if (heroVideo && videoOverlay) {
+        // Ensure proper muted and playsinline settings programmatically
         heroVideo.setAttribute('playsinline', '');
         heroVideo.setAttribute('webkit-playsinline', '');
         heroVideo.setAttribute('preload', 'auto');
         heroVideo.muted = true;
         heroVideo.defaultMuted = true;
 
-        // Try playing immediately if metadata is already loaded
+        // Toggle play/pause state function
+        const toggleVideoPlayback = () => {
+            if (heroVideo.paused) {
+                heroVideo.play().catch(err => {
+                    console.log("Playback failed on user toggle:", err);
+                });
+            } else {
+                heroVideo.pause();
+            }
+        };
+
+        // Click or tap on the overlay to toggle play/pause
+        videoOverlay.addEventListener('click', toggleVideoPlayback);
+
+        // Update overlay UI state based on actual video playback state
+        const updateOverlayUI = () => {
+            if (!heroVideo.paused) {
+                videoOverlay.classList.add('playing');
+                if (playBtnIcon) {
+                    playBtnIcon.className = 'fa-solid fa-pause';
+                }
+            } else {
+                videoOverlay.classList.remove('playing');
+                if (playBtnIcon) {
+                    playBtnIcon.className = 'fa-solid fa-play';
+                }
+            }
+        };
+
+        heroVideo.addEventListener('play', updateOverlayUI);
+        heroVideo.addEventListener('playing', updateOverlayUI);
+        heroVideo.addEventListener('pause', updateOverlayUI);
+
+        // Attempt initial autoplay
         const attemptPlay = () => {
             const playPromise = heroVideo.play();
             if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.log("Autoplay prevented or video not ready:", error);
+                playPromise.then(updateOverlayUI).catch(error => {
+                    console.log("Initial autoplay prevented:", error);
+                    updateOverlayUI(); // Ensure overlay is visible if blocked
                 });
             }
         };
 
-        // Attempt initial autoplay
+        // Try playing immediately, or as soon as metadata is ready
         attemptPlay();
-
-        // Listen for metadata load and try playing again
         heroVideo.addEventListener('loadedmetadata', attemptPlay);
         heroVideo.addEventListener('canplay', attemptPlay);
 
-        // Robust mobile fallback: play on first user interaction (touch, click, key)
-        const forcePlayVideo = () => {
+        // Global fallback to force-play on first general interaction (helps on mobile Safari)
+        const forcePlayOnInteraction = () => {
             if (heroVideo.paused) {
                 heroVideo.play()
                     .then(() => {
-                        cleanupListeners();
+                        updateOverlayUI();
+                        cleanupInteractionListeners();
                     })
                     .catch(err => {
-                        console.log("Playback failed on user interaction, retry on canplay:", err);
+                        console.log("Interaction play failed, retry on canplay:", err);
                         heroVideo.addEventListener('canplay', () => {
-                            heroVideo.play().then(cleanupListeners).catch(e => console.log(e));
+                            heroVideo.play().then(() => {
+                                updateOverlayUI();
+                                cleanupInteractionListeners();
+                            }).catch(e => console.log(e));
                         }, { once: true });
                     });
             } else {
-                cleanupListeners();
+                cleanupInteractionListeners();
             }
         };
 
-        const events = ['touchstart', 'click', 'keydown'];
-        const cleanupListeners = () => {
-            events.forEach(event => {
-                document.body.removeEventListener(event, forcePlayVideo);
+        const interactionEvents = ['touchstart', 'mousedown', 'keydown'];
+        const cleanupInteractionListeners = () => {
+            interactionEvents.forEach(event => {
+                document.body.removeEventListener(event, forcePlayOnInteraction);
             });
         };
 
-        events.forEach(event => {
-            document.body.addEventListener(event, forcePlayVideo, { passive: true });
+        interactionEvents.forEach(event => {
+            document.body.addEventListener(event, forcePlayOnInteraction, { passive: true });
         });
     }
     
