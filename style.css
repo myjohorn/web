@@ -1102,6 +1102,48 @@ footer {
 }
 
 @media (max-width: 768px) {
+    /* Hero section responsive tweaks */
+    .hero {
+        min-height: auto;
+        padding: 120px 0 50px;
+    }
+    .hero-text h1 {
+        font-size: 34px !important; /* Drastically reduce hero title font-size for mobile readability */
+        line-height: 1.25;
+        letter-spacing: -0.01em;
+    }
+    .hero-text p {
+        font-size: 15px;
+        line-height: 1.6;
+        margin-bottom: 30px;
+    }
+    .hero-buttons {
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+    }
+    .hero-buttons .btn {
+        width: 100%;
+        text-align: center;
+        padding: 14px 20px;
+    }
+    .hero-image-wrapper {
+        height: 280px !important;
+        margin-top: 20px;
+    }
+
+    /* Section padding */
+    section {
+        padding: 80px 0;
+    }
+    .section-header {
+        margin-bottom: 50px;
+    }
+    .section-header h2 {
+        font-size: 28px;
+    }
+
+    /* Booking Selector & Checkboxes */
     .booking-selector {
         flex-direction: column;
         gap: 10px;
@@ -1109,9 +1151,43 @@ footer {
     .booking-tab-btn {
         width: 100%;
         justify-content: center;
+        padding: 15px 20px;
     }
     .checkbox-group {
         grid-template-columns: 1fr;
+    }
+
+    /* Admission card thumbnail responsive size */
+    .admission-card .card-image-wrapper {
+        width: 100% !important;
+        height: 180px !important;
+    }
+
+    /* Stay Gallery adjustments */
+    .gallery-main {
+        height: 250px !important;
+    }
+    .gallery-thumbs .thumb {
+        min-width: 75px !important;
+        height: 55px !important;
+    }
+
+    /* Calendar adjustments for mobile */
+    .calendar-wrapper {
+        padding: 20px 15px !important;
+    }
+    .calendar-dates-grid div {
+        height: 38px !important;
+        line-height: 38px !important;
+        font-size: 13px !important;
+    }
+    
+    /* Footer bottom copyright vertical layout */
+    .footer-bottom {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+        align-items: center;
     }
 }
 
