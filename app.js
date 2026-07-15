@@ -4,6 +4,9 @@ window.onerror = function(message, source, lineno, colno, error) {
     return false;
 };
 document.addEventListener('DOMContentLoaded', () => {
+    // Google Calendar API Integration State & cache (declared at top to avoid Temporal Dead Zone)
+    let tokenClient;
+    let gcalEventsCache = [];
     
     // Hero Video Autoplay & Control Overlay (Mobile Friendly)
     const heroVideo = document.getElementById('heroVideo');
@@ -818,8 +821,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
     // Google Calendar API Integration State & Methods
     // ----------------------------------------------------
-    let tokenClient;
-    let gcalEventsCache = [];
 
     // DOM Elements for GCal settings
     const toggleGcalSettings = document.getElementById('toggleGcalSettings');
