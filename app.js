@@ -235,21 +235,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const checkinDisplay = document.getElementById('checkinDisplay');
     const checkoutDisplay = document.getElementById('checkoutDisplay');
 
-    // Fetch approved bookings to lock dates
-    function getLockedDates() {
+    // Fetch approved bookings map to lock dates
+    function getLockedDatesMap() {
         const data = JSON.parse(localStorage.getItem('johorn_requests') || '[]');
-        const locked = [];
+        const map = {};
         data.forEach(item => {
             if (item.type === 'stay' && item.status === 'approved' && item.checkin && item.checkout) {
                 let start = new Date(item.checkin);
                 let end = new Date(item.checkout);
                 while (start <= end) {
-                    locked.push(new Date(start).toISOString().split('T')[0]);
+                    const dateStr = start.toISOString().split('T')[0];
+                    map[dateStr] = {
+                        id: item.id,
+                        name: item.name,
+                        contact: item.contact || '',
+                        notes: item.notes || '',
+                        checkin: item.checkin,
+                        checkout: item.checkout
+                    };
                     start.setDate(start.getDate() + 1);
                 }
             }
         });
-        return locked;
+        return map;
+    }
+
+    // Name masking helper: "첫 글자 + **"
+    function maskName(name) {
+        if (!name) return '';
+        name = name.trim();
+        if (name.length <= 1) return name;
+        return name.charAt(0) + '**';
     }
 
     // Render Calendar Cells
@@ -264,7 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const prevLastDay = new Date(currentYear, currentMonth, 0).getDate();
 
         const today = new Date();
-        const lockedDates = getLockedDates();
+        const lockedDatesMap = getLockedDatesMap();
 
         // 1. Previous month blank days
         for (let i = firstDayIndex; i > 0; i--) {
@@ -278,7 +294,6 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let day = 1; day <= lastDay; day++) {
             const cell = document.createElement('div');
             cell.className = 'calendar-cell';
-            cell.textContent = day;
 
             const thisDate = new Date(currentYear, currentMonth, day);
             const dateStr = thisDate.toISOString().split('T')[0];
@@ -289,13 +304,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Disable past dates
-            if (thisDate < today && thisDate.toDateString() !== today.toDateString()) {
+            let isPast = thisDate < today && thisDate.toDateString() !== today.toDateString();
+            let isBooked = !!lockedDatesMap[dateStr];
+
+            if (isPast) {
                 cell.classList.add('disabled');
             }
 
             // Disable locked (already booked) dates
-            if (lockedDates.includes(dateStr)) {
+            if (isBooked) {
                 cell.classList.add('disabled');
+                cell.classList.add('booked-cell');
+            }
+
+            // Set innerHTML (show masked name tag if booked)
+            if (isBooked) {
+                const masked = maskName(lockedDatesMap[dateStr].name);
+                cell.innerHTML = `<span class="date-num">${day}</span><span class="booking-name-tag">${masked}</span>`;
+            } else {
+                cell.innerHTML = `<span class="date-num">${day}</span>`;
             }
 
             // Highlight selected range
@@ -550,6 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
             adminLoginSection.classList.add('hidden');
             adminDashboardSection.style.display = 'block';
             renderAdminDashboard();
+            renderAdminCalendar();
         } else {
             alert('비밀번호가 올바르지 않습니다. (기본 비밀번호: 1234)');
         }
@@ -592,8 +620,33 @@ document.addEventListener('DOMContentLoaded', () => {
             if (item.status === 'rejected') badgeClass = 'status-rejected';
 
             let statusLabel = '대기중';
-            if (item.status === 'approved') statusLabel = '승인됨';
-            if (item.status === 'rejected') statusLabel = '반려됨';
+            let selectMarkup = '';
+
+            if (item.type === 'stay') {
+                if (item.status === 'pending') statusLabel = '예약접수';
+                if (item.status === 'approved') statusLabel = '예약완료';
+                if (item.status === 'rejected') statusLabel = '예약반려';
+
+                selectMarkup = `
+                    <select class="action-select" data-id="${item.id}">
+                        <option value="pending" ${item.status === 'pending' ? 'selected' : ''}>예약접수</option>
+                        <option value="approved" ${item.status === 'approved' ? 'selected' : ''}>예약완료</option>
+                        <option value="rejected" ${item.status === 'rejected' ? 'selected' : ''}>예약반려</option>
+                    </select>
+                `;
+            } else {
+                if (item.status === 'pending') statusLabel = '상담접수';
+                if (item.status === 'approved') statusLabel = '상담완료';
+                if (item.status === 'rejected') statusLabel = '상담반려';
+
+                selectMarkup = `
+                    <select class="action-select" data-id="${item.id}">
+                        <option value="pending" ${item.status === 'pending' ? 'selected' : ''}>상담접수</option>
+                        <option value="approved" ${item.status === 'approved' ? 'selected' : ''}>상담완료</option>
+                        <option value="rejected" ${item.status === 'rejected' ? 'selected' : ''}>상담반려</option>
+                    </select>
+                `;
+            }
 
             tr.innerHTML = `
                 <td>${index + 1}</td>
@@ -603,11 +656,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td><span style="font-size:13px;">${scheduleStr}</span></td>
                 <td><span class="status-badge ${badgeClass}">${statusLabel}</span></td>
                 <td>
-                    <select class="action-select" data-id="${item.id}">
-                        <option value="pending" ${item.status === 'pending' ? 'selected' : ''}>대기중</option>
-                        <option value="approved" ${item.status === 'approved' ? 'selected' : ''}>승인</option>
-                        <option value="rejected" ${item.status === 'rejected' ? 'selected' : ''}>반려</option>
-                    </select>
+                    ${selectMarkup}
                 </td>
             `;
 
@@ -638,6 +687,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Re-render
         renderAdminDashboard();
         renderCalendar(); // Sync locked calendar dates immediately
+        renderAdminCalendar(); // Sync admin calendar immediately
     }
 
     // Filter Buttons logic
@@ -733,7 +783,240 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // ----------------------------------------------------
+    // Admin Calendar Implementation
+    // ----------------------------------------------------
+    let adminYear = 2026;
+    let adminMonth = 6; // July (0-indexed: 6 = July)
+
+    const adminCalendarMonthYear = document.getElementById('adminCalendarMonthYear');
+    const adminPrevMonthBtn = document.getElementById('adminPrevMonthBtn');
+    const adminNextMonthBtn = document.getElementById('adminNextMonthBtn');
+    const adminCalendarDates = document.getElementById('adminCalendarDates');
+
+    const adminResIdInput = document.getElementById('adminResId');
+    const adminResNameInput = document.getElementById('adminResName');
+    const adminResContactInput = document.getElementById('adminResContact');
+    const adminResCheckinInput = document.getElementById('adminResCheckin');
+    const adminResCheckoutInput = document.getElementById('adminResCheckout');
+    const adminResMemoInput = document.getElementById('adminResMemo');
+    
+    const adminResSaveBtn = document.getElementById('adminResSaveBtn');
+    const adminResClearBtn = document.getElementById('adminResClearBtn');
+    const adminFormTitle = document.getElementById('adminFormTitle');
+
+    function renderAdminCalendar() {
+        if (!adminCalendarDates) return;
+        const monthsKOR = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
+        adminCalendarMonthYear.textContent = `${adminYear}년 ${monthsKOR[adminMonth]}`;
+        adminCalendarDates.innerHTML = '';
+
+        const firstDayIndex = new Date(adminYear, adminMonth, 1).getDay();
+        const lastDay = new Date(adminYear, adminMonth + 1, 0).getDate();
+        const prevLastDay = new Date(adminYear, adminMonth, 0).getDate();
+
+        const today = new Date();
+        const lockedDatesMap = getLockedDatesMap();
+
+        // 1. Previous month blank days
+        for (let i = firstDayIndex; i > 0; i--) {
+            const cell = document.createElement('div');
+            cell.className = 'calendar-cell prev-month';
+            cell.textContent = prevLastDay - i + 1;
+            adminCalendarDates.appendChild(cell);
+        }
+
+        // 2. Current month dates
+        for (let day = 1; day <= lastDay; day++) {
+            const cell = document.createElement('div');
+            cell.className = 'calendar-cell';
+            
+            const thisDate = new Date(adminYear, adminMonth, day);
+            const dateStr = thisDate.toISOString().split('T')[0];
+
+            if (thisDate.toDateString() === today.toDateString()) {
+                cell.classList.add('today');
+            }
+
+            const booking = lockedDatesMap[dateStr];
+            if (booking) {
+                cell.classList.add('booked-cell');
+                cell.innerHTML = `<span class="date-num">${day}</span><span class="admin-booking-name-tag">${booking.name}</span>`;
+                
+                // Clicking a booked cell populates the form to edit
+                cell.addEventListener('click', () => {
+                    // Highlight active cell
+                    document.querySelectorAll('#adminCalendarDates .calendar-cell').forEach(c => c.classList.remove('active-select'));
+                    cell.classList.add('active-select');
+                    
+                    // Fetch full booking data by ID
+                    const data = JSON.parse(localStorage.getItem('johorn_requests') || '[]');
+                    const fullItem = data.find(item => item.id === booking.id);
+                    if (fullItem) {
+                        adminResIdInput.value = fullItem.id;
+                        adminResNameInput.value = fullItem.name;
+                        adminResContactInput.value = fullItem.contact || '';
+                        adminResCheckinInput.value = fullItem.checkin || '';
+                        adminResCheckoutInput.value = fullItem.checkout || '';
+                        adminResMemoInput.value = fullItem.notes || '';
+                        adminFormTitle.innerHTML = `<i class="fa-solid fa-calendar-check" style="margin-right: 6px;"></i> 숙소 예약 수정 / 상세 정보`;
+                    }
+                });
+            } else {
+                cell.innerHTML = `<span class="date-num">${day}</span>`;
+                cell.addEventListener('click', () => {
+                    // Highlight active cell
+                    document.querySelectorAll('#adminCalendarDates .calendar-cell').forEach(c => c.classList.remove('active-select'));
+                    cell.classList.add('active-select');
+
+                    // Set dates in form
+                    const clickedDateStr = thisDate.toISOString().split('T')[0];
+                    const checkinVal = adminResCheckinInput.value;
+                    const checkoutVal = adminResCheckoutInput.value;
+
+                    if (!checkinVal || (checkinVal && checkoutVal)) {
+                        adminResCheckinInput.value = clickedDateStr;
+                        adminResCheckoutInput.value = '';
+                    } else if (checkinVal && !checkoutVal) {
+                        if (clickedDateStr < checkinVal) {
+                            adminResCheckinInput.value = clickedDateStr;
+                        } else {
+                            adminResCheckoutInput.value = clickedDateStr;
+                        }
+                    }
+                    
+                    // Reset name/memo input only if we were editing a previous booking
+                    if (adminResIdInput.value) {
+                        adminResIdInput.value = '';
+                        adminResNameInput.value = '';
+                        adminResContactInput.value = '';
+                        adminResMemoInput.value = '';
+                    }
+                    adminFormTitle.innerHTML = `<i class="fa-solid fa-calendar-plus" style="margin-right: 6px;"></i> 직접 예약 등록 / 상세 정보`;
+                });
+            }
+
+            adminCalendarDates.appendChild(cell);
+        }
+
+        // 3. Next month blank days
+        const totalCells = firstDayIndex + lastDay;
+        const nextBlankCount = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+        for (let i = 1; i <= nextBlankCount; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'calendar-cell next-month';
+            cell.textContent = i;
+            adminCalendarDates.appendChild(cell);
+        }
+    }
+
+    // Admin Calendar Month Nav Navigation
+    if (adminPrevMonthBtn && adminNextMonthBtn) {
+        adminPrevMonthBtn.addEventListener('click', () => {
+            adminMonth--;
+            if (adminMonth < 0) {
+                adminMonth = 11;
+                adminYear--;
+            }
+            renderAdminCalendar();
+        });
+
+        adminNextMonthBtn.addEventListener('click', () => {
+            adminMonth++;
+            if (adminMonth > 11) {
+                adminMonth = 0;
+                adminYear++;
+            }
+            renderAdminCalendar();
+        });
+    }
+
+    // Save Reservation from Admin Form
+    if (adminResSaveBtn) {
+        adminResSaveBtn.addEventListener('click', () => {
+            const idVal = adminResIdInput.value;
+            const nameVal = adminResNameInput.value.trim();
+            const contactVal = adminResContactInput.value.trim();
+            const checkinVal = adminResCheckinInput.value;
+            const checkoutVal = adminResCheckoutInput.value;
+            const memoVal = adminResMemoInput.value.trim();
+
+            if (!nameVal || !checkinVal || !checkoutVal) {
+                alert('예약자명, 체크인 날짜, 체크아웃 날짜는 필수 입력 항목입니다.');
+                return;
+            }
+
+            if (checkinVal > checkoutVal) {
+                alert('체크아웃 날짜는 체크인 날짜보다 빠를 수 없습니다.');
+                return;
+            }
+
+            const data = JSON.parse(localStorage.getItem('johorn_requests') || '[]');
+
+            if (idVal) {
+                // Edit existing reservation
+                const targetId = parseInt(idVal);
+                const updated = data.map(item => {
+                    if (item.id === targetId) {
+                        item.name = nameVal;
+                        item.contact = contactVal;
+                        item.checkin = checkinVal;
+                        item.checkout = checkoutVal;
+                        item.notes = memoVal;
+                    }
+                    return item;
+                });
+                localStorage.setItem('johorn_requests', JSON.stringify(updated));
+                alert('예약이 수정되었습니다.');
+            } else {
+                // Add new reservation directly (Status: approved/완료)
+                const newRes = {
+                    id: Date.now(),
+                    type: 'stay',
+                    name: nameVal,
+                    contact: contactVal,
+                    notes: memoVal,
+                    status: 'approved', // Direct reservations are confirmed immediately
+                    dateCreated: new Date().toISOString().split('T')[0].replace(/-/g, '/'),
+                    checkin: checkinVal,
+                    checkout: checkoutVal
+                };
+                data.push(newRes);
+                localStorage.setItem('johorn_requests', JSON.stringify(data));
+                alert('예약이 성공적으로 등록되었습니다.');
+            }
+
+            // Reset form
+            resetAdminResForm();
+            // Refresh
+            renderAdminDashboard();
+            renderAdminCalendar();
+            renderCalendar();
+        });
+    }
+
+    // Reset/Clear Admin Form
+    if (adminResClearBtn) {
+        adminResClearBtn.addEventListener('click', resetAdminResForm);
+    }
+
+    function resetAdminResForm() {
+        adminResIdInput.value = '';
+        adminResNameInput.value = '';
+        adminResContactInput.value = '';
+        adminResCheckinInput.value = '';
+        adminResCheckoutInput.value = '';
+        adminResMemoInput.value = '';
+        adminFormTitle.innerHTML = `<i class="fa-solid fa-calendar-plus" style="margin-right: 6px;"></i> 직접 예약 등록 / 상세 정보`;
+        document.querySelectorAll('#adminCalendarDates .calendar-cell').forEach(c => c.classList.remove('active-select'));
+    }
+
     loadInstagramFeed();
+
+    // Initial render if admin session is already active (rare but good for consistency)
+    if (adminCalendarDates && !adminLoginSection.classList.contains('hidden')) {
+        renderAdminCalendar();
+    }
 
 });
 

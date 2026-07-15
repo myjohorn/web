@@ -1322,5 +1322,88 @@ footer {
     display: none; /* Hide icon in favor of small representative photo */
 }
 
+/* Calendar cell adaptations for name tags */
+.calendar-cell {
+    flex-direction: column !important;
+    justify-content: center !important;
+    padding: 2px !important;
+}
+
+.calendar-cell .date-num {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* Masked name badge in client calendar */
+.calendar-cell .booking-name-tag {
+    font-size: 9px;
+    color: #8C8782;
+    margin-top: 2px;
+    background: rgba(140, 135, 130, 0.12);
+    padding: 1px 4px;
+    border-radius: 3px;
+    display: block;
+    max-width: 90%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+}
+
+/* Full name badge in admin calendar */
+.calendar-cell .admin-booking-name-tag {
+    font-size: 9px;
+    color: var(--accent-color);
+    font-weight: bold;
+    margin-top: 2px;
+    background: rgba(197, 160, 89, 0.15);
+    padding: 1px 4px;
+    border-radius: 3px;
+    display: block;
+    max-width: 90%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.calendar-cell.disabled.booked-cell {
+    text-decoration: none !important;
+    color: var(--text-primary) !important;
+}
+
+.calendar-cell.disabled.booked-cell .date-num {
+    color: #a89f92 !important;
+    text-decoration: line-through !important;
+}
+
+/* Admin Calendar specific style */
+#adminCalendarDates .calendar-cell.booked-cell {
+    background-color: rgba(197, 160, 89, 0.08);
+    cursor: pointer;
+}
+
+#adminCalendarDates .calendar-cell.booked-cell:hover {
+    background-color: rgba(197, 160, 89, 0.2);
+}
+
+#adminCalendarDates .calendar-cell.active-select {
+    border: 2px solid var(--accent-color);
+}
+
+/* Admin calendar responsive layout */
+@media (max-width: 991px) {
+    .admin-calendar-layout {
+        grid-template-columns: 1fr !important;
+        gap: 30px;
+    }
+    .admin-res-form-wrapper {
+        border-left: none !important;
+        padding-left: 0 !important;
+        border-top: 1px solid var(--border-color);
+        padding-top: 30px;
+    }
+}
+
 
 

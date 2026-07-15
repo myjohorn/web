@@ -11,7 +11,7 @@
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="style.css?v=4">
+    <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 
@@ -521,6 +521,77 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Admin Calendar Panel -->
+                    <div class="admin-panel admin-calendar-section" style="background: var(--white); padding: 40px 30px; border: 1px solid var(--border-color); margin-top: 40px;">
+                        <div class="section-header" style="text-align: left; margin-bottom: 25px;">
+                            <span class="section-tag">Admin Calendar</span>
+                            <h3>숙소 예약 달력 및 직접 등록</h3>
+                            <p style="font-size: 14px; color: var(--text-secondary); max-width: 100%;">캘린더에서 예약 상황을 확인하고, 날짜를 클릭하여 직접 예약을 등록/관리하세요.</p>
+                        </div>
+                        
+                        <div class="admin-calendar-layout" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px;">
+                            <!-- Calendar Wrapper -->
+                            <div class="admin-calendar-wrapper">
+                                <div class="calendar-header" style="margin-bottom: 15px;">
+                                    <h4 id="adminCalendarMonthYear" style="font-weight: 600; font-size: 18px; color: var(--text-primary); margin: 0;">2026년 7월</h4>
+                                    <div class="calendar-nav">
+                                        <button type="button" id="adminPrevMonthBtn" class="nav-btn"><i class="fa-solid fa-chevron-left"></i></button>
+                                        <button type="button" id="adminNextMonthBtn" class="nav-btn"><i class="fa-solid fa-chevron-right"></i></button>
+                                    </div>
+                                </div>
+                                <div class="calendar-days-grid" style="margin-bottom: 10px;">
+                                    <div class="day-lbl">일</div>
+                                    <div class="day-lbl">월</div>
+                                    <div class="day-lbl">화</div>
+                                    <div class="day-lbl">수</div>
+                                    <div class="day-lbl">목</div>
+                                    <div class="day-lbl">금</div>
+                                    <div class="day-lbl">토</div>
+                                </div>
+                                <div class="calendar-dates-grid" id="adminCalendarDates">
+                                    <!-- JS will render cells here -->
+                                </div>
+                            </div>
+
+                            <!-- Reservation / Memo Form Wrapper -->
+                            <div class="admin-res-form-wrapper" style="border-left: 1px solid var(--border-color); padding-left: 30px;">
+                                <h4 id="adminFormTitle" style="font-weight: 600; font-size: 16px; margin-top: 0; margin-bottom: 20px; color: var(--accent-color);">
+                                    <i class="fa-solid fa-calendar-plus" style="margin-right: 6px;"></i> 직접 예약 등록 / 상세 정보
+                                </h4>
+                                
+                                <form id="adminResForm" onsubmit="return false;">
+                                    <input type="hidden" id="adminResId" value="">
+                                    <div class="form-group" style="margin-bottom: 15px;">
+                                        <label for="adminResName" style="font-size: 13px; font-weight: 500; margin-bottom: 5px; display: block;">예약자명 <span style="color: var(--accent-color);">*</span></label>
+                                        <input type="text" id="adminResName" class="form-control" placeholder="예약자 이름을 입력하세요" required style="font-size: 13px; padding: 10px;">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 15px;">
+                                        <label for="adminResContact" style="font-size: 13px; font-weight: 500; margin-bottom: 5px; display: block;">연락처 / 카카오톡</label>
+                                        <input type="text" id="adminResContact" class="form-control" placeholder="연락처를 입력하세요" style="font-size: 13px; padding: 10px;">
+                                    </div>
+                                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                        <div class="form-group">
+                                            <label for="adminResCheckin" style="font-size: 13px; font-weight: 500; margin-bottom: 5px; display: block;">체크인 날짜 <span style="color: var(--accent-color);">*</span></label>
+                                            <input type="date" id="adminResCheckin" class="form-control" required style="font-size: 13px; padding: 10px;">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="adminResCheckout" style="font-size: 13px; font-weight: 500; margin-bottom: 5px; display: block;">체크아웃 날짜 <span style="color: var(--accent-color);">*</span></label>
+                                            <input type="date" id="adminResCheckout" class="form-control" required style="font-size: 13px; padding: 10px;">
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 20px;">
+                                        <label for="adminResMemo" style="font-size: 13px; font-weight: 500; margin-bottom: 5px; display: block;">예약 메모</label>
+                                        <textarea id="adminResMemo" class="form-control" rows="3" placeholder="예약자 정보나 관리자 확인 사항 등을 입력하세요" style="font-size: 13px; padding: 10px; resize: none;"></textarea>
+                                    </div>
+                                    <div style="display: flex; gap: 10px;">
+                                        <button type="button" id="adminResSaveBtn" class="btn btn-primary" style="flex: 1; padding: 12px; font-size: 13px;">저장하기</button>
+                                        <button type="button" id="adminResClearBtn" class="btn btn-secondary" style="padding: 12px; font-size: 13px;">선택 취소</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -551,6 +622,6 @@
     </footer>
 
     <!-- Main Logic Script -->
-    <script src="app.js?v=4"></script>
+    <script src="app.js?v=5"></script>
 </body>
 </html>
