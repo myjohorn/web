@@ -1117,17 +1117,30 @@ footer {
 
 /* Admission Card Styles */
 .admission-card {
-    padding: 0 !important; /* Reset padding for full width image */
+    padding: 30px !important; /* Apply padding for card style */
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
+    background-color: var(--bg-secondary);
+    border: 1px solid transparent;
+    transition: var(--transition);
     overflow: hidden;
 }
 
+.admission-card:hover {
+    border-color: var(--border-color);
+    background-color: var(--white);
+    transform: translateY(-5px);
+}
+
 .admission-card .card-image-wrapper {
-    height: 220px;
+    width: 100px;
+    height: 70px;
     overflow: hidden;
     position: relative;
-    border-bottom: 1px solid var(--border-color);
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 20px;
 }
 
 .admission-card .card-image-wrapper img {
@@ -1138,18 +1151,18 @@ footer {
 }
 
 .admission-card:hover .card-image-wrapper img {
-    transform: scale(1.05);
+    transform: scale(1.08);
 }
 
 .admission-card .card-content {
-    padding: 40px 30px;
+    padding: 0;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
 }
 
 .admission-card .service-icon {
-    margin-bottom: 20px;
+    display: none; /* Hide icon in favor of small representative photo */
 }
 
 
