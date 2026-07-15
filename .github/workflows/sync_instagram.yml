@@ -1,0 +1,50 @@
+name: Sync Instagram Posts
+
+on:
+  schedule:
+    # Run every Monday at 00:00 UTC (8:00 AM Malaysia time)
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+    # Allow manual triggering from GitHub UI
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Fetch all history so we can push back
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Run Instagram sync script
+        env:
+          BEHOLD_FEED_URL: ${{ secrets.BEHOLD_FEED_URL }}
+        run: python scripts/sync_instagram.py
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Add JSON data and new images
+          git add data/instagram_posts.json assets/instagram/
+          
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes in Instagram posts to commit."
+          else
+            git commit -m "Auto-update Instagram posts and download images"
+            git push origin main
+            echo "Successfully updated and pushed Instagram posts."
+          fi

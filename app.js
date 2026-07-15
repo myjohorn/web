@@ -497,55 +497,64 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ----------------------------------------------------
-    // 7. Instagram Feed Integration via Behold.so
+    // 7. Serverless Instagram Feed Integration (via data/instagram_posts.json)
     // ----------------------------------------------------
-    // [사용자 안내] Behold.so 에서 발급받은 API URL을 아래 빈값 대신 채워 넣으시면 실제 인스타그램과 연동됩니다.
-    // 예: 'https://feeds.behold.so/v1/FeEdId'
-    const BEHOLD_API_URL = ''; 
+    // GitHub Actions를 통해 주기적으로 Behold API를 호출해 다운로드 받아 저장한 json 파일을 로드합니다.
+    const INSTAGRAM_JSON_URL = 'data/instagram_posts.json'; 
 
     const mockInstagramData = [
         {
-            mediaUrl: 'assets/stay_living.jpg',
-            permalink: 'https://instagram.com/myjohorn',
-            caption: '조호바루의 따뜻한 오후. 햇살 가득 품은 티가 레지던스 거실입니다. #조호바루한달살기 #티가레지던스 #조호엔'
+            image_local: 'assets/stay_living.jpg',
+            url: 'https://instagram.com/myjohorn',
+            caption: '조호바루의 따뜻한 오후. 햇살 가득 품은 티가 레지던스 거실입니다. #조호바루한달살기 #티가레지던스 #조호엔',
+            likes: 42
         },
         {
-            mediaUrl: 'assets/stay_balcony.jpg',
-            permalink: 'https://instagram.com/myjohorn',
-            caption: '테라스에서 바라보는 말라카 해협의 시원한 바다 뷰. 매일 아침 차 한 잔의 여유를 즐겨보세요. #오션뷰 #푸테리하버 #조호바루이주'
+            image_local: 'assets/stay_balcony.jpg',
+            url: 'https://instagram.com/myjohorn',
+            caption: '테라스에서 바라보는 말라카 해협의 시원한 바다 뷰. 매일 아침 차 한 잔의 여유를 즐겨보세요. #오션뷰 #푸테리하버 #조호바루이주',
+            likes: 38
         },
         {
-            mediaUrl: 'assets/stay_bedroom.jpg',
-            permalink: 'https://instagram.com/myjohorn',
-            caption: '아늑하고 포근하게 준비된 마스터룸. 한달살기도 내 집처럼 편안하게 머무르실 수 있습니다. #조호바루콘도 #가족여행 #조호엔stay'
+            image_local: 'assets/stay_bedroom.jpg',
+            url: 'https://instagram.com/myjohorn',
+            caption: '아늑하고 포근하게 준비된 마스터룸. 한달살기도 내 집처럼 편안하게 머무르실 수 있습니다. #조호바루콘도 #가족여행 #조호엔stay',
+            likes: 51
         },
         {
-            mediaUrl: 'assets/stay_living.jpg',
-            permalink: 'https://instagram.com/myjohorn',
-            caption: '조호바루 국제학교 답사 및 이주 정착 컨설팅, 2026년 가을 학기 모집 진행 중입니다! #국제학교답사 #말레이시아유학 #조호엔'
+            image_local: 'assets/stay_living.jpg',
+            url: 'https://instagram.com/myjohorn',
+            caption: '조호바루 국제학교 답사 및 이주 정착 컨설팅, 2026년 가을 학기 모집 진행 중입니다! #국제학교답사 #말레이시아유학 #조호엔',
+            likes: 49
         }
     ];
 
-    function renderInstagramFeed(data) {
+    function renderInstagramFeed(posts) {
         const grid = document.getElementById('instagramGrid');
         if (!grid) return;
         grid.innerHTML = '';
 
         // Take only first 4 items
-        const feeds = data.slice(0, 4);
+        const feeds = posts.slice(0, 4);
 
         feeds.forEach(feed => {
             const card = document.createElement('div');
             card.className = 'instagram-card';
             card.addEventListener('click', () => {
-                window.open(feed.permalink, '_blank');
+                window.open(feed.url, '_blank');
             });
 
+            // If likes count exists, format it
+            const likesCount = feed.likes !== undefined ? feed.likes : 0;
+
             card.innerHTML = `
-                <img src="${feed.mediaUrl}" alt="Instagram Post">
+                <img src="${feed.image_local}" alt="Instagram Post" onerror="this.src='assets/stay_living.jpg'">
                 <div class="instagram-overlay">
                     <p>${feed.caption || 'Instagram Post'}</p>
-                    <i class="fa-brands fa-instagram"></i>
+                    <div style="font-size: 13px; color: rgba(255,255,255,0.9); margin-bottom: 10px; display: flex; align-items: center; gap: 5px;">
+                        <i class="fa-solid fa-heart" style="color: #FF4B5C; font-size:14px;"></i> ${likesCount}
+                    </div>
+                    <i class="fa-brands fa-instagram" style="font-size:20px; color:rgba(255,255,255,0.75);"></i>
                 </div>
             `;
             grid.appendChild(card);
@@ -553,26 +562,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function loadInstagramFeed() {
-        if (!BEHOLD_API_URL) {
-            // If API URL is empty, fall back to mock data
-            renderInstagramFeed(mockInstagramData);
-            return;
-        }
-
         try {
-            const response = await fetch(BEHOLD_API_URL);
-            if (!response.ok) throw new Error('API request failed');
+            const response = await fetch(INSTAGRAM_JSON_URL);
+            if (!response.ok) throw new Error('Failed to load JSON');
             const data = await response.json();
             
-            // Format Behold schema
             if (Array.isArray(data) && data.length > 0) {
                 renderInstagramFeed(data);
             } else {
-                throw new Error('Invalid format');
+                throw new Error('Empty or invalid data');
             }
         } catch (error) {
-            console.error('Error fetching Instagram via Behold:', error);
-            // Rollback to mock data on error so grid is not empty
+            console.warn('Error loading synced Instagram JSON, falling back to mock data:', error);
             renderInstagramFeed(mockInstagramData);
         }
     }
@@ -580,4 +581,5 @@ document.addEventListener('DOMContentLoaded', () => {
     loadInstagramFeed();
 
 });
+
 
