@@ -839,6 +839,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminResDeleteBtn = document.getElementById('adminResDeleteBtn');
     const gcalDebugInfo = document.getElementById('gcalDebugInfo');
     const gcalDebugText = document.getElementById('gcalDebugText');
+    const gcalAutoScanBtn = document.getElementById('gcalAutoScanBtn');
 
     function showGcalDebug(msg) {
         if (gcalDebugInfo && gcalDebugText) {
@@ -958,6 +959,65 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (gcalDisconnectBtn) {
         gcalDisconnectBtn.addEventListener('click', disconnectGoogleCalendar);
+    }
+
+    // Auto-Scan all calendars for 2026 events
+    if (gcalAutoScanBtn) {
+        gcalAutoScanBtn.addEventListener('click', async () => {
+            if (!isGcalConnected()) {
+                alert('구글 연동을 먼저 진행해 주세요.');
+                return;
+            }
+            
+            showGcalDebug('전체 캘린더에서 2026년 예약 일정 자동 조회 중...');
+            
+            try {
+                const calendars = await fetchCalendarList();
+                if (calendars.length === 0) {
+                    showGcalDebug('가져올 수 있는 캘린더 목록이 비어 있습니다.');
+                    return;
+                }
+
+                // Query full year 2026
+                const timeMin = '2026-01-01T00:00:00Z';
+                const timeMax = '2026-12-31T23:59:59Z';
+                let scanSummary = [];
+
+                for (const cal of calendars) {
+                    showGcalDebug(`[조회 중] 캘린더 [${cal.summary}] 검색 중...`);
+                    
+                    const token = localStorage.getItem('gcal_access_token');
+                    const apiKey = localStorage.getItem('gcal_api_key') || '';
+                    let url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cal.id)}/events`;
+                    url += `?timeMin=${encodeURIComponent(timeMin)}`;
+                    url += `?timeMax=${encodeURIComponent(timeMax)}`;
+                    url += `&singleEvents=true`;
+                    url += `&maxResults=100`;
+                    if (apiKey) url += `&key=${encodeURIComponent(apiKey)}`;
+
+                    const response = await fetch(url, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        const evts = data.items || [];
+                        if (evts.length > 0) {
+                            const details = evts.map(e => `${e.summary}(${(e.start.date || e.start.dateTime || '').split('T')[0]})`).join(', ');
+                            scanSummary.push(`▶ [${cal.summary}] ➔ ${evts.length}개 일정 발견: ${details}\n   (캘린더 ID: ${cal.id})`);
+                        } else {
+                            scanSummary.push(`▷ [${cal.summary}] ➔ 일정 없음`);
+                        }
+                    } else {
+                        scanSummary.push(`❌ [${cal.summary}] ➔ 조회 실패 (HTTP ${response.status})`);
+                    }
+                }
+
+                showGcalDebug(`[자동 스캔 완료 - 2026년 기준]\n\n` + scanSummary.join('\n\n'));
+            } catch (err) {
+                showGcalDebug(`자동 스캔 오류 발생: ${err.message}`);
+            }
+        });
     }
 
     // Fetch Events via direct Google Calendar REST API
