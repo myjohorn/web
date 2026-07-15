@@ -3,6 +3,9 @@ window.onerror = function(message, source, lineno, colno, error) {
     alert("자바스크립트 오류 발생:\n메시지: " + message + "\n위치: " + source + " (줄 번호: " + lineno + ")");
     return false;
 };
+window.addEventListener('unhandledrejection', function(event) {
+    alert("비동기 오류 발생:\n내용: " + event.reason);
+});
 document.addEventListener('DOMContentLoaded', () => {
     // Google Calendar API Integration State & cache (declared at top to avoid Temporal Dead Zone)
     let tokenClient;
