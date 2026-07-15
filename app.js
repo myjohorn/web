@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const checkinDisplay = document.getElementById('checkinDisplay');
     const checkoutDisplay = document.getElementById('checkoutDisplay');
 
-    // Fetch approved bookings map to lock dates
+    // Fetch approved bookings map to lock dates (Returns: dateStr -> Array of bookings)
     function getLockedDatesMap() {
         const data = johornRequests;
         const map = {};
@@ -276,14 +276,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 let end = new Date(item.checkout);
                 while (start <= end) {
                     const dateStr = start.toISOString().split('T')[0];
-                    map[dateStr] = {
+                    if (!map[dateStr]) {
+                        map[dateStr] = [];
+                    }
+                    map[dateStr].push({
                         id: item.id,
                         name: item.name,
                         contact: item.contact || '',
                         notes: item.notes || '',
                         checkin: item.checkin,
                         checkout: item.checkout
-                    };
+                    });
                     start.setDate(start.getDate() + 1);
                 }
             }
@@ -299,7 +302,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Extract clean name from GCal event summary (Format: "[숙소예약] 홍길동" or "홍길동")
                 const name = evt.summary.replace('\[숙소예약\]', '').trim();
                 
-                map[dateStr] = {
+                if (!map[dateStr]) {
+                    map[dateStr] = [];
+                }
+                map[dateStr].push({
                     id: evt.id, // String ID from GCal
                     name: name,
                     contact: '',
@@ -307,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     checkin: evt.start,
                     checkout: evt.end,
                     isGcal: true
-                };
+                });
                 start.setDate(start.getDate() + 1);
             }
         });
@@ -360,7 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Disable past dates
             let isPast = thisDate < today && thisDate.toDateString() !== today.toDateString();
-            let isBooked = !!lockedDatesMap[dateStr];
+            let isBooked = lockedDatesMap[dateStr] && lockedDatesMap[dateStr].length > 0;
 
             if (isPast) {
                 cell.classList.add('disabled');
@@ -372,10 +378,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 cell.classList.add('booked-cell');
             }
 
-            // Set innerHTML (show masked name tag if booked)
+            // Set innerHTML (show masked name tags if booked)
             if (isBooked) {
-                const masked = maskName(lockedDatesMap[dateStr].name);
-                cell.innerHTML = `<span class="date-num">${day}</span><span class="booking-name-tag">${masked}</span>`;
+                const bookingsList = lockedDatesMap[dateStr];
+                const tagsMarkup = bookingsList.map(b => `<span class="booking-name-tag">${maskName(b.name)}</span>`).join('');
+                cell.innerHTML = `<span class="date-num">${day}</span>${tagsMarkup}`;
             } else {
                 cell.innerHTML = `<span class="date-num">${day}</span>`;
             }
@@ -1203,6 +1210,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             });
 
+            const matchNames = gcalEventsCache.map(e => e.summary).join(', ') || '없음';
             showGcalDebug(`동기화 완료: ${gcalEventsCache.length}개 일정 매핑됨 (${matchNames}).\n\n[API 원본 응답]: ${rawEventDetails || '없음'}\n\n내 계정 캘린더 목록: ${calDetails}`);
 
             // Trigger calendars rendering with GCal events in cache
@@ -1309,43 +1317,79 @@ document.addEventListener('DOMContentLoaded', () => {
                 cell.classList.add('today');
             }
 
-            const booking = lockedDatesMap[dateStr];
-            if (booking) {
+            const bookingsList = lockedDatesMap[dateStr];
+            if (bookingsList && bookingsList.length > 0) {
                 cell.classList.add('booked-cell');
-                cell.innerHTML = `<span class="date-num">${day}</span><span class="admin-booking-name-tag">${booking.name}</span>`;
+                cell.innerHTML = `<span class="date-num">${day}</span>`;
                 
-                // Clicking a booked cell populates the form to edit
+                // Add individual name tags with their own click handlers for overlap selection
+                bookingsList.forEach(booking => {
+                    const tag = document.createElement('span');
+                    tag.className = 'admin-booking-name-tag';
+                    tag.textContent = booking.name;
+                    tag.style.cursor = 'pointer';
+                    tag.addEventListener('click', (e) => {
+                        e.stopPropagation(); // Prevent cell-level click handler from running
+                        
+                        // Highlight active cell
+                        document.querySelectorAll('#adminCalendarDates .calendar-cell').forEach(c => c.classList.remove('active-select'));
+                        cell.classList.add('active-select');
+                        
+                        // Show Delete Button
+                        if (adminResDeleteBtn) {
+                            adminResDeleteBtn.classList.remove('hidden');
+                            adminResDeleteBtn.innerHTML = booking.isGcal ? '<i class="fa-solid fa-trash"></i> 구글에서 삭제' : '<i class="fa-solid fa-trash"></i> 예약 삭제';
+                        }
+
+                        if (booking.isGcal) {
+                            adminResIdInput.value = booking.id; // GCal string ID
+                            adminResNameInput.value = booking.name;
+                            adminResContactInput.value = booking.contact || '';
+                            adminResCheckinInput.value = booking.checkin;
+                            adminResCheckoutInput.value = booking.checkout;
+                            adminResMemoInput.value = booking.notes;
+                            adminFormTitle.innerHTML = `<i class="fa-solid fa-calendar-check" style="margin-right: 6px;"></i> 구글 캘린더 예약 수정 / 상세`;
+                        } else {
+                            // Fetch full booking data by ID from Firebase requests cache
+                            const data = johornRequests;
+                            const fullItem = data.find(item => item.id.toString() === booking.id.toString());
+                            if (fullItem) {
+                                adminResIdInput.value = fullItem.id;
+                                adminResNameInput.value = fullItem.name;
+                                adminResContactInput.value = fullItem.contact || '';
+                                adminResCheckinInput.value = fullItem.checkin || '';
+                                adminResCheckoutInput.value = fullItem.checkout || '';
+                                adminResMemoInput.value = fullItem.notes || '';
+                                adminFormTitle.innerHTML = `<i class="fa-solid fa-calendar-check" style="margin-right: 6px;"></i> 숙소 예약 수정 / 상세 정보`;
+                            }
+                        }
+                    });
+                    cell.appendChild(tag);
+                });
+                
+                // Allow clicking the cell itself to select checkin/checkout dates (clearing reservation selection)
                 cell.addEventListener('click', () => {
-                    // Highlight active cell
                     document.querySelectorAll('#adminCalendarDates .calendar-cell').forEach(c => c.classList.remove('active-select'));
                     cell.classList.add('active-select');
+                    if (adminResDeleteBtn) adminResDeleteBtn.classList.add('hidden');
                     
-                    // Show Delete Button
-                    if (adminResDeleteBtn) {
-                        adminResDeleteBtn.classList.remove('hidden');
-                        adminResDeleteBtn.innerHTML = booking.isGcal ? '<i class="fa-solid fa-trash"></i> 구글에서 삭제' : '<i class="fa-solid fa-trash"></i> 예약 삭제';
-                    }
+                    const clickedDateStr = thisDate.toISOString().split('T')[0];
+                    const checkinVal = adminResCheckinInput.value;
+                    const checkoutVal = adminResCheckoutInput.value;
 
-                    if (booking.isGcal) {
-                        adminResIdInput.value = booking.id; // GCal string ID
-                        adminResNameInput.value = booking.name;
-                        adminResContactInput.value = booking.contact || '';
-                        adminResCheckinInput.value = booking.checkin;
-                        adminResCheckoutInput.value = booking.checkout;
-                        adminResMemoInput.value = booking.notes;
-                        adminFormTitle.innerHTML = `<i class="fa-solid fa-calendar-check" style="margin-right: 6px;"></i> 구글 캘린더 예약 수정 / 상세`;
-                    } else {
-                        // Fetch full booking data by ID from Firebase requests cache
-                        const data = johornRequests;
-                        const fullItem = data.find(item => item.id.toString() === booking.id.toString());
-                        if (fullItem) {
-                            adminResIdInput.value = fullItem.id;
-                            adminResNameInput.value = fullItem.name;
-                            adminResContactInput.value = fullItem.contact || '';
-                            adminResCheckinInput.value = fullItem.checkin || '';
-                            adminResCheckoutInput.value = fullItem.checkout || '';
-                            adminResMemoInput.value = fullItem.notes || '';
-                            adminFormTitle.innerHTML = `<i class="fa-solid fa-calendar-check" style="margin-right: 6px;"></i> 숙소 예약 수정 / 상세 정보`;
+                    if (!checkinVal || (checkinVal && checkoutVal)) {
+                        adminResCheckinInput.value = clickedDateStr;
+                        adminResCheckoutInput.value = '';
+                        adminResIdInput.value = '';
+                        adminResNameInput.value = '';
+                        adminResContactInput.value = '';
+                        adminResMemoInput.value = '';
+                        adminFormTitle.innerHTML = `<i class="fa-solid fa-calendar-plus" style="margin-right: 6px;"></i> 직접 예약 등록 / 상세 정보`;
+                    } else if (checkinVal && !checkoutVal) {
+                        if (clickedDateStr < checkinVal) {
+                            adminResCheckinInput.value = clickedDateStr;
+                        } else {
+                            adminResCheckoutInput.value = clickedDateStr;
                         }
                     }
                 });
