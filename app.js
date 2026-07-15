@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const navToggle = document.getElementById('navToggle');
     const navLinksContainer = document.getElementById('navLinks');
     const navLinks = document.querySelectorAll('.nav-link');
+    const footerAdminLink = document.getElementById('footerAdminLink');
+    const logoLink = document.querySelector('.logo a');
     const header = document.querySelector('header');
 
     // Toggle Mobile Navigation Menu
@@ -14,6 +16,22 @@ document.addEventListener('DOMContentLoaded', () => {
         navLinksContainer.classList.toggle('active');
         navToggle.classList.toggle('open');
     });
+
+    // Function to show normal website view and hide admin
+    function showNormalView() {
+        document.querySelectorAll('main > section').forEach(s => {
+            if (s.id !== 'admin') s.classList.remove('hidden');
+        });
+        document.getElementById('admin').classList.add('hidden');
+    }
+
+    // Function to show admin view and hide rest
+    function showAdminView() {
+        document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+        document.getElementById('admin').classList.remove('hidden');
+        // Reset admin login state or keep current
+        document.getElementById('adminPassword').value = '';
+    }
 
     // Handle Active Tab Highlighting and Scroll Link Behaviour
     navLinks.forEach(link => {
@@ -26,21 +44,26 @@ document.addEventListener('DOMContentLoaded', () => {
             navLinks.forEach(l => l.classList.remove('active'));
             link.classList.add('active');
 
-            const targetId = link.getAttribute('href');
-            if (targetId.startsWith('#')) {
-                // If it's the Admin tab, we handle special display
-                if (targetId === '#admin') {
-                    e.preventDefault();
-                    document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
-                    document.getElementById('admin').classList.remove('hidden');
-                } else {
-                    // For standard sections, ensure they are visible and admin is hidden
-                    document.querySelectorAll('main > section').forEach(s => {
-                        if (s.id !== 'admin') s.classList.remove('hidden');
-                    });
-                    document.getElementById('admin').classList.add('hidden');
-                }
-            }
+            // Switch view
+            showNormalView();
+        });
+    });
+
+    // Logo Click (Go to Home)
+    logoLink.addEventListener('click', () => {
+        navLinks.forEach(l => l.classList.remove('active'));
+        showNormalView();
+    });
+
+    // Footer Admin Link click handling
+    footerAdminLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        navLinks.forEach(l => l.classList.remove('active'));
+        showAdminView();
+        // Smooth scroll to main top
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
         });
     });
 
