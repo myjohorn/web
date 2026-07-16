@@ -46,12 +46,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ── Google Calendar stub ──
-    // Placeholder for future GCal integration; prevents ReferenceError
+    // ── Google Calendar Events Cache (from Firebase) ──
+    // Admin syncs GCal events to Firebase at settings/gcal_events_cache.
+    // Guest visitors read this cache to display GCal bookings on the front-end calendar.
+    db.ref('settings/gcal_events_cache').on('value', (snapshot) => {
+        gcalEventsCache = snapshot.val() || [];
+        // Re-render calendar whenever GCal cache changes
+        if (typeof renderCalendar === 'function') {
+            renderCalendar();
+        }
+    });
+
+    // loadGcalEventsForCurrentMonth: On the public site, GCal events are loaded
+    // via the Firebase listener above. This function is a no-op for guests.
+    // (Admin page has its own full OAuth-based implementation.)
     function loadGcalEventsForCurrentMonth() {
-        // Google Calendar API integration is not yet active.
-        // When implemented, this will fetch events and populate gcalEventsCache,
-        // then call renderCalendar().
+        // Guest visitors rely on the Firebase gcal_events_cache listener.
+        // No direct GCal API call needed here.
     }
 
     // ── Form Element References ──
