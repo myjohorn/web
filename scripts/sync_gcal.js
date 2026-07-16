@@ -65,15 +65,13 @@ async function run() {
         const calendarId = settings.calendarId;
         console.log(`Calendar ID resolved: ${calendarId}`);
 
-        // Set up search date range (current month +/- 1 month)
+        // Set up search date range (3 months ago to 12 months ahead)
         const now = new Date();
-        const currentYear = now.getFullYear();
-        const currentMonth = now.getMonth();
-        const startOfMonth = new Date(currentYear, currentMonth - 1, 20); // Prev month buffer
-        const endOfMonth = new Date(currentYear, currentMonth + 1, 10);  // Next month buffer
+        const startOfRange = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+        const endOfRange = new Date(now.getFullYear(), now.getMonth() + 12, 1);
         
-        const timeMin = startOfMonth.toISOString();
-        const timeMax = endOfMonth.toISOString();
+        const timeMin = startOfRange.toISOString();
+        const timeMax = endOfRange.toISOString();
         console.log(`Fetching events from GCal for range: ${timeMin.split('T')[0]} ~ ${timeMax.split('T')[0]}`);
 
         // Fetch events from GCal
@@ -121,8 +119,8 @@ async function run() {
                 const req = requests[key];
                 if (req.type === 'stay' && req.gcalEventId) {
                     const checkinDate = parseLocalDate(req.checkin);
-                    // Check if it falls within the searched GCal range [startOfMonth, endOfMonth]
-                    if (checkinDate >= startOfMonth && checkinDate <= endOfMonth) {
+                    // Check if it falls within the searched GCal range [startOfRange, endOfRange]
+                    if (checkinDate >= startOfRange && checkinDate <= endOfRange) {
                         if (!activeGcalIds.has(req.gcalEventId)) {
                             console.log(`Propagating deletion: Booking '${req.name}' (${req.checkin} ~ ${req.checkout}) with GCal ID ${req.gcalEventId} is no longer in Google Calendar. Deleting from Firebase...`);
                             const deleteUrl = `https://johorn-booking-default-rtdb.asia-southeast1.firebasedatabase.app/requests/${key}.json`;

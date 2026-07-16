@@ -282,12 +282,10 @@ document.addEventListener('DOMContentLoaded', () => {
             renderAdminCalendar();
         });
 
-        // 3. Listen for GCal events cache in Firebase (to display cache if disconnected)
+        // 3. Listen for GCal events cache in Firebase to keep UI updated in real-time
         db.ref('settings/gcal_events_cache').on('value', (snapshot) => {
-            if (!isGcalConnected()) {
-                gcalEventsCache = snapshot.val() || [];
-                renderAdminCalendar();
-            }
+            gcalEventsCache = snapshot.val() || [];
+            renderAdminCalendar();
         });
 
         // 4. Initialize Google OAuth GIS clients
@@ -986,7 +984,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
     function isGcalConnected() {
         const token = localStorage.getItem('gcal_access_token');
-        return !!token;
+        const expiry = parseInt(localStorage.getItem('gcal_token_expiry') || '0');
+        return !!token && Date.now() < expiry;
     }
 
     function updateGcalUI(connected) {
@@ -1015,6 +1014,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const client_id = localStorage.getItem('gcal_client_id');
         if (!client_id) return;
         
+        if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
+            console.log("Google GIS client not loaded yet, retrying in 200ms...");
+            setTimeout(initializeGisClient, 200);
+            return;
+        }
+        
         try {
             tokenClient = google.accounts.oauth2.initTokenClient({
                 client_id: client_id,
@@ -1024,6 +1029,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         throw tokenResponse;
                     }
                     localStorage.setItem('gcal_access_token', tokenResponse.access_token);
+                    
+                    const expiryTime = Date.now() + (tokenResponse.expires_in * 1000);
+                    localStorage.setItem('gcal_token_expiry', expiryTime);
+                    
                     updateGcalUI(true);
                     alert('구글 캘린더 계정이 성공적으로 연동되었습니다.');
                     await loadGcalEventsForCurrentMonth();
@@ -1149,6 +1158,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) {
                 if (response.status === 401) {
                     localStorage.removeItem('gcal_access_token');
+                    localStorage.removeItem('gcal_token_expiry');
                     updateGcalUI(false);
                     console.warn('GCal Access Token expired (HTTP 401). Disconnected.');
                 }
@@ -1194,7 +1204,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const response = await fetch(url, {
+            let response = await fetch(url, {
                 method: method,
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -1203,7 +1213,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(eventBody)
             });
 
+            // If PUT fails because GCal event was deleted from Google directly, retry as POST (create new)
+            if (isEdit && method === 'PUT' && response.status === 404) {
+                console.warn(`GCal event ${gcalEventId} not found (404). Retrying as new event creation...`);
+                url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
+                method = 'POST';
+                response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(eventBody)
+                });
+            }
+
             if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem('gcal_access_token');
+                    localStorage.removeItem('gcal_token_expiry');
+                    updateGcalUI(false);
+                    console.warn('GCal Access Token expired (HTTP 401). Disconnected.');
+                }
                 throw new Error(`Failed to save GCal event: ${response.status}`);
             }
 
@@ -1231,6 +1262,17 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!response.ok) {
+                // If it is already deleted directly from GCal, treat as success
+                if (response.status === 404) {
+                    console.log(`GCal event ${gcalEventId} already deleted from Google Calendar.`);
+                    return true;
+                }
+                if (response.status === 401) {
+                    localStorage.removeItem('gcal_access_token');
+                    localStorage.removeItem('gcal_token_expiry');
+                    updateGcalUI(false);
+                    console.warn('GCal Access Token expired (HTTP 401). Disconnected.');
+                }
                 throw new Error(`Failed to delete GCal event: ${response.status}`);
             }
             return true;
@@ -1251,7 +1293,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            if (!response.ok) throw new Error('Failed to fetch calendar list');
+            if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem('gcal_access_token');
+                    localStorage.removeItem('gcal_token_expiry');
+                    updateGcalUI(false);
+                    console.warn('GCal Access Token expired (HTTP 401). Disconnected.');
+                }
+                throw new Error('Failed to fetch calendar list');
+            }
             const data = await response.json();
             return data.items || [];
         } catch (err) {
@@ -1264,11 +1314,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const connected = isGcalConnected();
         if (!connected) return;
 
-        // Fetch a wide window: from 1 month ago to 12 months ahead (from today)
-        // This prevents the cache from losing events outside the admin's currently viewed month
+        // Fetch a wide window: from 3 months ago to 12 months in the future
         const today = new Date();
-        const startOfRange = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-        const endOfRange = new Date(today.getFullYear(), today.getMonth() + 13, 0);
+        const startOfRange = new Date(today.getFullYear(), today.getMonth() - 3, 1);
+        const endOfRange = new Date(today.getFullYear(), today.getMonth() + 12, 1);
         
         const timeMin = startOfRange.toISOString();
         const timeMax = endOfRange.toISOString();
