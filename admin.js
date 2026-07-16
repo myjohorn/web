@@ -16,6 +16,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let johornRequests = [];
     let currentFilter = 'all';
 
+    // Mobile Nav Toggle for admin page
+    const navToggle = document.getElementById('navToggle');
+    const navLinksContainer = document.getElementById('navLinks');
+    if (navToggle && navLinksContainer) {
+        navToggle.addEventListener('click', () => {
+            navLinksContainer.classList.toggle('active');
+            navToggle.classList.toggle('open');
+        });
+    }
+
     // Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyAgWQBqwEF_qWBLPmvoUsDEqB_gFbRH2xw",
@@ -457,13 +467,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             tr.innerHTML = `
-                <td>${index + 1}</td>
-                <td><strong>${typeLabel}</strong></td>
-                <td>${item.name}</td>
-                <td>${item.contact}</td>
-                <td><span style="font-size:13px;">${scheduleStr}</span></td>
-                <td><span class="status-badge ${badgeClass}">${statusLabel}</span></td>
-                <td>
+                <td class="col-num" data-label="번호">${index + 1}</td>
+                <td class="col-type" data-label="구분"><strong>${typeLabel}</strong></td>
+                <td class="col-name" data-label="신청자">${item.name}</td>
+                <td class="col-contact" data-label="연락처">${item.contact}</td>
+                <td class="col-schedule" data-label="일정"><span style="font-size:13px;">${scheduleStr}</span></td>
+                <td class="col-status" data-label="상태"><span class="status-badge ${badgeClass}">${statusLabel}</span></td>
+                <td class="col-action" data-label="관리">
                     ${selectMarkup}
                 </td>
             `;

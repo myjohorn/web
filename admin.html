@@ -11,7 +11,7 @@
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="style.css?v=11">
+    <link rel="stylesheet" href="style.css?v=13">
 </head>
 <body>
 
@@ -21,7 +21,10 @@
             <div class="logo">
                 <a href="index.html">JohorN <span style="font-size: 13px; font-weight: 500; letter-spacing: 0.1em; color: var(--accent-color); margin-left: 6px;">ADMIN</span></a>
             </div>
-            <ul class="nav-links">
+            <button class="nav-toggle" id="navToggle" aria-label="메뉴">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-links" id="navLinks">
                 <li><a href="index.html" class="nav-link">메인 페이지로 이동</a></li>
             </ul>
         </div>
@@ -280,6 +283,6 @@
     <script src="https://apis.google.com/js/api.js" async defer></script>
 
     <!-- Admin JS core -->
-    <script src="admin.js?v=12"></script>
+    <script src="admin.js?v=13"></script>
 </body>
 </html>
