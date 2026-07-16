@@ -1264,11 +1264,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const connected = isGcalConnected();
         if (!connected) return;
 
-        const startOfMonth = new Date(currentYear, currentMonth - 1, 20); // Prev month buffer
-        const endOfMonth = new Date(currentYear, currentMonth + 1, 10);  // Next month buffer
+        // Fetch a wide window: from 1 month ago to 6 months ahead (from today)
+        // This prevents the cache from losing events outside the admin's currently viewed month
+        const today = new Date();
+        const startOfRange = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+        const endOfRange = new Date(today.getFullYear(), today.getMonth() + 7, 0);
         
-        const timeMin = startOfMonth.toISOString();
-        const timeMax = endOfMonth.toISOString();
+        const timeMin = startOfRange.toISOString();
+        const timeMax = endOfRange.toISOString();
 
         showGcalDebug(`일정 조회 요청 중... 범위: ${timeMin.split('T')[0]} ~ ${timeMax.split('T')[0]}`);
 
