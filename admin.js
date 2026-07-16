@@ -1264,11 +1264,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const connected = isGcalConnected();
         if (!connected) return;
 
-        // Fetch a wide window: from 1 month ago to 6 months ahead (from today)
+        // Fetch a wide window: from 1 month ago to 12 months ahead (from today)
         // This prevents the cache from losing events outside the admin's currently viewed month
         const today = new Date();
         const startOfRange = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-        const endOfRange = new Date(today.getFullYear(), today.getMonth() + 7, 0);
+        const endOfRange = new Date(today.getFullYear(), today.getMonth() + 13, 0);
         
         const timeMin = startOfRange.toISOString();
         const timeMax = endOfRange.toISOString();
