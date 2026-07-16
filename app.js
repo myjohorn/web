@@ -30,6 +30,34 @@ document.addEventListener('DOMContentLoaded', () => {
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // ── Firebase Realtime Listener ──
+    // Sync all requests from Firebase into johornRequests and re-render calendar
+    db.ref('requests').on('value', (snapshot) => {
+        johornRequests = [];
+        const data = snapshot.val();
+        if (data) {
+            Object.keys(data).forEach(key => {
+                johornRequests.push({ id: key, ...data[key] });
+            });
+        }
+        // Re-render calendar whenever booking data changes
+        if (typeof renderCalendar === 'function') {
+            renderCalendar();
+        }
+    });
+
+    // ── Google Calendar stub ──
+    // Placeholder for future GCal integration; prevents ReferenceError
+    function loadGcalEventsForCurrentMonth() {
+        // Google Calendar API integration is not yet active.
+        // When implemented, this will fetch events and populate gcalEventsCache,
+        // then call renderCalendar().
+    }
+
+    // ── Form Element References ──
+    const stayBookingForm = document.getElementById('stayBookingForm');
+    const consultingInquiryForm = document.getElementById('consultingInquiryForm');
+
     // Helper: format Date object to YYYY-MM-DD in local time (timezone-safe)
     function getLocalDateString(date) {
         if (!date) return '';
