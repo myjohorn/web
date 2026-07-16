@@ -1266,10 +1266,39 @@ footer {
     .calendar-wrapper {
         padding: 20px 15px !important;
     }
-    .calendar-dates-grid div {
-        height: 38px !important;
-        line-height: 38px !important;
+    .calendar-dates-grid .calendar-cell {
+        height: auto !important;
+        min-height: 48px !important;
+        aspect-ratio: auto !important;
+        line-height: 1.2 !important;
+        padding: 4px 2px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
         font-size: 13px !important;
+    }
+    .calendar-dates-grid .calendar-cell .date-num {
+        font-size: 11px !important;
+        margin-bottom: 2px !important;
+        font-weight: 600 !important;
+        line-height: 1.2 !important;
+    }
+    .calendar-dates-grid .calendar-cell.prev-month,
+    .calendar-dates-grid .calendar-cell.next-month {
+        line-height: 48px !important;
+        height: 48px !important;
+        justify-content: center !important;
+    }
+    .calendar-cell .booking-name-tag,
+    .calendar-cell .admin-booking-name-tag {
+        font-size: 8px !important;
+        padding: 0 1px !important;
+        margin-top: 1px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        transform: scale(0.9) !important;
+        transform-origin: center top !important;
     }
     
     /* Footer bottom copyright vertical layout */
