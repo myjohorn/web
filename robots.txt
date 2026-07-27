@@ -1,0 +1,8 @@
+# Allow all search engine crawlers to index public pages
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /temp/
+
+# Sitemap location
+Sitemap: https://johorn.kr/sitemap.xml
