@@ -498,6 +498,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
     // 5. Booking and Inquiry Form Submission (Two Forms)
     // ----------------------------------------------------
+    // Telegram Real-time Notification Dispatcher
+    // ----------------------------------------------------
+    const TELEGRAM_BOT_TOKEN = '8974842623:AAHG_TOs21lxUG3D45P5ZRA2WrOA86jS0eA';
+    const TELEGRAM_CHAT_ID = '6587018091';
+
+    function sendTelegramNotification(text) {
+        if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return;
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: TELEGRAM_CHAT_ID,
+                text: text
+            })
+        }).catch(err => console.error('Telegram notification error:', err));
+    }
+
     // Track form submission states to gate KakaoTalk chat button access
     let isStaySubmitted = false;
     let isConsultSubmitted = false;
@@ -535,6 +553,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Save to Firebase
         db.ref('requests').push(newRequest);
+
+        // Dispatch Telegram Notification
+        const telegramMsg = `🏠 [조호엔 숙소 예약 접수]\n\n• 신청자: ${name}\n• 연락처: ${contact}\n• 체크인: ${getLocalDateString(checkinDate)}\n• 체크아웃: ${getLocalDateString(checkoutDate)}\n• 인원: 성인 ${adults}명, 아동 ${children}명\n• 요청사항: ${notesRaw || '없음'}`;
+        sendTelegramNotification(telegramMsg);
 
         alert('Teega Residence 숙소 예약 신청이 접수되었습니다. 관리자 승인 후 연락드리겠습니다.');
 
@@ -595,6 +617,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Save to Firebase
         db.ref('requests').push(newRequest);
+
+        // Dispatch Telegram Notification
+        const telegramMsg = `📋 [조호엔 상담 신청 접수]\n\n• 신청자: ${name}\n• 연락처: ${contact}\n• 희망분야: ${categories.join(', ')}\n• 희망학교: ${targetSchool || '미정/없음'}\n• 예정시기: ${targetDate || '미정'}\n• 상세내용: ${notesRaw || '없음'}`;
+        sendTelegramNotification(telegramMsg);
 
         alert('이주정착 & 학교 상담 신청이 완료되었습니다. 조속히 피드백 드리겠습니다.');
 
