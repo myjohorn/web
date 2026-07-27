@@ -516,6 +516,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }).catch(err => console.error('Telegram notification error:', err));
     }
 
+    // ----------------------------------------------------
+    // Email Notification Dispatcher (to myjohorn@gmail.com)
+    // ----------------------------------------------------
+    function sendEmailNotification(subject, formData) {
+        fetch('https://formsubmit.co/ajax/myjohorn@gmail.com', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                _subject: `[조호엔 알림] ${subject}`,
+                _template: 'table',
+                _captcha: 'false',
+                ...formData
+            })
+        }).catch(err => console.error('Email notification error:', err));
+    }
+
     // Track form submission states to gate KakaoTalk chat button access
     let isStaySubmitted = false;
     let isConsultSubmitted = false;
@@ -558,11 +577,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const telegramMsg = `🏠 [조호엔 숙소 예약 접수]\n\n• 신청자: ${name}\n• 연락처: ${contact}\n• 체크인: ${getLocalDateString(checkinDate)}\n• 체크아웃: ${getLocalDateString(checkoutDate)}\n• 인원: 성인 ${adults}명, 아동 ${children}명\n• 요청사항: ${notesRaw || '없음'}`;
         sendTelegramNotification(telegramMsg);
 
-        alert('Teega Residence 숙소 예약 신청이 접수되었습니다. 관리자 승인 후 연락드리겠습니다.');
+        // Dispatch Email Notification to myjohorn@gmail.com
+        sendEmailNotification(`[숙소 예약 접수] ${name} 님`, {
+            "신청 구분": "Teega Residence 3베드룸 오션뷰 숙소 예약",
+            "신청자 성함": name,
+            "연락처": contact,
+            "체크인 날짜": getLocalDateString(checkinDate),
+            "체크아웃 날짜": getLocalDateString(checkoutDate),
+            "투숙 인원": `성인 ${adults}명, 아동 ${children}명`,
+            "요청 및 문의사항": notesRaw || '없음',
+            "접수 일시": new Date().toLocaleString('ko-KR')
+        });
+
+        alert('Teega Residence 숙소 예약 신청이 접수되었습니다!\n실시간 상담을 위해 조호엔 카카오톡 채널 창으로 자동 이동합니다.');
 
         isStaySubmitted = true; // Mark as submitted
 
-        // Highlight the KakaoTalk chat button below to encourage immediate real-time chat
+        // Automatically open KakaoTalk Chat Channel window
+        window.open('https://pf.kakao.com/_vPVLb/chat', '_blank');
+
+        // Highlight the KakaoTalk chat button below
         const stayKakaoBtn = document.getElementById('stayKakaoBtn');
         if (stayKakaoBtn) {
             stayKakaoBtn.classList.add('active-highlight');
@@ -622,11 +656,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const telegramMsg = `📋 [조호엔 상담 신청 접수]\n\n• 신청자: ${name}\n• 연락처: ${contact}\n• 희망분야: ${categories.join(', ')}\n• 희망학교: ${targetSchool || '미정/없음'}\n• 예정시기: ${targetDate || '미정'}\n• 상세내용: ${notesRaw || '없음'}`;
         sendTelegramNotification(telegramMsg);
 
-        alert('이주정착 & 학교 상담 신청이 완료되었습니다. 조속히 피드백 드리겠습니다.');
+        // Dispatch Email Notification to myjohorn@gmail.com
+        sendEmailNotification(`[상담 신청 접수] ${name} 님`, {
+            "신청 구분": "이주정착 & 국제학교 상담 신청",
+            "신청자 성함": name,
+            "연락처": contact,
+            "상담 희망 분야": categories.join(', '),
+            "희망 학교": targetSchool || '미정/없음',
+            "예정 시기": targetDate || '미정',
+            "상세 내용": notesRaw || '없음',
+            "접수 일시": new Date().toLocaleString('ko-KR')
+        });
+
+        alert('이주정착 & 학교 상담 신청이 완료되었습니다!\n실시간 상담을 위해 조호엔 카카오톡 채널 창으로 자동 이동합니다.');
 
         isConsultSubmitted = true; // Mark as submitted
 
-        // Highlight the KakaoTalk chat button below to encourage immediate real-time chat
+        // Automatically open KakaoTalk Chat Channel window
+        window.open('https://pf.kakao.com/_vPVLb/chat', '_blank');
+
+        // Highlight the KakaoTalk chat button below
         const consultKakaoBtn = document.getElementById('consultKakaoBtn');
         if (consultKakaoBtn) {
             consultKakaoBtn.classList.add('active-highlight');
