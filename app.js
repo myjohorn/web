@@ -213,6 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Logo Click (Go to Home)
     logoLink.addEventListener('click', () => {
         navLinks.forEach(l => l.classList.remove('active'));
+        document.body.classList.remove('faq-mode');
     });
 
     // Scroll Effect on Header
@@ -789,6 +790,84 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     loadInstagramFeed();
+
+    // ----------------------------------------------------
+    // FAQ Navigation, Tabs & Lightbox Handler
+    // ----------------------------------------------------
+    function handleFaqRouting() {
+        const hash = window.location.hash;
+        const faqNavLink = document.querySelector('a[href="#faq"]');
+
+        if (hash === '#faq') {
+            document.body.classList.add('faq-mode');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            navLinks.forEach(l => l.classList.remove('active'));
+            if (faqNavLink) faqNavLink.classList.add('active');
+        } else {
+            document.body.classList.remove('faq-mode');
+            if (hash) {
+                const targetSec = document.querySelector(hash);
+                if (targetSec) {
+                    targetSec.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        }
+    }
+
+    // FAQ Tab switching logic
+    const faqTabBtns = document.querySelectorAll('.faq-tab-btn');
+    const faqTabContents = document.querySelectorAll('.faq-tab-content');
+
+    faqTabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetTab = btn.getAttribute('data-tab');
+
+            faqTabBtns.forEach(b => b.classList.remove('active'));
+            faqTabContents.forEach(c => c.classList.remove('active'));
+
+            btn.classList.add('active');
+            const activeContent = document.getElementById(targetTab);
+            if (activeContent) {
+                activeContent.classList.add('active');
+            }
+        });
+    });
+
+    // Image Lightbox Modal logic
+    const lightboxModal = document.getElementById('faqLightbox');
+    const lightboxImg = document.getElementById('lightboxImg');
+    const lightboxCaption = document.getElementById('lightboxCaption');
+    const lightboxClose = document.querySelector('.lightbox-close');
+    const faqImgWrappers = document.querySelectorAll('.faq-img-wrapper');
+
+    faqImgWrappers.forEach(wrapper => {
+        wrapper.addEventListener('click', () => {
+            const imgSrc = wrapper.getAttribute('data-src') || wrapper.querySelector('img').src;
+            const cardTitle = wrapper.closest('.faq-step-card').querySelector('h3').textContent;
+            
+            if (lightboxModal && lightboxImg) {
+                lightboxImg.src = imgSrc;
+                lightboxCaption.textContent = cardTitle;
+                lightboxModal.classList.add('active');
+            }
+        });
+    });
+
+    if (lightboxClose && lightboxModal) {
+        lightboxClose.addEventListener('click', () => {
+            lightboxModal.classList.remove('active');
+        });
+
+        lightboxModal.addEventListener('click', (e) => {
+            if (e.target === lightboxModal) {
+                lightboxModal.classList.remove('active');
+            }
+        });
+    }
+
+    // Listen to hash changes and initial page load
+    window.addEventListener('hashchange', handleFaqRouting);
+    handleFaqRouting();
 });
 
 
