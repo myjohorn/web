@@ -128,7 +128,7 @@
                                 <i class="fa-solid fa-plus"></i> 신규 위탁 차량 등록
                             </button>
                         </div>
-                        <div id="carsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+                        <div id="carsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
                             <!-- JS will render car cards here -->
                         </div>
                     </div>
@@ -136,22 +136,22 @@
                     <!-- TAB 2: Revenue & Expense Ledger (`#tabLedger`) -->
                     <div class="car-tab-content hidden" id="tabContentLedger">
                         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <select id="ledgerCarFilter" class="form-control" style="font-size: 13px; padding: 8px 12px; width: 180px;">
+                            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                                <select id="ledgerCarFilter" class="form-control" style="font-size: 13px; padding: 8px 12px; min-width: 150px; flex: 1;">
                                     <option value="all">전체 차량 보기</option>
                                 </select>
-                                <select id="ledgerTypeFilter" class="form-control" style="font-size: 13px; padding: 8px 12px; width: 130px;">
+                                <select id="ledgerTypeFilter" class="form-control" style="font-size: 13px; padding: 8px 12px; min-width: 120px; flex: 1;">
                                     <option value="all">전체 구분</option>
                                     <option value="revenue">매출만 (+)</option>
                                     <option value="expense">비용만 (-)</option>
                                 </select>
-                                <input type="month" id="ledgerMonthFilter" class="form-control" style="font-size: 13px; padding: 8px 12px; width: 160px;">
+                                <input type="month" id="ledgerMonthFilter" class="form-control" style="font-size: 13px; padding: 8px 12px; min-width: 140px; flex: 1;">
                             </div>
-                            <div style="display: flex; gap: 10px;">
-                                <button type="button" id="openRevenueModalBtn" class="btn btn-primary" style="padding: 9px 16px; font-size: 13px; background: #2E7D32; border-color: #2E7D32; display: flex; align-items: center; gap: 6px;">
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap; width: 100%;">
+                                <button type="button" id="openRevenueModalBtn" class="btn btn-primary" style="flex: 1; padding: 9px 16px; font-size: 13px; background: #2E7D32; border-color: #2E7D32; display: flex; align-items: center; justify-content: center; gap: 6px;">
                                     <i class="fa-solid fa-circle-plus"></i> + 렌트 매출 등록
                                 </button>
-                                <button type="button" id="openExpenseModalBtn" class="btn btn-primary" style="padding: 9px 16px; font-size: 13px; background: #C62828; border-color: #C62828; display: flex; align-items: center; gap: 6px;">
+                                <button type="button" id="openExpenseModalBtn" class="btn btn-primary" style="flex: 1; padding: 9px 16px; font-size: 13px; background: #C62828; border-color: #C62828; display: flex; align-items: center; justify-content: center; gap: 6px;">
                                     <i class="fa-solid fa-circle-minus"></i> - 정비/비용 등록
                                 </button>
                             </div>
@@ -179,16 +179,16 @@
 
                     <!-- TAB 3: Profit Sharing & Monthly Settlement (`#tabSettlements`) -->
                     <div class="car-tab-content hidden" id="tabContentSettlements">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: var(--white); padding: 20px 25px; border: 1px solid var(--border-color); border-radius: 4px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 25px; background: var(--white); padding: 20px 25px; border: 1px solid var(--border-color); border-radius: 4px;">
                             <div>
                                 <h3 style="font-size: 16px; font-weight: 600; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
                                     <i class="fa-solid fa-calendar-check" style="color: var(--accent-color);"></i> 월별 차주 정산 산출
                                 </h3>
                                 <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">선택된 월의 차량별 매출, 관리수수료, 공제 비용 및 최종 차주 배당금을 자동으로 산출합니다.</p>
                             </div>
-                            <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: flex-start; flex-wrap: wrap;">
                                 <label for="settlementTargetMonth" style="font-size: 13px; font-weight: 600;">정산 월 선택:</label>
-                                <input type="month" id="settlementTargetMonth" class="form-control" style="font-size: 13px; padding: 8px 12px; width: 170px;">
+                                <input type="month" id="settlementTargetMonth" class="form-control" style="font-size: 13px; padding: 8px 12px; width: 170px; flex: 1;">
                             </div>
                         </div>
 

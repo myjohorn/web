@@ -1968,6 +1968,147 @@ body.faq-mode .faq-section {
     }
 }
 
+/* Mobile Responsive Adjustments for Delegated Car Admin & Calendar */
+@media (max-width: 768px) {
+    /* Admin Top Page Nav */
+    .admin-page-nav {
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+    .admin-page-nav a {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 12px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Sub Tab Navigation Bar */
+    .car-tab-nav {
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        flex-wrap: nowrap !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important;
+        padding-bottom: 6px !important;
+        border-bottom: 2px solid var(--border-color) !important;
+    }
+    .car-tab-nav::-webkit-scrollbar {
+        display: none;
+    }
+    .car-tab-btn {
+        flex: 0 0 auto !important;
+        padding: 10px 14px !important;
+        font-size: 13px !important;
+    }
+
+    /* Stat Cards Grid */
+    .stat-card-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+    }
+    .stat-card {
+        padding: 14px 12px !important;
+    }
+    .stat-card div[id^="stat"] {
+        font-size: 17px !important;
+    }
+
+    /* Ledger Filter Bar */
+    .car-tab-content > div:first-child {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+    #tabContentLedger select,
+    #tabContentLedger input[type="month"] {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    #tabContentLedger > div:first-child > div {
+        width: 100% !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+    #tabContentLedger button {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+
+    /* Table Mobile Card Layout */
+    .admin-table-wrapper {
+        overflow-x: visible !important;
+    }
+    .admin-table td {
+        padding: 8px 0 !important;
+        font-size: 13px !important;
+        border-bottom: 1px dashed rgba(0,0,0,0.06) !important;
+        flex-wrap: wrap !important;
+    }
+    .admin-table td:last-child {
+        border-bottom: none !important;
+    }
+    .admin-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 11px;
+        color: var(--text-secondary);
+        min-width: 90px;
+        text-align: left;
+    }
+
+    /* Modals Responsive */
+    .admin-modal > div {
+        width: 95% !important;
+        max-width: 100% !important;
+        padding: 20px 16px !important;
+        margin: 10px !important;
+        max-height: 92vh !important;
+        box-sizing: border-box !important;
+    }
+    .admin-modal .form-row {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .stat-card-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Admin Calendar Layout Mobile Responsiveness */
+@media (max-width: 900px) {
+    .admin-calendar-layout {
+        grid-template-columns: 1fr !important;
+        gap: 25px !important;
+    }
+    .admin-res-form-wrapper {
+        border-left: none !important;
+        border-top: 1px solid var(--border-color) !important;
+        padding-left: 0 !important;
+        padding-top: 25px !important;
+    }
+    .calendar-dates-grid {
+        gap: 2px !important;
+    }
+    .calendar-cell {
+        min-height: 52px !important;
+        padding: 4px 2px !important;
+    }
+    .calendar-cell .date-num {
+        font-size: 12px !important;
+    }
+    .calendar-cell .admin-booking-name-tag {
+        font-size: 10px !important;
+        padding: 2px 4px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        max-width: 100% !important;
+    }
+}
+
+
 
 
 

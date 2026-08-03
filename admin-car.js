@@ -835,13 +835,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             return `
                 <tr>
-                    <td style="font-weight: 500;">${item.date}</td>
-                    <td>${typeBadge}</td>
-                    <td><strong>${item.carPlate}</strong> <br><span style="font-size: 11px; color: var(--text-secondary);">${item.carModel}</span></td>
-                    <td style="text-align: left;">${item.details}</td>
-                    <td style="font-weight: 700; color: ${amountColor};">${amountPrefix} MYR ${item.amount.toLocaleString()}</td>
-                    <td>${item.deductibleStr}</td>
-                    <td>
+                    <td data-label="날짜" style="font-weight: 500;">${item.date}</td>
+                    <td data-label="구분">${typeBadge}</td>
+                    <td data-label="차량">${item.carPlate} <span style="font-size: 11px; color: var(--text-secondary);">(${item.carModel})</span></td>
+                    <td data-label="상세 내역" style="text-align: left;">${item.details}</td>
+                    <td data-label="금액" style="font-weight: 700; color: ${amountColor};">${amountPrefix} MYR ${item.amount.toLocaleString()}</td>
+                    <td data-label="공제 여부">${item.deductibleStr}</td>
+                    <td data-label="관리">
                         ${isRev ? `<button type="button" class="btn btn-secondary edit-ledger-btn" data-type="${item.type}" data-id="${item.id}" style="padding: 4px 8px; font-size: 11px; margin-right: 4px;">수정</button>` : ''}
                         <button type="button" class="btn btn-secondary delete-ledger-btn" data-type="${item.type}" data-id="${item.id}" style="padding: 4px 8px; font-size: 11px; color: #E24C4C; border-color: #E24C4C;">
                             삭제
@@ -950,15 +950,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             return `
                 <tr>
-                    <td><strong>${car.plateNumber}</strong><br><span style="font-size: 11px; color: var(--text-secondary);">${car.model}</span></td>
-                    <td>${car.ownerName}</td>
-                    <td style="font-weight: 600; color: #2E7D32;">MYR ${grossRevenue.toLocaleString()}</td>
-                    <td style="font-size: 12px;">MYR ${feeAmount.toLocaleString()} <br><span style="color: var(--accent-color); font-size: 11px;">(${feeRate}%)</span></td>
-                    <td style="font-weight: 600; color: #C62828;">MYR ${totalExpenses.toLocaleString()}</td>
-                    <td style="font-size: 15px; font-weight: 700; color: ${payoutColor};">MYR ${netOwnerPayout.toLocaleString()}</td>
-                    <td>${statusBadge}</td>
-                    <td>
-                        <div style="display: flex; gap: 6px; justify-content: center;">
+                    <td data-label="차량 정보"><strong>${car.plateNumber}</strong> <span style="font-size: 11px; color: var(--text-secondary);">(${car.model})</span></td>
+                    <td data-label="차주명">${car.ownerName}</td>
+                    <td data-label="총 매출 ($R$)" style="font-weight: 600; color: #2E7D32;">MYR ${grossRevenue.toLocaleString()}</td>
+                    <td data-label="수수료 ($F$)" style="font-size: 12px;">MYR ${feeAmount.toLocaleString()} <span style="color: var(--accent-color); font-size: 11px;">(${feeRate}%)</span></td>
+                    <td data-label="공제 비용 ($E$)" style="font-weight: 600; color: #C62828;">MYR ${totalExpenses.toLocaleString()}</td>
+                    <td data-label="차주 배당금 ($P$)" style="font-size: 15px; font-weight: 700; color: ${payoutColor};">MYR ${netOwnerPayout.toLocaleString()}</td>
+                    <td data-label="정산 상태">${statusBadge}</td>
+                    <td data-label="명세서/확정">
+                        <div style="display: flex; gap: 6px; justify-content: flex-end;">
                             <button type="button" class="btn btn-secondary view-stmt-btn" data-carid="${car.id}" data-month="${targetMonth}" style="padding: 5px 10px; font-size: 12px;">
                                 <i class="fa-solid fa-file-invoice"></i> 명세서
                             </button>
