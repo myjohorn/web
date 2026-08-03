@@ -359,11 +359,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     bindCarDocFileInputs();
 
+    // Color Picker Event Listeners
+    const carColorInput = document.getElementById('carColor');
+    const carColorTextInput = document.getElementById('carColorText');
+    if (carColorInput && carColorTextInput) {
+        carColorInput.addEventListener('input', () => {
+            carColorTextInput.value = carColorInput.value;
+        });
+    }
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+        swatch.addEventListener('click', () => {
+            const selectedColor = swatch.getAttribute('data-color');
+            if (carColorInput) carColorInput.value = selectedColor;
+            if (carColorTextInput) carColorTextInput.value = selectedColor;
+        });
+    });
+
     const openCarModalBtn = document.getElementById('openCarModalBtn');
     if (openCarModalBtn) {
         openCarModalBtn.addEventListener('click', () => {
             document.getElementById('carId').value = '';
             document.getElementById('carForm').reset();
+            if (carColorInput) carColorInput.value = '#2E7D32';
+            if (carColorTextInput) carColorTextInput.value = '#2E7D32';
             resetCarFormDocFields();
             document.getElementById('carModalTitle').textContent = '신규 위탁 차량 등록';
             openModal('carModal');
@@ -383,6 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const feeRate = parseFloat(document.getElementById('carFeeRate').value) || 20;
             const status = document.getElementById('carStatus').value;
             const memo = document.getElementById('carMemo').value.trim();
+            const color = carColorInput ? carColorInput.value : '#2E7D32';
 
             const insurancePeriod = document.getElementById('carInsurancePeriod') ? document.getElementById('carInsurancePeriod').value.trim() : '';
 
@@ -402,6 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 status,
                 memo,
                 insurancePeriod,
+                color,
                 updatedAt: new Date().toISOString()
             };
 
@@ -464,7 +484,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="car-card" style="background: var(--white); border: 1px solid var(--border-color); border-radius: 6px; padding: 22px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); position: relative;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
                         <div>
-                            <span style="font-size: 11px; font-weight: 700; color: var(--accent-color); text-transform: uppercase; letter-spacing: 0.05em;">${car.plateNumber}</span>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span style="width: 12px; height: 12px; background: ${car.color || '#2E7D32'}; border-radius: 50%; display: inline-block; box-shadow: 0 0 0 1px rgba(0,0,0,0.15);" title="식별 색상: ${car.color || '#2E7D32'}"></span>
+                                <span style="font-size: 11px; font-weight: 700; color: var(--accent-color); text-transform: uppercase; letter-spacing: 0.05em;">${car.plateNumber}</span>
+                            </div>
                             <h4 style="font-size: 16px; font-weight: 700; margin: 2px 0 0 0; color: var(--text-primary);">${car.model}</h4>
                         </div>
                         ${statusBadge}
@@ -573,6 +596,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('carFeeRate').value = car.feeRate || 20;
                 document.getElementById('carStatus').value = car.status || 'active';
                 document.getElementById('carMemo').value = car.memo || '';
+                if (carColorInput) carColorInput.value = car.color || '#2E7D32';
+                if (carColorTextInput) carColorTextInput.value = car.color || '#2E7D32';
 
                 populateCarFormDocFields(car);
 
@@ -1250,12 +1275,27 @@ document.addEventListener('DOMContentLoaded', () => {
             return true;
         });
 
-        // Vibrant distinct colors per car
+        // Vibrant distinct colors per car or custom assigned car.color
         const carColorMap = {};
-        const colors = ['#2E7D32', '#1565C0', '#D84315', '#6A1B9A', '#00838F', '#4E342E'];
+        const colors = ['#2E7D32', '#1565C0', '#D84315', '#6A1B9A', '#00838F', '#8D6E63', '#C62828'];
         delegatedCars.forEach((c, idx) => {
-            carColorMap[c.id] = colors[idx % colors.length];
+            carColorMap[c.id] = c.color || colors[idx % colors.length];
         });
+
+        // Dynamic Legend Bar update for car colors
+        const legendBar = document.querySelector('.car-cal-legend-bar');
+        if (legendBar) {
+            let carLegendItems = delegatedCars.map(c => {
+                const color = c.color || carColorMap[c.id] || '#2E7D32';
+                return `<span style="display: flex; align-items: center; gap: 6px; white-space: nowrap;"><span style="width: 10px; height: 10px; background: ${color}; border-radius: 50%; display: inline-block; box-shadow: 0 0 0 1px rgba(0,0,0,0.15);"></span> ${c.plateNumber} (${c.model})</span>`;
+            }).join('');
+
+            legendBar.innerHTML = `
+                ${carLegendItems}
+                <span style="display: flex; align-items: center; gap: 6px; white-space: nowrap; border-left: 1px solid #DDD; padding-left: 10px;"><span style="width: 10px; height: 10px; background: #E65100; border-radius: 50%; display: inline-block;"></span> 입금 대기</span>
+                <span style="margin-left: auto; color: #8C8782;"><i class="fa-solid fa-circle-info"></i> 날짜를 클릭하면 해당 시작일로 신규 예약을 등록할 수 있습니다.</span>
+            `;
+        }
 
         // 1. Previous month trailing days
         for (let i = startingDayOfWeek - 1; i >= 0; i--) {
@@ -1285,8 +1325,10 @@ document.addEventListener('DOMContentLoaded', () => {
             dayBookings.forEach(rev => {
                 const car = delegatedCars.find(c => c.id === rev.carId);
                 const carLabel = car ? (car.model || car.plateNumber) : '차량';
-                const bgColor = rev.paymentStatus === 'pending' ? '#E65100' : (carColorMap[rev.carId] || '#2E7D32');
-                const statusBadge = rev.paymentStatus === 'pending' ? ' (대기)' : '';
+                const carColor = (car && car.color) ? car.color : (carColorMap[rev.carId] || '#2E7D32');
+                const isPending = rev.paymentStatus === 'pending';
+                const bgColor = isPending ? '#E65100' : carColor;
+                const statusBadge = isPending ? ' (대기)' : '';
                 
                 bookingsHtml += `
                     <div class="cal-booking-pill" data-rev-id="${rev.id}" title="${carLabel}: ${rev.renterName} (${rev.startDate} ~ ${rev.endDate}) - MYR ${rev.amount}" style="background: ${bgColor}; color: white; padding: 3px 5px; border-radius: 4px; font-size: 11px; margin-top: 3px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">

@@ -536,6 +536,27 @@
                         </select>
                     </div>
                 </div>
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">캘린더 식별 색상 <span style="color: var(--accent-color);">*</span></label>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <input type="color" id="carColor" value="#2E7D32" style="width: 45px; height: 38px; padding: 2px; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; background: white;">
+                            <input type="text" id="carColorText" class="form-control" value="#2E7D32" style="font-size: 13px; padding: 10px; flex: 1;" readonly>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">빠른 팔레트 선택</label>
+                        <div class="color-picker-palette" style="display: flex; gap: 6px; align-items: center; height: 38px; flex-wrap: wrap;">
+                            <span class="color-swatch" data-color="#2E7D32" style="width: 22px; height: 22px; background: #2E7D32; border-radius: 50%; cursor: pointer; display: inline-block; border: 2px solid white; box-shadow: 0 0 0 1px #DDD;" title="초록"></span>
+                            <span class="color-swatch" data-color="#1565C0" style="width: 22px; height: 22px; background: #1565C0; border-radius: 50%; cursor: pointer; display: inline-block; border: 2px solid white; box-shadow: 0 0 0 1px #DDD;" title="파랑"></span>
+                            <span class="color-swatch" data-color="#D84315" style="width: 22px; height: 22px; background: #D84315; border-radius: 50%; cursor: pointer; display: inline-block; border: 2px solid white; box-shadow: 0 0 0 1px #DDD;" title="주황"></span>
+                            <span class="color-swatch" data-color="#6A1B9A" style="width: 22px; height: 22px; background: #6A1B9A; border-radius: 50%; cursor: pointer; display: inline-block; border: 2px solid white; box-shadow: 0 0 0 1px #DDD;" title="보라"></span>
+                            <span class="color-swatch" data-color="#00838F" style="width: 22px; height: 22px; background: #00838F; border-radius: 50%; cursor: pointer; display: inline-block; border: 2px solid white; box-shadow: 0 0 0 1px #DDD;" title="청록"></span>
+                            <span class="color-swatch" data-color="#8D6E63" style="width: 22px; height: 22px; background: #8D6E63; border-radius: 50%; cursor: pointer; display: inline-block; border: 2px solid white; box-shadow: 0 0 0 1px #DDD;" title="갈색"></span>
+                            <span class="color-swatch" data-color="#C62828" style="width: 22px; height: 22px; background: #C62828; border-radius: 50%; cursor: pointer; display: inline-block; border: 2px solid white; box-shadow: 0 0 0 1px #DDD;" title="빨강"></span>
+                        </div>
+                    </div>
+                </div>
                 <div class="form-group" style="margin-bottom: 15px;">
                     <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">메모 및 특이사항</label>
                     <textarea id="carMemo" class="form-control" rows="2" placeholder="특이사항 메모 입력" style="font-size: 13px; padding: 10px; resize: none;"></textarea>
