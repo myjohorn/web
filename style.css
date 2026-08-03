@@ -2116,6 +2116,8 @@ body.faq-mode .faq-section {
     .car-cal-header-left {
         width: 100% !important;
         justify-content: space-between !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
     }
     .car-cal-header-left h3 {
         font-size: 15px !important;
@@ -2134,7 +2136,42 @@ body.faq-mode .faq-section {
     .car-cal-legend-bar span {
         white-space: nowrap !important;
     }
+
+    /* Month Grid 100% Width Fit on Mobile */
+    .car-cal-grid-inner {
+        min-width: 0 !important;
+        width: 100% !important;
+    }
+    .cal-date-cell, .cal-trailing-cell {
+        min-height: 54px !important;
+        padding: 3px 2px !important;
+        border-right: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
+        box-sizing: border-box;
+    }
+    .cal-booking-pill {
+        font-size: 9px !important;
+        line-height: 1.2 !important;
+        padding: 2px 3px !important;
+        margin-top: 2px !important;
+        border-radius: 3px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        max-width: 100% !important;
+        display: block !important;
+    }
 }
+
+/* Default Desktop Calendar Cell Styles */
+.cal-date-cell, .cal-trailing-cell {
+    min-height: 110px;
+    padding: 8px;
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    box-sizing: border-box;
+}
+
 
 
 

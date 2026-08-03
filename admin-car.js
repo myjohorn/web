@@ -1261,7 +1261,7 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = startingDayOfWeek - 1; i >= 0; i--) {
             const dayNum = prevMonthLastDay - i;
             cellsHtml += `
-                <div style="min-height: 110px; padding: 8px; border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); background: #FAF9F8; color: #BBB7B2; font-size: 12px;">
+                <div class="cal-trailing-cell" style="background: #FAF9F8; color: #BBB7B2; font-size: 11px;">
                     <span style="font-weight: 500;">${dayNum}</span>
                 </div>
             `;
@@ -1289,8 +1289,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const statusBadge = rev.paymentStatus === 'pending' ? ' (대기)' : '';
                 
                 bookingsHtml += `
-                    <div class="cal-booking-pill" data-rev-id="${rev.id}" title="${carLabel}: ${rev.renterName} (${rev.startDate} ~ ${rev.endDate}) - MYR ${rev.amount}" style="background: ${bgColor}; color: white; padding: 4px 6px; border-radius: 4px; font-size: 11px; margin-top: 4px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                        <i class="fa-solid fa-car" style="font-size: 9px; margin-right: 3px;"></i>[${carLabel}] ${rev.renterName}${statusBadge}
+                    <div class="cal-booking-pill" data-rev-id="${rev.id}" title="${carLabel}: ${rev.renterName} (${rev.startDate} ~ ${rev.endDate}) - MYR ${rev.amount}" style="background: ${bgColor}; color: white; padding: 3px 5px; border-radius: 4px; font-size: 11px; margin-top: 3px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <i class="fa-solid fa-car" style="font-size: 9px; margin-right: 2px;"></i>[${carLabel}] ${rev.renterName}${statusBadge}
                     </div>
                 `;
             });
@@ -1300,10 +1300,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 : 'background: var(--white);';
 
             cellsHtml += `
-                <div class="cal-date-cell" data-date="${dateStr}" style="min-height: 110px; padding: 8px; border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); ${dayStyle} transition: background 0.2s; cursor: pointer;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                        <span style="font-size: 12px; font-weight: 600; color: ${isToday ? 'var(--accent-color)' : 'var(--text-primary)'};">${d}</span>
-                        ${isToday ? '<span style="font-size: 10px; background: var(--accent-color); color: white; padding: 1px 5px; border-radius: 3px;">오늘</span>' : ''}
+                <div class="cal-date-cell" data-date="${dateStr}" style="${dayStyle} transition: background 0.2s; cursor: pointer;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                        <span class="date-num" style="font-size: 12px; font-weight: 600; color: ${isToday ? 'var(--accent-color)' : 'var(--text-primary)'};">${d}</span>
+                        ${isToday ? '<span style="font-size: 9px; background: var(--accent-color); color: white; padding: 1px 4px; border-radius: 3px;">오늘</span>' : ''}
                     </div>
                     <div class="cal-events-list">
                         ${bookingsHtml}
@@ -1319,13 +1319,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (let i = 1; i <= nextDays; i++) {
             cellsHtml += `
-                <div style="min-height: 110px; padding: 8px; border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); background: #FAF9F8; color: #BBB7B2; font-size: 12px;">
+                <div class="cal-trailing-cell" style="background: #FAF9F8; color: #BBB7B2; font-size: 11px;">
                     <span style="font-weight: 500;">${i}</span>
                 </div>
             `;
         }
 
         grid.innerHTML = cellsHtml;
+        renderCarAgendaList(filteredRevenues);
 
         // Click Handler on Booking Pills for Edit / Delete
         grid.querySelectorAll('.cal-booking-pill').forEach(pill => {
@@ -1377,6 +1378,100 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             });
+        });
+    }
+
+    function renderCarAgendaList(filteredRevenues) {
+        const agendaContainer = document.getElementById('carCalAgendaList');
+        if (!agendaContainer) return;
+
+        const monthStr = `${carCalYear}-${String(carCalMonth + 1).padStart(2, '0')}`;
+        const monthRevenues = filteredRevenues.filter(r => r.startDate && r.startDate.startsWith(monthStr));
+        monthRevenues.sort((a, b) => a.startDate.localeCompare(b.startDate));
+
+        if (monthRevenues.length === 0) {
+            agendaContainer.innerHTML = `
+                <div style="background: var(--white); padding: 30px; text-align: center; border: 1px dashed var(--border-color); border-radius: 6px; color: var(--text-secondary); font-size: 13px;">
+                    <i class="fa-solid fa-calendar-xmark" style="font-size: 28px; color: var(--accent-color); margin-bottom: 8px;"></i>
+                    <div>${carCalYear}년 ${carCalMonth + 1}월에 등록된 예약 내역이 없습니다.</div>
+                </div>
+            `;
+            return;
+        }
+
+        agendaContainer.innerHTML = monthRevenues.map(rev => {
+            const car = delegatedCars.find(c => c.id === rev.carId);
+            const carLabel = car ? `${car.plateNumber} (${car.model})` : '차량 정보 없음';
+            const isCompleted = rev.paymentStatus === 'completed';
+            const statusBadge = isCompleted ? 
+                '<span class="status-badge status-approved">결제 완료</span>' : 
+                '<span class="status-badge status-pending" style="background: #FFF3E0; color: #E65100;">입금 대기</span>';
+
+            return `
+                <div style="background: var(--white); border: 1px solid var(--border-color); border-radius: 6px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                        <div>
+                            <span style="font-size: 11px; font-weight: 700; color: var(--accent-color); text-transform: uppercase;">${carLabel}</span>
+                            <h4 style="font-size: 15px; font-weight: 700; margin: 2px 0 0 0; color: var(--text-primary);"><i class="fa-solid fa-user" style="margin-right: 4px; font-size: 12px;"></i> ${rev.renterName} ${rev.renterContact ? `(${rev.renterContact})` : ''}</h4>
+                        </div>
+                        ${statusBadge}
+                    </div>
+
+                    <div style="font-size: 13px; color: var(--text-primary); line-height: 1.6; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 8px; margin-bottom: 10px;">
+                        <div><i class="fa-solid fa-calendar-days" style="color: var(--text-secondary); width: 16px;"></i> <strong>대여 기간:</strong> ${rev.startDate} ~ ${rev.endDate}</div>
+                        <div><i class="fa-solid fa-money-bill-wave" style="color: #2E7D32; width: 16px;"></i> <strong>렌트 금액:</strong> MYR ${rev.amount.toLocaleString()}</div>
+                        ${rev.memo ? `<div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;"><i class="fa-solid fa-note-sticky" style="width: 16px;"></i> ${rev.memo}</div>` : ''}
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                        <button type="button" class="btn btn-secondary edit-agenda-btn" data-id="${rev.id}" style="padding: 4px 10px; font-size: 12px;">수정</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        agendaContainer.querySelectorAll('.edit-agenda-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const revId = btn.getAttribute('data-id');
+                const rev = delegatedRevenues.find(r => r.id === revId);
+                if (rev) {
+                    document.getElementById('revenueId').value = rev.id;
+                    document.getElementById('revenueCarId').value = rev.carId || '';
+                    document.getElementById('revenueRenterName').value = rev.renterName || '';
+                    document.getElementById('revenueRenterContact').value = rev.renterContact || '';
+                    document.getElementById('revenueStartDate').value = rev.startDate || '';
+                    document.getElementById('revenueEndDate').value = rev.endDate || '';
+                    document.getElementById('revenueAmount').value = rev.amount || 0;
+                    document.getElementById('revenuePaymentStatus').value = rev.paymentStatus || 'completed';
+                    document.getElementById('revenueMemo').value = rev.memo || '';
+                    
+                    if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 렌트 매출/예약 정보 수정';
+                    if (deleteRevenueBtn) deleteRevenueBtn.classList.remove('hidden');
+
+                    openModal('revenueModal');
+                }
+            });
+        });
+    }
+
+    // View Toggle Handlers
+    const carCalViewGridBtn = document.getElementById('carCalViewGridBtn');
+    const carCalViewAgendaBtn = document.getElementById('carCalViewAgendaBtn');
+    const carCalGridWrapper = document.querySelector('.car-cal-grid-wrapper');
+    const carCalAgendaList = document.getElementById('carCalAgendaList');
+
+    if (carCalViewGridBtn && carCalViewAgendaBtn) {
+        carCalViewGridBtn.addEventListener('click', () => {
+            carCalViewGridBtn.classList.add('active');
+            carCalViewAgendaBtn.classList.remove('active');
+            if (carCalGridWrapper) carCalGridWrapper.classList.remove('hidden');
+            if (carCalAgendaList) carCalAgendaList.classList.add('hidden');
+        });
+        carCalViewAgendaBtn.addEventListener('click', () => {
+            carCalViewAgendaBtn.classList.add('active');
+            carCalViewGridBtn.classList.remove('active');
+            if (carCalGridWrapper) carCalGridWrapper.classList.add('hidden');
+            if (carCalAgendaList) carCalAgendaList.classList.remove('hidden');
         });
     }
 });
