@@ -110,6 +110,9 @@
                         <button class="car-tab-btn active" data-tab="cars" style="padding: 12px 24px; font-size: 14px; font-weight: 600; border: none; background: none; cursor: pointer; border-bottom: 3px solid var(--accent-color); color: var(--text-primary);">
                             <i class="fa-solid fa-car" style="margin-right: 6px;"></i> 위탁 차량 목록
                         </button>
+                        <button class="car-tab-btn" data-tab="calendar" style="padding: 12px 24px; font-size: 14px; font-weight: 600; border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent; color: var(--text-secondary);">
+                            <i class="fa-solid fa-calendar-days" style="margin-right: 6px;"></i> 차량 예약 달력
+                        </button>
                         <button class="car-tab-btn" data-tab="ledger" style="padding: 12px 24px; font-size: 14px; font-weight: 600; border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent; color: var(--text-secondary);">
                             <i class="fa-solid fa-book" style="margin-right: 6px;"></i> 매출 / 비용 장부
                         </button>
@@ -130,6 +133,58 @@
                         </div>
                         <div id="carsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
                             <!-- JS will render car cards here -->
+                        </div>
+                    </div>
+
+                    <!-- TAB 4: Vehicle Reservation Calendar (`#tabCalendar`) -->
+                    <div class="car-tab-content hidden" id="tabContentCalendar">
+                        <div style="background: var(--white); padding: 25px; border: 1px solid var(--border-color); border-radius: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                            <!-- Calendar Controls Header -->
+                            <div class="car-cal-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
+                                <div class="car-cal-header-left" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                    <h3 style="font-size: 18px; font-weight: 600; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 8px; white-space: nowrap;">
+                                        <i class="fa-solid fa-calendar-days" style="color: var(--accent-color);"></i> <span id="carCalMonthTitle">2026년 8월</span> 차량 예약 현황
+                                    </h3>
+                                    <div style="display: flex; gap: 4px;">
+                                        <button type="button" id="carCalPrevBtn" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;"><i class="fa-solid fa-chevron-left"></i></button>
+                                        <button type="button" id="carCalTodayBtn" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">오늘</button>
+                                        <button type="button" id="carCalNextBtn" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;"><i class="fa-solid fa-chevron-right"></i></button>
+                                    </div>
+                                </div>
+                                <div class="car-cal-header-right" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                    <label for="carCalFilter" style="font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap;">조회 차량:</label>
+                                    <select id="carCalFilter" class="form-control" style="font-size: 13px; padding: 8px 12px; width: 220px; flex: 1;">
+                                        <option value="all">전체 위탁 차량 보기</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Calendar Legend / Info -->
+                            <div class="car-cal-legend-bar" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap; margin-bottom: 15px; font-size: 12px; color: var(--text-secondary);">
+                                <span style="display: flex; align-items: center; gap: 6px; white-space: nowrap;"><span style="width: 10px; height: 10px; background: #2E7D32; border-radius: 50%; display: inline-block;"></span> 결제 완료 예약</span>
+                                <span style="display: flex; align-items: center; gap: 6px; white-space: nowrap;"><span style="width: 10px; height: 10px; background: #E65100; border-radius: 50%; display: inline-block;"></span> 입금 대기</span>
+                                <span style="margin-left: auto; color: #8C8782;"><i class="fa-solid fa-circle-info"></i> 날짜를 클릭하면 해당 시작일로 신규 예약을 등록할 수 있습니다.</span>
+                            </div>
+
+                            <!-- Calendar Grid Wrapper -->
+                            <div class="car-cal-grid-wrapper" style="border: 1px solid var(--border-color); border-radius: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                                <div class="car-cal-grid-inner" style="min-width: 650px;">
+                                    <!-- Days Header -->
+                                    <div style="display: grid; grid-template-columns: repeat(7, 1fr); background: rgba(197, 168, 128, 0.1); text-align: center; font-weight: 600; font-size: 13px; border-bottom: 1px solid var(--border-color);">
+                                        <div style="padding: 10px; color: #D32F2F;">일</div>
+                                        <div style="padding: 10px;">월</div>
+                                        <div style="padding: 10px;">화</div>
+                                        <div style="padding: 10px;">수</div>
+                                        <div style="padding: 10px;">목</div>
+                                        <div style="padding: 10px;">금</div>
+                                        <div style="padding: 10px; color: #1976D2;">토</div>
+                                    </div>
+                                    <!-- Date Cells Grid -->
+                                    <div id="carCalDatesGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); background: var(--white);">
+                                        <!-- JS will dynamically render 35/42 date cells -->
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
