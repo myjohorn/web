@@ -2196,6 +2196,18 @@ body.faq-mode .faq-section {
     box-sizing: border-box;
 }
 
+/* PC vs Mobile Calendar Booking Pill Formatting */
+.pill-car-name {
+    display: inline;
+}
+
+@media (max-width: 768px) {
+    .pill-car-name {
+        display: none !important;
+    }
+}
+
+
 
 
 
