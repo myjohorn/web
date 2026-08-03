@@ -275,8 +275,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
     // 4. Custom Range Calendar Implementation
     // ----------------------------------------------------
-    let currentYear = 2026;
-    let currentMonth = 6; // July (0-indexed: 6 = July)
+    const today = new Date();
+    let currentYear = today.getFullYear();
+    let currentMonth = today.getMonth(); // 0-indexed (current month)
     
     let checkinDate = null;
     let checkoutDate = null;
@@ -383,13 +384,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const thisDate = new Date(currentYear, currentMonth, day);
             const dateStr = getLocalDateString(thisDate);
 
+            const isToday = (thisDate.toDateString() === today.toDateString());
+
             // Highlight today
-            if (thisDate.toDateString() === today.toDateString()) {
+            if (isToday) {
                 cell.classList.add('today');
             }
 
+            const todayBadge = isToday ? ' <span class="today-badge" style="font-size: 10px; background: var(--accent-color); color: white; padding: 1px 4px; border-radius: 3px; font-weight: 600;">오늘</span>' : '';
+
             // Disable past dates
-            let isPast = thisDate < today && thisDate.toDateString() !== today.toDateString();
+            let isPast = thisDate < today && !isToday;
             let isBooked = lockedDatesMap[dateStr] && lockedDatesMap[dateStr].length > 0;
 
             if (isPast) {
@@ -406,9 +411,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isBooked) {
                 const bookingsList = lockedDatesMap[dateStr];
                 const tagsMarkup = bookingsList.map(b => `<span class="booking-name-tag">${maskName(b.name)}</span>`).join('');
-                cell.innerHTML = `<span class="date-num">${day}</span>${tagsMarkup}`;
+                cell.innerHTML = `<span class="date-num">${day}${todayBadge}</span>${tagsMarkup}`;
             } else {
-                cell.innerHTML = `<span class="date-num">${day}</span>`;
+                cell.innerHTML = `<span class="date-num">${day}${todayBadge}</span>`;
             }
 
             // Highlight selected range

@@ -1,0 +1,15 @@
+# Sensitive credentials and Service Account keys
+data/*.json
+*.pem
+*.key
+.env
+
+# Temporary and local data
+temp/
+*.tmp
+*.log
+
+# Dependencies and OS files
+node_modules/
+.DS_Store
+Thumbs.db

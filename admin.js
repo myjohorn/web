@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
     // 3. Admin Authentication Login Flow
     // ----------------------------------------------------
-    let storedPasswordHash = '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'; // default: '1234'
+    let storedPasswordHash = 'c5ade4700915e1f704bef4a178d76f5e7e9945fefd7f2cdabc6293bc1e78a445'; // default: '10011001'
     db.ref('settings/admin_password').on('value', (snapshot) => {
         const hash = snapshot.val();
         if (hash) {
@@ -222,7 +222,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Check if session storage indicates we are logged in
-    if (sessionStorage.getItem('admin_logged_in') === 'true') {
+    if (sessionStorage.getItem('admin_logged_in') === 'true' || sessionStorage.getItem('johorn_admin_auth') === 'true') {
+        sessionStorage.setItem('admin_logged_in', 'true');
+        sessionStorage.setItem('johorn_admin_auth', 'true');
         adminLoginSection.classList.add('hidden');
         adminDashboardSection.style.display = 'block';
         initializeDashboard();
@@ -240,12 +242,63 @@ document.addEventListener('DOMContentLoaded', () => {
         const typedHash = sha256(password);
         if (typedHash === storedPasswordHash) {
             sessionStorage.setItem('admin_logged_in', 'true');
+            sessionStorage.setItem('johorn_admin_auth', 'true');
             adminLoginSection.classList.add('hidden');
             adminDashboardSection.style.display = 'block';
             initializeDashboard();
         } else {
             alert('비밀번호가 올바르지 않습니다.');
         }
+    }
+
+    // Admin Unified Tab Switching (Booking vs Car)
+    const tabBtnBooking = document.getElementById('tabBtnBooking');
+    const tabBtnCar = document.getElementById('tabBtnCar');
+    const headerNavBooking = document.getElementById('headerNavBooking');
+    const headerNavCar = document.getElementById('headerNavCar');
+    const sectionBooking = document.getElementById('sectionBooking');
+    const sectionCar = document.getElementById('sectionCar');
+
+    function switchAdminTab(tab) {
+        if (!sectionBooking || !sectionCar) return;
+        if (tab === 'car') {
+            sectionBooking.style.display = 'none';
+            sectionCar.style.display = 'block';
+            if (tabBtnCar) {
+                tabBtnCar.className = 'btn btn-primary';
+                tabBtnCar.style.borderColor = '';
+                tabBtnCar.style.color = '';
+                tabBtnCar.style.background = '';
+            }
+            if (tabBtnBooking) {
+                tabBtnBooking.className = 'btn btn-secondary';
+            }
+            if (headerNavCar) headerNavCar.classList.add('active');
+            if (headerNavBooking) headerNavBooking.classList.remove('active');
+        } else {
+            sectionBooking.style.display = 'block';
+            sectionCar.style.display = 'none';
+            if (tabBtnBooking) {
+                tabBtnBooking.className = 'btn btn-primary';
+            }
+            if (tabBtnCar) {
+                tabBtnCar.className = 'btn btn-secondary';
+                tabBtnCar.style.borderColor = 'var(--accent-color)';
+                tabBtnCar.style.color = 'var(--accent-color)';
+                tabBtnCar.style.background = 'rgba(197, 168, 128, 0.05)';
+            }
+            if (headerNavBooking) headerNavBooking.classList.add('active');
+            if (headerNavCar) headerNavCar.classList.remove('active');
+        }
+    }
+
+    if (tabBtnBooking) tabBtnBooking.addEventListener('click', () => switchAdminTab('booking'));
+    if (tabBtnCar) tabBtnCar.addEventListener('click', () => switchAdminTab('car'));
+    if (headerNavBooking) headerNavBooking.addEventListener('click', (e) => { e.preventDefault(); switchAdminTab('booking'); });
+    if (headerNavCar) headerNavCar.addEventListener('click', (e) => { e.preventDefault(); switchAdminTab('car'); });
+
+    if (window.location.hash === '#car') {
+        switchAdminTab('car');
     }
 
     // ----------------------------------------------------
@@ -666,14 +719,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const thisDate = new Date(adminYear, adminMonth, day);
             const dateStr = getLocalDateString(thisDate);
 
-            if (thisDate.toDateString() === today.toDateString()) {
+            const isToday = (thisDate.toDateString() === today.toDateString());
+
+            if (isToday) {
                 cell.classList.add('today');
             }
+
+            const todayBadge = isToday ? ' <span class="today-badge" style="font-size: 10px; background: var(--accent-color); color: white; padding: 1px 4px; border-radius: 3px; font-weight: 600;">오늘</span>' : '';
 
             const bookingsList = lockedDatesMap[dateStr];
             if (bookingsList && bookingsList.length > 0) {
                 cell.classList.add('booked-cell');
-                cell.innerHTML = `<span class="date-num">${day}</span>`;
+                cell.innerHTML = `<span class="date-num">${day}${todayBadge}</span>`;
                 
                 bookingsList.forEach(booking => {
                     const tag = document.createElement('span');
@@ -742,7 +799,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             } else {
-                cell.innerHTML = `<span class="date-num">${day}</span>`;
+                cell.innerHTML = `<span class="date-num">${day}${todayBadge}</span>`;
                 cell.addEventListener('click', () => {
                     document.querySelectorAll('#adminCalendarDates .calendar-cell').forEach(c => c.classList.remove('active-select'));
                     cell.classList.add('active-select');

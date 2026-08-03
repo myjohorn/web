@@ -1,0 +1,1382 @@
+// Admin Control Console for Delegated Car Rental Service (JohorN)
+
+window.onerror = function(message, source, lineno, colno, error) {
+    alert("Car Admin script error:\n" + message + "\nLocation: " + source + " (Line: " + lineno + ")");
+    return false;
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    // ----------------------------------------------------
+    // 1. Initial State & Variables
+    // ----------------------------------------------------
+    let delegatedCars = [];
+    let delegatedRevenues = [];
+    let delegatedExpenses = [];
+    let delegatedSettlements = [];
+    
+    let activeTab = 'cars'; // 'cars' | 'ledger' | 'settlements'
+    let adminPasswordHash = null;
+
+    // Default target month: current YYYY-MM
+    const today = new Date();
+    const currentYearMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    
+    // Set default month inputs
+    const ledgerMonthFilter = document.getElementById('ledgerMonthFilter');
+    const settlementTargetMonth = document.getElementById('settlementTargetMonth');
+    if (ledgerMonthFilter) ledgerMonthFilter.value = currentYearMonth;
+    if (settlementTargetMonth) settlementTargetMonth.value = currentYearMonth;
+
+    // Mobile Nav Toggle
+    const navToggle = document.getElementById('navToggle');
+    const navLinksContainer = document.getElementById('navLinks');
+    if (navToggle && navLinksContainer) {
+        navToggle.addEventListener('click', () => {
+            navLinksContainer.classList.toggle('active');
+            navToggle.classList.toggle('open');
+        });
+    }
+
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAgWQBqwEF_qWBLPmvoUsDEqB_gFbRH2xw",
+      authDomain: "johorn-booking.firebaseapp.com",
+      databaseURL: "https://johorn-booking-default-rtdb.asia-southeast1.firebasedatabase.app/",
+      projectId: "johorn-booking",
+      storageBucket: "johorn-booking.firebasestorage.app",
+      messagingSenderId: "872157980397",
+      appId: "1:872157980397:web:f5518fa42bd79835338ee4",
+      measurementId: "G-6RJ2YY46S1"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.database();
+
+    // Password Hashing helper (SHA-256)
+    async function hashPassword(password) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // ----------------------------------------------------
+    // 2. Authentication Logic
+    // ----------------------------------------------------
+    const adminLogin = document.getElementById('adminLogin');
+    const adminDashboard = document.getElementById('adminDashboard');
+    const adminPasswordInput = document.getElementById('adminPassword');
+    const adminLoginBtn = document.getElementById('adminLoginBtn');
+
+    db.ref('settings/admin_password').on('value', (snapshot) => {
+        adminPasswordHash = snapshot.val() || 'c5ade4700915e1f704bef4a178d76f5e7e9945fefd7f2cdabc6293bc1e78a445'; // default: '10011001'
+    });
+
+    function checkAuth() {
+        if (sessionStorage.getItem('johorn_admin_auth') === 'true' || sessionStorage.getItem('admin_logged_in') === 'true') {
+            sessionStorage.setItem('johorn_admin_auth', 'true');
+            sessionStorage.setItem('admin_logged_in', 'true');
+            if (adminLogin) adminLogin.style.display = 'none';
+            if (adminDashboard) adminDashboard.style.display = 'block';
+            initDataListeners();
+        } else {
+            if (adminLogin) adminLogin.style.display = 'block';
+            if (adminDashboard) adminDashboard.style.display = 'none';
+        }
+    }
+
+    if (adminLoginBtn) {
+        adminLoginBtn.addEventListener('click', async () => {
+            const input = adminPasswordInput ? adminPasswordInput.value.trim() : '';
+            if (!input) {
+                alert('비밀번호를 입력해주세요.');
+                return;
+            }
+
+            const inputHash = await hashPassword(input);
+            const defaultHash = await hashPassword('10011001');
+
+            if (inputHash === adminPasswordHash || inputHash === defaultHash || input === '10011001') {
+                sessionStorage.setItem('johorn_admin_auth', 'true');
+                sessionStorage.setItem('admin_logged_in', 'true');
+                checkAuth();
+            } else {
+                alert('비밀번호가 올바르지 않습니다.');
+            }
+        });
+    }
+
+    if (adminPasswordInput) {
+        adminPasswordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') adminLoginBtn.click();
+        });
+    }
+
+    checkAuth();
+
+    // ----------------------------------------------------
+    // 3. Realtime Database Listeners
+    // ----------------------------------------------------
+    function initDataListeners() {
+        // Cars
+        db.ref('delegated_cars').on('value', (snapshot) => {
+            const val = snapshot.val();
+            delegatedCars = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
+            updateCarSelectors();
+            renderCars();
+            updateDashboardMetrics();
+            renderLedger();
+            renderSettlements();
+            renderCarCalendar();
+        });
+
+        // Revenues
+        db.ref('delegated_car_revenues').on('value', (snapshot) => {
+            const val = snapshot.val();
+            delegatedRevenues = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
+            updateDashboardMetrics();
+            renderLedger();
+            renderSettlements();
+            renderCarCalendar();
+        });
+
+        // Expenses
+        db.ref('delegated_car_expenses').on('value', (snapshot) => {
+            const val = snapshot.val();
+            delegatedExpenses = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
+            updateDashboardMetrics();
+            renderLedger();
+            renderSettlements();
+        });
+
+        // Settlements
+        db.ref('delegated_car_settlements').on('value', (snapshot) => {
+            const val = snapshot.val();
+            delegatedSettlements = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
+            renderSettlements();
+        });
+    }
+
+    // ----------------------------------------------------
+    // 4. Tab Navigation Logic
+    // ----------------------------------------------------
+    const tabBtns = document.querySelectorAll('.car-tab-btn');
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            tabBtns.forEach(b => {
+                b.classList.remove('active');
+                b.style.borderBottomColor = 'transparent';
+                b.style.color = 'var(--text-secondary)';
+            });
+            btn.classList.add('active');
+            btn.style.borderBottomColor = 'var(--accent-color)';
+            btn.style.color = 'var(--text-primary)';
+
+            activeTab = btn.getAttribute('data-tab');
+
+            const tabCars = document.getElementById('tabContentCars');
+            const tabCalendar = document.getElementById('tabContentCalendar');
+            const tabLedger = document.getElementById('tabContentLedger');
+            const tabSettlements = document.getElementById('tabContentSettlements');
+
+            if (tabCars) tabCars.classList.add('hidden');
+            if (tabCalendar) tabCalendar.classList.add('hidden');
+            if (tabLedger) tabLedger.classList.add('hidden');
+            if (tabSettlements) tabSettlements.classList.add('hidden');
+
+            if (activeTab === 'cars' && tabCars) {
+                tabCars.classList.remove('hidden');
+            } else if (activeTab === 'calendar' && tabCalendar) {
+                tabCalendar.classList.remove('hidden');
+                renderCarCalendar();
+            } else if (activeTab === 'ledger' && tabLedger) {
+                tabLedger.classList.remove('hidden');
+            } else if (activeTab === 'settlements' && tabSettlements) {
+                tabSettlements.classList.remove('hidden');
+            }
+        });
+    });
+
+    // Modal Control Helpers
+    function openModal(modalId) {
+        const m = document.getElementById(modalId);
+        if (m) m.style.display = 'flex';
+    }
+    function closeModal(modalId) {
+        const m = document.getElementById(modalId);
+        if (m) m.style.display = 'none';
+    }
+
+    document.querySelectorAll('.close-modal-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const target = btn.getAttribute('data-modal');
+            if (target) closeModal(target);
+        });
+    });
+
+    // ----------------------------------------------------
+    // 5. Cars Management Logic (`#tabCars`) & Documents Handling
+    // ----------------------------------------------------
+    const carDocFields = [
+        { fileId: 'carInsuranceCertFile', dataId: 'carInsuranceCertData', previewId: 'carInsuranceCertPreview', label: '보험 증서' },
+        { fileId: 'carRegCertFrontFile', dataId: 'carRegCertFrontData', previewId: 'carRegCertFrontPreview', label: '등록증 앞면' },
+        { fileId: 'carRegCertBackFile', dataId: 'carRegCertBackData', previewId: 'carRegCertBackPreview', label: '등록증 뒷면' },
+        { fileId: 'carPhotoFrontFile', dataId: 'carPhotoFrontData', previewId: 'carPhotoFrontPreview', label: '차량 전면' },
+        { fileId: 'carPhotoBackFile', dataId: 'carPhotoBackData', previewId: 'carPhotoBackPreview', label: '차량 후면' },
+        { fileId: 'carPhotoLeftFile', dataId: 'carPhotoLeftData', previewId: 'carPhotoLeftPreview', label: '차량 좌측' },
+        { fileId: 'carPhotoRightFile', dataId: 'carPhotoRightData', previewId: 'carPhotoRightPreview', label: '차량 우측' },
+        { fileId: 'carRoadTaxStickerFile', dataId: 'carRoadTaxStickerData', previewId: 'carRoadTaxStickerPreview', label: '로드택스 스티커' },
+        { fileId: 'carOwnerPassportFile', dataId: 'carOwnerPassportData', previewId: 'carOwnerPassportPreview', label: '차주 여권' }
+    ];
+
+    function bindCarDocFileInputs() {
+        carDocFields.forEach(field => {
+            const input = document.getElementById(field.fileId);
+            if (!input) return;
+            input.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                readAndCompressImage(file, (dataUrl, fileName) => {
+                    const hiddenInput = document.getElementById(field.dataId);
+                    const previewBox = document.getElementById(field.previewId);
+                    if (hiddenInput) hiddenInput.value = dataUrl;
+                    if (previewBox) {
+                        if (dataUrl.startsWith('data:image/')) {
+                            previewBox.innerHTML = `
+                                <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                                    <img src="${dataUrl}" alt="${field.label}" style="width: 36px; height: 36px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border-color);">
+                                    <span style="color: #2E7D32; font-weight: 600;">✓ 등록됨 (${fileName})</span>
+                                    <button type="button" class="btn-clear-doc" style="background: none; border: none; color: #E24C4C; font-size: 11px; cursor: pointer;">❌ 삭제</button>
+                                </div>
+                            `;
+                        } else {
+                            previewBox.innerHTML = `
+                                <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                                    <span style="color: #2E7D32; font-weight: 600;">📄 파일 첨부됨 (${fileName})</span>
+                                    <button type="button" class="btn-clear-doc" style="background: none; border: none; color: #E24C4C; font-size: 11px; cursor: pointer;">❌ 삭제</button>
+                                </div>
+                            `;
+                        }
+                        previewBox.querySelector('.btn-clear-doc').addEventListener('click', () => {
+                            if (hiddenInput) hiddenInput.value = '';
+                            input.value = '';
+                            previewBox.innerHTML = '';
+                        });
+                    }
+                });
+            });
+        });
+    }
+
+    function readAndCompressImage(file, callback) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            if (file.type.startsWith('image/')) {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDim = 900;
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) {
+                            height = Math.round((height * maxDim) / width);
+                            width = maxDim;
+                        } else {
+                            width = Math.round((width * maxDim) / height);
+                            height = maxDim;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const compressedData = canvas.toDataURL('image/jpeg', 0.75);
+                    callback(compressedData, file.name);
+                };
+                img.src = e.target.result;
+            } else {
+                callback(e.target.result, file.name);
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function resetCarFormDocFields() {
+        carDocFields.forEach(field => {
+            const hiddenInput = document.getElementById(field.dataId);
+            const fileInput = document.getElementById(field.fileId);
+            const previewBox = document.getElementById(field.previewId);
+            if (hiddenInput) hiddenInput.value = '';
+            if (fileInput) fileInput.value = '';
+            if (previewBox) previewBox.innerHTML = '';
+        });
+        const periodInput = document.getElementById('carInsurancePeriod');
+        if (periodInput) periodInput.value = '';
+    }
+
+    function populateCarFormDocFields(car) {
+        resetCarFormDocFields();
+        if (!car) return;
+        const periodInput = document.getElementById('carInsurancePeriod');
+        if (periodInput) periodInput.value = car.insurancePeriod || '';
+
+        carDocFields.forEach(field => {
+            const val = car[field.dataId];
+            if (val) {
+                const hiddenInput = document.getElementById(field.dataId);
+                const previewBox = document.getElementById(field.previewId);
+                if (hiddenInput) hiddenInput.value = val;
+                if (previewBox) {
+                    if (val.startsWith('data:image/')) {
+                        previewBox.innerHTML = `
+                            <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                                <img src="${val}" alt="${field.label}" style="width: 36px; height: 36px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border-color);">
+                                <span style="color: #2E7D32; font-weight: 600;">✓ 기존 등록됨</span>
+                                <button type="button" class="btn-clear-doc" style="background: none; border: none; color: #E24C4C; font-size: 11px; cursor: pointer;">❌ 삭제</button>
+                            </div>
+                        `;
+                    } else {
+                        previewBox.innerHTML = `
+                            <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                                <span style="color: #2E7D32; font-weight: 600;">📄 기존 파일 등록됨</span>
+                                <button type="button" class="btn-clear-doc" style="background: none; border: none; color: #E24C4C; font-size: 11px; cursor: pointer;">❌ 삭제</button>
+                            </div>
+                        `;
+                    }
+                    previewBox.querySelector('.btn-clear-doc').addEventListener('click', () => {
+                        if (hiddenInput) hiddenInput.value = '';
+                        previewBox.innerHTML = '';
+                    });
+                }
+            }
+        });
+    }
+
+    bindCarDocFileInputs();
+
+    const openCarModalBtn = document.getElementById('openCarModalBtn');
+    if (openCarModalBtn) {
+        openCarModalBtn.addEventListener('click', () => {
+            document.getElementById('carId').value = '';
+            document.getElementById('carForm').reset();
+            resetCarFormDocFields();
+            document.getElementById('carModalTitle').textContent = '신규 위탁 차량 등록';
+            openModal('carModal');
+        });
+    }
+
+    const saveCarBtn = document.getElementById('saveCarBtn');
+    if (saveCarBtn) {
+        saveCarBtn.addEventListener('click', () => {
+            const id = document.getElementById('carId').value;
+            const model = document.getElementById('carModel').value.trim();
+            const plateNumber = document.getElementById('carPlateNumber').value.trim();
+            const ownerName = document.getElementById('carOwnerName').value.trim();
+            const ownerContact = document.getElementById('carOwnerContact').value.trim();
+            const bankName = document.getElementById('carBankName').value.trim();
+            const accountNumber = document.getElementById('carAccountNumber').value.trim();
+            const feeRate = parseFloat(document.getElementById('carFeeRate').value) || 20;
+            const status = document.getElementById('carStatus').value;
+            const memo = document.getElementById('carMemo').value.trim();
+
+            const insurancePeriod = document.getElementById('carInsurancePeriod') ? document.getElementById('carInsurancePeriod').value.trim() : '';
+
+            if (!model || !plateNumber || !ownerName) {
+                alert('차량 모델명, 번호판, 차주 성함은 필수 항목입니다.');
+                return;
+            }
+
+            const carObj = {
+                model,
+                plateNumber,
+                ownerName,
+                ownerContact,
+                bankName,
+                accountNumber,
+                feeRate,
+                status,
+                memo,
+                insurancePeriod,
+                updatedAt: new Date().toISOString()
+            };
+
+            // Collect attached files & images
+            carDocFields.forEach(field => {
+                const input = document.getElementById(field.dataId);
+                if (input && input.value) {
+                    carObj[field.dataId] = input.value;
+                } else {
+                    carObj[field.dataId] = '';
+                }
+            });
+
+            if (id) {
+                db.ref(`delegated_cars/${id}`).update(carObj).then(() => {
+                    closeModal('carModal');
+                });
+            } else {
+                carObj.createdAt = new Date().toISOString();
+                db.ref('delegated_cars').push(carObj).then(() => {
+                    closeModal('carModal');
+                });
+            }
+        });
+    }
+
+    function renderCars() {
+        const container = document.getElementById('carsContainer');
+        if (!container) return;
+
+        if (delegatedCars.length === 0) {
+            container.innerHTML = `
+                <div style="grid-column: 1 / -1; background: var(--white); padding: 40px; text-align: center; border: 1px dashed var(--border-color); border-radius: 6px;">
+                    <i class="fa-solid fa-car-side" style="font-size: 36px; color: var(--accent-color); margin-bottom: 12px;"></i>
+                    <p style="color: var(--text-secondary); margin: 0;">등록된 위탁 차량이 없습니다. [+ 신규 위탁 차량 등록] 버튼을 눌러 차량을 추가하세요.</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = delegatedCars.map(car => {
+            let statusBadge = '<span class="status-badge status-approved">운행 가능</span>';
+            if (car.status === 'maintenance') {
+                statusBadge = '<span class="status-badge status-pending" style="background: #FFF3E0; color: #E65100;">정비 중</span>';
+            } else if (car.status === 'inactive') {
+                statusBadge = '<span class="status-badge status-rejected">위탁 종료</span>';
+            }
+
+            // Count attached documents & photos
+            let docCount = 0;
+            carDocFields.forEach(field => {
+                if (car[field.dataId]) docCount++;
+            });
+
+            const docBadge = docCount > 0 
+                ? `<span style="font-size: 11px; background: rgba(46, 125, 50, 0.1); color: #2E7D32; padding: 2px 7px; border-radius: 4px; font-weight: 600;"><i class="fa-solid fa-file-check"></i> 서류/사진 (${docCount}건)</span>`
+                : `<span style="font-size: 11px; background: rgba(0,0,0,0.04); color: var(--text-secondary); padding: 2px 7px; border-radius: 4px;"><i class="fa-solid fa-file"></i> 서류 미등록</span>`;
+
+            return `
+                <div class="car-card" style="background: var(--white); border: 1px solid var(--border-color); border-radius: 6px; padding: 22px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                        <div>
+                            <span style="font-size: 11px; font-weight: 700; color: var(--accent-color); text-transform: uppercase; letter-spacing: 0.05em;">${car.plateNumber}</span>
+                            <h4 style="font-size: 16px; font-weight: 700; margin: 2px 0 0 0; color: var(--text-primary);">${car.model}</h4>
+                        </div>
+                        ${statusBadge}
+                    </div>
+
+                    <div style="font-size: 13px; line-height: 1.8; color: var(--text-primary); border-top: 1px solid rgba(0,0,0,0.05); padding-top: 12px; margin-bottom: 15px;">
+                        <div><strong>차주:</strong> ${car.ownerName} ${car.ownerContact ? `(${car.ownerContact})` : ''}</div>
+                        <div><strong>수수료율:</strong> <span style="color: var(--accent-color); font-weight: 700;">${car.feeRate}%</span></div>
+                        <div><strong>정산 계좌:</strong> ${car.bankName || '-'} ${car.accountNumber || ''}</div>
+                        ${car.insurancePeriod ? `<div><strong>보험 기간:</strong> <span style="color: #1565C0;">${car.insurancePeriod}</span></div>` : ''}
+                        <div style="margin-top: 6px; display: flex; align-items: center; justify-content: space-between;">
+                            ${docBadge}
+                        </div>
+                        ${car.memo ? `<div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px; background: rgba(0,0,0,0.02); padding: 6px 10px; border-radius: 4px;">${car.memo}</div>` : ''}
+                    </div>
+
+                    <div style="display: flex; gap: 6px; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 12px; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-secondary view-car-docs-btn" data-id="${car.id}" style="padding: 6px 10px; font-size: 11px; color: var(--accent-color); border-color: var(--accent-color);">
+                            <i class="fa-solid fa-folder-open"></i> 서류/사진 열람
+                        </button>
+                        <button type="button" class="btn btn-secondary edit-car-btn" data-id="${car.id}" style="padding: 6px 10px; font-size: 11px;">
+                            <i class="fa-solid fa-pen-to-square"></i> 수정
+                        </button>
+                        <button type="button" class="btn btn-secondary delete-car-btn" data-id="${car.id}" style="padding: 6px 10px; font-size: 11px; color: #E24C4C; border-color: #E24C4C;">
+                            <i class="fa-solid fa-trash"></i> 삭제
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // View Car Documents Event Listeners
+        container.querySelectorAll('.view-car-docs-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const carId = btn.getAttribute('data-id');
+                const car = delegatedCars.find(c => c.id === carId);
+                if (!car) return;
+
+                const docViewerContent = document.getElementById('docViewerContent');
+                const docViewerTitle = document.getElementById('docViewerTitle');
+                if (docViewerTitle) docViewerTitle.innerHTML = `<i class="fa-solid fa-folder-open" style="color: var(--accent-color);"></i> [${car.model} - ${car.plateNumber}] 첨부 서류 및 사진`;
+
+                let cardsHtml = '';
+                if (car.insurancePeriod) {
+                    cardsHtml += `
+                        <div style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: 6px; padding: 15px; grid-column: 1 / -1;">
+                            <strong style="color: #1565C0; font-size: 13px;"><i class="fa-solid fa-shield-halved"></i> 보험 유효 기간:</strong>
+                            <span style="font-size: 14px; font-weight: 700; color: var(--text-primary); margin-left: 8px;">${car.insurancePeriod}</span>
+                        </div>
+                    `;
+                }
+
+                let itemsFound = 0;
+                carDocFields.forEach(field => {
+                    const dataUrl = car[field.dataId];
+                    if (dataUrl) {
+                        itemsFound++;
+                        const isImg = dataUrl.startsWith('data:image/');
+                        cardsHtml += `
+                            <div style="background: var(--white); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+                                <div>
+                                    <h5 style="font-size: 13px; font-weight: 700; margin: 0 0 8px 0; color: var(--text-primary);">${field.label}</h5>
+                                    ${isImg 
+                                        ? `<a href="${dataUrl}" target="_blank" title="클릭하여 원본 크게보기"><img src="${dataUrl}" alt="${field.label}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border-color); cursor: pointer;"></a>` 
+                                        : `<div style="padding: 30px 10px; text-align: center; background: #F1F5F9; border-radius: 4px; color: var(--text-secondary);"><i class="fa-solid fa-file-pdf" style="font-size: 32px; color: #C62828;"></i><br><span style="font-size: 12px; margin-top: 6px; display: inline-block;">PDF / 문서 파일</span></div>`
+                                    }
+                                </div>
+                                <div style="margin-top: 10px; text-align: right;">
+                                    <a href="${dataUrl}" download="${car.plateNumber}_${field.label}" class="btn btn-secondary" style="font-size: 11px; padding: 4px 10px; display: inline-block; text-decoration: none;">
+                                        <i class="fa-solid fa-download"></i> 다운로드 / 원본 보기
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+
+                if (itemsFound === 0 && !car.insurancePeriod) {
+                    cardsHtml = `
+                        <div style="grid-column: 1 / -1; padding: 40px; text-align: center; color: var(--text-secondary);">
+                            <i class="fa-solid fa-folder-open" style="font-size: 32px; color: #BBB7B2; margin-bottom: 10px;"></i><br>
+                            등록된 서류 및 사진이 없습니다. [수정] 버튼을 눌러 서류 사진을 업로드하세요.
+                        </div>
+                    `;
+                }
+
+                if (docViewerContent) docViewerContent.innerHTML = cardsHtml;
+                openModal('carDocViewerModal');
+            });
+        });
+
+        // Edit Car Event Listeners
+        container.querySelectorAll('.edit-car-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const carId = btn.getAttribute('data-id');
+                const car = delegatedCars.find(c => c.id === carId);
+                if (!car) return;
+
+                document.getElementById('carId').value = car.id;
+                document.getElementById('carModel').value = car.model || '';
+                document.getElementById('carPlateNumber').value = car.plateNumber || '';
+                document.getElementById('carOwnerName').value = car.ownerName || '';
+                document.getElementById('carOwnerContact').value = car.ownerContact || '';
+                document.getElementById('carBankName').value = car.bankName || '';
+                document.getElementById('carAccountNumber').value = car.accountNumber || '';
+                document.getElementById('carFeeRate').value = car.feeRate || 20;
+                document.getElementById('carStatus').value = car.status || 'active';
+                document.getElementById('carMemo').value = car.memo || '';
+
+                populateCarFormDocFields(car);
+
+                document.getElementById('carModalTitle').textContent = '위탁 차량 정보 수정';
+                openModal('carModal');
+            });
+        });
+
+        // Delete Car Event Listeners
+        container.querySelectorAll('.delete-car-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const carId = btn.getAttribute('data-id');
+                if (confirm('이 차량을 삭제하시겠습니까? 관련 매출 및 비용 데이터가 영향을 받을 수 있습니다.')) {
+                    db.ref(`delegated_cars/${carId}`).remove();
+                }
+            });
+        });
+    }
+
+    function updateCarSelectors() {
+        const carFilter = document.getElementById('ledgerCarFilter');
+        const carCalFilter = document.getElementById('carCalFilter');
+        const revCarSelect = document.getElementById('revenueCarId');
+        const expCarSelect = document.getElementById('expenseCarId');
+
+        const activeCars = delegatedCars.filter(c => c.status !== 'inactive');
+
+        if (carFilter) {
+            const currentVal = carFilter.value;
+            carFilter.innerHTML = '<option value="all">전체 차량 보기</option>' + 
+                delegatedCars.map(c => `<option value="${c.id}">${c.plateNumber} (${c.model})</option>`).join('');
+            carFilter.value = currentVal;
+        }
+
+        if (carCalFilter) {
+            const currentCalVal = carCalFilter.value;
+            carCalFilter.innerHTML = '<option value="all">전체 위탁 차량 보기</option>' + 
+                delegatedCars.map(c => `<option value="${c.id}">${c.plateNumber} (${c.model})</option>`).join('');
+            carCalFilter.value = currentCalVal || 'all';
+        }
+
+        const optionsHtml = activeCars.map(c => `<option value="${c.id}">${c.plateNumber} - ${c.model} (${c.ownerName})</option>`).join('');
+
+        if (revCarSelect) revCarSelect.innerHTML = optionsHtml || '<option value="">등록된 차량이 없습니다</option>';
+        if (expCarSelect) expCarSelect.innerHTML = optionsHtml || '<option value="">등록된 차량이 없습니다</option>';
+    }
+
+    // ----------------------------------------------------
+    // 6. Revenues & Expenses Ledger Logic (`#tabLedger`)
+    // ----------------------------------------------------
+    const openRevenueModalBtn = document.getElementById('openRevenueModalBtn');
+    const deleteRevenueBtn = document.getElementById('deleteRevenueBtn');
+    const revenueModalTitle = document.getElementById('revenueModalTitle');
+
+    if (openRevenueModalBtn) {
+        openRevenueModalBtn.addEventListener('click', () => {
+            if (delegatedCars.length === 0) {
+                alert('먼저 위탁 차량을 등록해 주세요.');
+                return;
+            }
+            document.getElementById('revenueId').value = '';
+            document.getElementById('revenueForm').reset();
+            document.getElementById('revenueStartDate').value = getLocalDateString(new Date());
+            document.getElementById('revenueEndDate').value = getLocalDateString(new Date());
+            if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-circle-plus"></i> 렌트 매출/예약 등록';
+            if (deleteRevenueBtn) deleteRevenueBtn.classList.add('hidden');
+            openModal('revenueModal');
+        });
+    }
+
+    const saveRevenueBtn = document.getElementById('saveRevenueBtn');
+    if (saveRevenueBtn) {
+        saveRevenueBtn.addEventListener('click', () => {
+            const revId = document.getElementById('revenueId').value;
+            const carId = document.getElementById('revenueCarId').value;
+            const renterName = document.getElementById('revenueRenterName').value.trim();
+            const renterContact = document.getElementById('revenueRenterContact').value.trim();
+            const startDate = document.getElementById('revenueStartDate').value;
+            const endDate = document.getElementById('revenueEndDate').value;
+            const amount = parseFloat(document.getElementById('revenueAmount').value) || 0;
+            const paymentStatus = document.getElementById('revenuePaymentStatus').value;
+            const memo = document.getElementById('revenueMemo').value.trim();
+
+            if (!carId || !renterName || !startDate || !endDate || amount <= 0) {
+                alert('모든 필수 항목(차량 선택, 임차인 이름, 시작일, 종료일, 금액)을 입력해 주세요.');
+                return;
+            }
+
+            const revObj = {
+                carId,
+                renterName,
+                renterContact,
+                startDate,
+                endDate,
+                amount,
+                paymentStatus,
+                memo,
+                updatedAt: new Date().toISOString()
+            };
+
+            if (revId) {
+                db.ref(`delegated_car_revenues/${revId}`).update(revObj).then(() => {
+                    closeModal('revenueModal');
+                });
+            } else {
+                revObj.createdAt = new Date().toISOString();
+                db.ref('delegated_car_revenues').push(revObj).then(() => {
+                    closeModal('revenueModal');
+                });
+            }
+        });
+    }
+
+    if (deleteRevenueBtn) {
+        deleteRevenueBtn.addEventListener('click', () => {
+            const revId = document.getElementById('revenueId').value;
+            if (revId && confirm('이 렌트 매출/예약 항목을 정말 삭제하시겠습니까?')) {
+                db.ref(`delegated_car_revenues/${revId}`).remove().then(() => {
+                    closeModal('revenueModal');
+                });
+            }
+        });
+    }
+
+    const openExpenseModalBtn = document.getElementById('openExpenseModalBtn');
+    if (openExpenseModalBtn) {
+        openExpenseModalBtn.addEventListener('click', () => {
+            if (delegatedCars.length === 0) {
+                alert('먼저 위탁 차량을 등록해 주세요.');
+                return;
+            }
+            document.getElementById('expenseId').value = '';
+            document.getElementById('expenseForm').reset();
+            document.getElementById('expenseDate').value = getLocalDateString(new Date());
+            openModal('expenseModal');
+        });
+    }
+
+    const saveExpenseBtn = document.getElementById('saveExpenseBtn');
+    if (saveExpenseBtn) {
+        saveExpenseBtn.addEventListener('click', () => {
+            const carId = document.getElementById('expenseCarId').value;
+            const category = document.getElementById('expenseCategory').value;
+            const expenseDate = document.getElementById('expenseDate').value;
+            const amount = parseFloat(document.getElementById('expenseAmount').value) || 0;
+            const deductibleFromOwner = document.getElementById('expenseDeductible').checked;
+            const description = document.getElementById('expenseDescription').value.trim();
+
+            if (!carId || !expenseDate || amount <= 0) {
+                alert('차량 선택, 발생 일자 및 지출 금액을 정확히 입력해 주세요.');
+                return;
+            }
+
+            const expObj = {
+                carId,
+                category,
+                expenseDate,
+                amount,
+                deductibleFromOwner,
+                description,
+                createdAt: new Date().toISOString()
+            };
+
+            db.ref('delegated_car_expenses').push(expObj).then(() => {
+                closeModal('expenseModal');
+            });
+        });
+    }
+
+    // Ledger Filters Event Listeners
+    const ledgerCarFilter = document.getElementById('ledgerCarFilter');
+    const ledgerTypeFilter = document.getElementById('ledgerTypeFilter');
+
+    if (ledgerCarFilter) ledgerCarFilter.addEventListener('change', renderLedger);
+    if (ledgerTypeFilter) ledgerTypeFilter.addEventListener('change', renderLedger);
+    if (ledgerMonthFilter) ledgerMonthFilter.addEventListener('change', renderLedger);
+
+    function renderLedger() {
+        const tbody = document.getElementById('ledgerTableBody');
+        if (!tbody) return;
+
+        const carIdFilter = ledgerCarFilter ? ledgerCarFilter.value : 'all';
+        const typeFilter = ledgerTypeFilter ? ledgerTypeFilter.value : 'all';
+        const monthFilter = ledgerMonthFilter ? ledgerMonthFilter.value : '';
+
+        // Combine revenues and expenses into integrated items
+        let items = [];
+
+        if (typeFilter === 'all' || typeFilter === 'revenue') {
+            delegatedRevenues.forEach(r => {
+                if (carIdFilter !== 'all' && r.carId !== carIdFilter) return;
+                if (monthFilter && !r.startDate.startsWith(monthFilter)) return;
+
+                const car = delegatedCars.find(c => c.id === r.carId);
+                items.push({
+                    type: 'revenue',
+                    id: r.id,
+                    date: r.startDate,
+                    carPlate: car ? car.plateNumber : '삭제된 차량',
+                    carModel: car ? car.model : '',
+                    details: `임차인: ${r.renterName} (${r.startDate} ~ ${r.endDate})`,
+                    amount: r.amount,
+                    deductibleStr: '해당 없음',
+                    statusBadge: r.paymentStatus === 'completed' ? '<span class="status-badge status-approved">결제완료</span>' : '<span class="status-badge status-pending">입금대기</span>',
+                    rawDate: r.startDate
+                });
+            });
+        }
+
+        if (typeFilter === 'all' || typeFilter === 'expense') {
+            delegatedExpenses.forEach(e => {
+                if (carIdFilter !== 'all' && e.carId !== carIdFilter) return;
+                if (monthFilter && !e.expenseDate.startsWith(monthFilter)) return;
+
+                const car = delegatedCars.find(c => c.id === e.carId);
+                const categoryNames = {
+                    repair: '수리/정비',
+                    accident: '사고처리',
+                    insurance: '보험료',
+                    oil: '소모품/오일',
+                    wash: '세차',
+                    other: '기타지출'
+                };
+                const categoryLabel = categoryNames[e.category] || e.category;
+
+                items.push({
+                    type: 'expense',
+                    id: e.id,
+                    date: e.expenseDate,
+                    carPlate: car ? car.plateNumber : '삭제된 차량',
+                    carModel: car ? car.model : '',
+                    details: `[${categoryLabel}] ${e.description || ''}`,
+                    amount: e.amount,
+                    deductibleStr: e.deductibleFromOwner ? '<span style="color: #C62828; font-weight: 600;">차주 공제 [O]</span>' : '<span style="color: #8C8782;">회사 부담 [X]</span>',
+                    statusBadge: '<span class="status-badge status-rejected" style="background: #FFEBEE; color: #C62828;">지출 발생</span>',
+                    rawDate: e.expenseDate
+                });
+            });
+        }
+
+        // Sort items descending by date
+        items.sort((a, b) => b.rawDate.localeCompare(a.rawDate));
+
+        if (items.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                        조회된 장부 내역이 없습니다.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = items.map(item => {
+            const isRev = item.type === 'revenue';
+            const typeBadge = isRev ? '<span class="status-badge status-approved" style="background: #E8F5E9; color: #2E7D32;">렌트 매출 (+)</span>' : '<span class="status-badge status-rejected" style="background: #FFEBEE; color: #C62828;">정비 비용 (-)</span>';
+            const amountColor = isRev ? '#2E7D32' : '#C62828';
+            const amountPrefix = isRev ? '+' : '-';
+
+            return `
+                <tr>
+                    <td style="font-weight: 500;">${item.date}</td>
+                    <td>${typeBadge}</td>
+                    <td><strong>${item.carPlate}</strong> <br><span style="font-size: 11px; color: var(--text-secondary);">${item.carModel}</span></td>
+                    <td style="text-align: left;">${item.details}</td>
+                    <td style="font-weight: 700; color: ${amountColor};">${amountPrefix} MYR ${item.amount.toLocaleString()}</td>
+                    <td>${item.deductibleStr}</td>
+                    <td>
+                        ${isRev ? `<button type="button" class="btn btn-secondary edit-ledger-btn" data-type="${item.type}" data-id="${item.id}" style="padding: 4px 8px; font-size: 11px; margin-right: 4px;">수정</button>` : ''}
+                        <button type="button" class="btn btn-secondary delete-ledger-btn" data-type="${item.type}" data-id="${item.id}" style="padding: 4px 8px; font-size: 11px; color: #E24C4C; border-color: #E24C4C;">
+                            삭제
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        // Edit item listeners
+        tbody.querySelectorAll('.edit-ledger-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const itemType = btn.getAttribute('data-type');
+                const itemId = btn.getAttribute('data-id');
+                if (itemType === 'revenue') {
+                    const rev = delegatedRevenues.find(r => r.id === itemId);
+                    if (rev) {
+                        document.getElementById('revenueId').value = rev.id;
+                        document.getElementById('revenueCarId').value = rev.carId || '';
+                        document.getElementById('revenueRenterName').value = rev.renterName || '';
+                        document.getElementById('revenueRenterContact').value = rev.renterContact || '';
+                        document.getElementById('revenueStartDate').value = rev.startDate || '';
+                        document.getElementById('revenueEndDate').value = rev.endDate || '';
+                        document.getElementById('revenueAmount').value = rev.amount || 0;
+                        document.getElementById('revenuePaymentStatus').value = rev.paymentStatus || 'completed';
+                        document.getElementById('revenueMemo').value = rev.memo || '';
+                        
+                        if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 렌트 매출/예약 정보 수정';
+                        if (deleteRevenueBtn) deleteRevenueBtn.classList.remove('hidden');
+
+                        openModal('revenueModal');
+                    }
+                }
+            });
+        });
+
+        // Delete item listeners
+        tbody.querySelectorAll('.delete-ledger-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const itemType = btn.getAttribute('data-type');
+                const itemId = btn.getAttribute('data-id');
+                if (confirm('이 장부 항목을 삭제하시겠습니까?')) {
+                    if (itemType === 'revenue') {
+                        db.ref(`delegated_car_revenues/${itemId}`).remove();
+                    } else {
+                        db.ref(`delegated_car_expenses/${itemId}`).remove();
+                    }
+                }
+            });
+        });
+    }
+
+    // ----------------------------------------------------
+    // 7. Settlement Engine & Profit Sharing (`#tabSettlements`)
+    // ----------------------------------------------------
+    if (settlementTargetMonth) {
+        settlementTargetMonth.addEventListener('change', () => {
+            renderSettlements();
+            updateDashboardMetrics();
+        });
+    }
+
+    function renderSettlements() {
+        const tbody = document.getElementById('settlementTableBody');
+        if (!tbody) return;
+
+        const targetMonth = settlementTargetMonth ? settlementTargetMonth.value : currentYearMonth;
+
+        if (delegatedCars.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                        등록된 위탁 차량이 없습니다.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = delegatedCars.map(car => {
+            // Calculate Gross Revenue R
+            const revs = delegatedRevenues.filter(r => r.carId === car.id && r.startDate.startsWith(targetMonth) && r.paymentStatus === 'completed');
+            const grossRevenue = revs.reduce((sum, r) => sum + r.amount, 0);
+
+            // Management Fee F = GrossRevenue * (FeeRate / 100)
+            const feeRate = car.feeRate || 20;
+            const feeAmount = grossRevenue * (feeRate / 100);
+
+            // Deductible Expenses E
+            const exps = delegatedExpenses.filter(e => e.carId === car.id && e.expenseDate.startsWith(targetMonth) && e.deductibleFromOwner);
+            const totalExpenses = exps.reduce((sum, e) => sum + e.amount, 0);
+
+            // Net Owner Payout P = GrossRevenue - FeeAmount - Expenses
+            const netOwnerPayout = grossRevenue - feeAmount - totalExpenses;
+
+            // Settlement Key: settle_YYYY_MM_carId
+            const settleId = `settle_${targetMonth.replace('-', '_')}_${car.id}`;
+            const existingSettlement = delegatedSettlements.find(s => s.id === settleId);
+            const isCompleted = existingSettlement && existingSettlement.status === 'completed';
+
+            const statusBadge = isCompleted ? 
+                '<span class="status-badge status-approved"><i class="fa-solid fa-check"></i> 정산 완료</span>' : 
+                '<span class="status-badge status-pending">미정산 (대기)</span>';
+
+            const payoutColor = netOwnerPayout >= 0 ? '#1565C0' : '#C62828';
+
+            return `
+                <tr>
+                    <td><strong>${car.plateNumber}</strong><br><span style="font-size: 11px; color: var(--text-secondary);">${car.model}</span></td>
+                    <td>${car.ownerName}</td>
+                    <td style="font-weight: 600; color: #2E7D32;">MYR ${grossRevenue.toLocaleString()}</td>
+                    <td style="font-size: 12px;">MYR ${feeAmount.toLocaleString()} <br><span style="color: var(--accent-color); font-size: 11px;">(${feeRate}%)</span></td>
+                    <td style="font-weight: 600; color: #C62828;">MYR ${totalExpenses.toLocaleString()}</td>
+                    <td style="font-size: 15px; font-weight: 700; color: ${payoutColor};">MYR ${netOwnerPayout.toLocaleString()}</td>
+                    <td>${statusBadge}</td>
+                    <td>
+                        <div style="display: flex; gap: 6px; justify-content: center;">
+                            <button type="button" class="btn btn-secondary view-stmt-btn" data-carid="${car.id}" data-month="${targetMonth}" style="padding: 5px 10px; font-size: 12px;">
+                                <i class="fa-solid fa-file-invoice"></i> 명세서
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        // View Statement Listeners
+        tbody.querySelectorAll('.view-stmt-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const carId = btn.getAttribute('data-carid');
+                const month = btn.getAttribute('data-month');
+                openSettlementStatementModal(carId, month);
+            });
+        });
+    }
+
+    // ----------------------------------------------------
+    // 8. Statement Modal Sheet & Print Handler
+    // ----------------------------------------------------
+    function openSettlementStatementModal(carId, targetMonth) {
+        const car = delegatedCars.find(c => c.id === carId);
+        if (!car) return;
+
+        const revs = delegatedRevenues.filter(r => r.carId === car.id && r.startDate.startsWith(targetMonth) && r.paymentStatus === 'completed');
+        const grossRevenue = revs.reduce((sum, r) => sum + r.amount, 0);
+
+        const feeRate = car.feeRate || 20;
+        const feeAmount = grossRevenue * (feeRate / 100);
+
+        const exps = delegatedExpenses.filter(e => e.carId === car.id && e.expenseDate.startsWith(targetMonth) && e.deductibleFromOwner);
+        const totalExpenses = exps.reduce((sum, e) => sum + e.amount, 0);
+
+        const netOwnerPayout = grossRevenue - feeAmount - totalExpenses;
+
+        const settleId = `settle_${targetMonth.replace('-', '_')}_${car.id}`;
+        const existingSettlement = delegatedSettlements.find(s => s.id === settleId);
+        const isCompleted = existingSettlement && existingSettlement.status === 'completed';
+
+        const stmtContentSheet = document.getElementById('stmtContentSheet');
+        const confirmStmtBtn = document.getElementById('confirmStmtBtn');
+
+        if (stmtContentSheet) {
+            stmtContentSheet.innerHTML = `
+                <div style="background: rgba(197, 168, 128, 0.05); padding: 15px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 20px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div><strong>정산 대상 월:</strong> ${targetMonth}</div>
+                        <div><strong>차량 번호 / 모델:</strong> ${car.plateNumber} (${car.model})</div>
+                        <div><strong>차주 성함:</strong> ${car.ownerName} ${car.ownerContact ? `(${car.ownerContact})` : ''}</div>
+                        <div><strong>정산 계좌:</strong> ${car.bankName || '-'} ${car.accountNumber || ''}</div>
+                    </div>
+                </div>
+
+                <h4 style="font-size: 14px; font-weight: 700; margin: 15px 0 8px 0; color: #2E7D32;">1. 렌트 매출 수입 내역 (Gross Rental Income)</h4>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px;">
+                    <thead>
+                        <tr style="background: #F5F5F5; border-bottom: 1px solid #DDD;">
+                            <th style="padding: 6px; text-align: left;">대여 기간</th>
+                            <th style="padding: 6px; text-align: left;">임차인</th>
+                            <th style="padding: 6px; text-align: right;">금액 (MYR)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${revs.length > 0 ? revs.map(r => `
+                            <tr style="border-bottom: 1px solid #EEE;">
+                                <td style="padding: 6px;">${r.startDate} ~ ${r.endDate}</td>
+                                <td style="padding: 6px;">${r.renterName}</td>
+                                <td style="padding: 6px; text-align: right;">MYR ${r.amount.toLocaleString()}</td>
+                            </tr>
+                        `).join('') : '<tr><td colspan="3" style="text-align: center; padding: 10px; color: #888;">당월 렌트 매출 내역 없음</td></tr>'}
+                        <tr style="font-weight: 700; background: #E8F5E9;">
+                            <td colspan="2" style="padding: 8px;">렌트 총 매출 합계 ($R$)</td>
+                            <td style="padding: 8px; text-align: right; color: #2E7D32;">MYR ${grossRevenue.toLocaleString()}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4 style="font-size: 14px; font-weight: 700; margin: 15px 0 8px 0; color: #C62828;">2. 정비 및 공제 비용 내역 (Deductible Expenses)</h4>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px;">
+                    <thead>
+                        <tr style="background: #F5F5F5; border-bottom: 1px solid #DDD;">
+                            <th style="padding: 6px; text-align: left;">발생 일자</th>
+                            <th style="padding: 6px; text-align: left;">비용 구분 / 상세 내용</th>
+                            <th style="padding: 6px; text-align: right;">금액 (MYR)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${exps.length > 0 ? exps.map(e => `
+                            <tr style="border-bottom: 1px solid #EEE;">
+                                <td style="padding: 6px;">${e.expenseDate}</td>
+                                <td style="padding: 6px;">${e.description || e.category}</td>
+                                <td style="padding: 6px; text-align: right;">MYR ${e.amount.toLocaleString()}</td>
+                            </tr>
+                        `).join('') : '<tr><td colspan="3" style="text-align: center; padding: 10px; color: #888;">당월 차주 공제 비용 내역 없음</td></tr>'}
+                        <tr style="font-weight: 700; background: #FFEBEE;">
+                            <td colspan="2" style="padding: 8px;">공제 비용 합계 ($E$)</td>
+                            <td style="padding: 8px; text-align: right; color: #C62828;">MYR ${totalExpenses.toLocaleString()}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4 style="font-size: 14px; font-weight: 700; margin: 15px 0 8px 0; color: #1565C0;">3. 정산 금액 요약 산출</h4>
+                <div style="background: #F8F9FA; padding: 15px; border-radius: 6px; border: 1px solid #E9ECEF;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <span>(+) 총 렌트 매출 ($R$):</span>
+                        <strong>MYR ${grossRevenue.toLocaleString()}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: var(--accent-color);">
+                        <span>(-) 위탁 관리 수수료 ($F$, ${feeRate}%):</span>
+                        <strong>- MYR ${feeAmount.toLocaleString()}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; color: #C62828;">
+                        <span>(-) 차주 정비/공제 비용 ($E$):</span>
+                        <strong>- MYR ${totalExpenses.toLocaleString()}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; border-top: 2px dashed #CBD5E1; padding-top: 10px; font-size: 16px; font-weight: 700; color: #1565C0;">
+                        <span>최종 차주 입금 배당금 ($P = R - F - E$):</span>
+                        <span>MYR ${netOwnerPayout.toLocaleString()}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        if (confirmStmtBtn) {
+            if (isCompleted) {
+                confirmStmtBtn.innerHTML = '<i class="fa-solid fa-check-double"></i> 이미 정산 완료됨';
+                confirmStmtBtn.style.background = '#8C8782';
+                confirmStmtBtn.disabled = true;
+            } else {
+                confirmStmtBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> 정산 완료 처리';
+                confirmStmtBtn.style.background = 'var(--accent-color)';
+                confirmStmtBtn.disabled = false;
+
+                confirmStmtBtn.onclick = () => {
+                    if (confirm(`${car.ownerName} 차주님의 ${targetMonth}월 정산을 완료 처리하시겠습니까?`)) {
+                        const settlementObj = {
+                            id: settleId,
+                            yearMonth: targetMonth,
+                            carId: car.id,
+                            ownerName: car.ownerName,
+                            grossRevenue,
+                            feeRate,
+                            feeAmount,
+                            totalExpenses,
+                            netOwnerPayout,
+                            status: 'completed',
+                            settledAt: new Date().toISOString()
+                        };
+                        db.ref(`delegated_car_settlements/${settleId}`).set(settlementObj).then(() => {
+                            closeModal('settlementModal');
+                        });
+                    }
+                };
+            }
+        }
+
+        openModal('settlementModal');
+    }
+
+    const printStmtBtn = document.getElementById('printStmtBtn');
+    if (printStmtBtn) {
+        printStmtBtn.addEventListener('click', () => {
+            window.print();
+        });
+    }
+
+    // ----------------------------------------------------
+    // 9. Top Dashboard Metrics Updater
+    // ----------------------------------------------------
+    function updateDashboardMetrics() {
+        const targetMonth = settlementTargetMonth ? settlementTargetMonth.value : currentYearMonth;
+
+        const totalCarsCount = delegatedCars.filter(c => c.status === 'active').length;
+
+        // Calculate Month Gross Revenue
+        const monthRevenues = delegatedRevenues.filter(r => r.startDate.startsWith(targetMonth) && r.paymentStatus === 'completed');
+        const grossRevenue = monthRevenues.reduce((sum, r) => sum + r.amount, 0);
+
+        // Calculate Month Expenses
+        const monthExpenses = delegatedExpenses.filter(e => e.expenseDate.startsWith(targetMonth) && e.deductibleFromOwner);
+        const totalExpenses = monthExpenses.reduce((sum, e) => sum + e.amount, 0);
+
+        // Calculate Total Company Fee Profit & Net Owner Payouts
+        let companyFeeProfit = 0;
+        let totalOwnerPayouts = 0;
+
+        delegatedCars.forEach(car => {
+            const carRevs = monthRevenues.filter(r => r.carId === car.id);
+            const carGross = carRevs.reduce((sum, r) => sum + r.amount, 0);
+            const feeRate = car.feeRate || 20;
+            const fee = carGross * (feeRate / 100);
+
+            const carExps = monthExpenses.filter(e => e.carId === car.id);
+            const expSum = carExps.reduce((sum, e) => sum + e.amount, 0);
+
+            const ownerPayout = carGross - fee - expSum;
+
+            companyFeeProfit += fee;
+            totalOwnerPayouts += ownerPayout;
+        });
+
+        const statGrossRevenue = document.getElementById('statGrossRevenue');
+        const statFeeProfit = document.getElementById('statFeeProfit');
+        const statTotalExpenses = document.getElementById('statTotalExpenses');
+        const statNetPayout = document.getElementById('statNetPayout');
+
+        if (statGrossRevenue) statGrossRevenue.textContent = `MYR ${grossRevenue.toLocaleString()}`;
+        if (statFeeProfit) statFeeProfit.textContent = `MYR ${companyFeeProfit.toLocaleString()}`;
+        if (statTotalExpenses) statTotalExpenses.textContent = `MYR ${totalExpenses.toLocaleString()}`;
+        if (statNetPayout) statNetPayout.textContent = `MYR ${totalOwnerPayouts.toLocaleString()}`;
+    }
+
+    // Helper: format Date object to YYYY-MM-DD
+    function getLocalDateString(date) {
+        if (!date) return '';
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
+    // ----------------------------------------------------
+    // 9. Vehicle Reservation Calendar Logic (`#tabCalendar`)
+    // ----------------------------------------------------
+    let carCalYear = today.getFullYear();
+    let carCalMonth = today.getMonth(); // 0-11
+
+    const carCalPrevBtn = document.getElementById('carCalPrevBtn');
+    const carCalNextBtn = document.getElementById('carCalNextBtn');
+    const carCalTodayBtn = document.getElementById('carCalTodayBtn');
+    const carCalFilter = document.getElementById('carCalFilter');
+
+    if (carCalPrevBtn) {
+        carCalPrevBtn.addEventListener('click', () => {
+            carCalMonth--;
+            if (carCalMonth < 0) {
+                carCalMonth = 11;
+                carCalYear--;
+            }
+            renderCarCalendar();
+        });
+    }
+
+    if (carCalNextBtn) {
+        carCalNextBtn.addEventListener('click', () => {
+            carCalMonth++;
+            if (carCalMonth > 11) {
+                carCalMonth = 0;
+                carCalYear++;
+            }
+            renderCarCalendar();
+        });
+    }
+
+    if (carCalTodayBtn) {
+        carCalTodayBtn.addEventListener('click', () => {
+            const now = new Date();
+            carCalYear = now.getFullYear();
+            carCalMonth = now.getMonth();
+            renderCarCalendar();
+        });
+    }
+
+    if (carCalFilter) {
+        carCalFilter.addEventListener('change', renderCarCalendar);
+    }
+
+    function renderCarCalendar() {
+        const grid = document.getElementById('carCalDatesGrid');
+        const monthTitle = document.getElementById('carCalMonthTitle');
+        if (!grid || !monthTitle) return;
+
+        monthTitle.textContent = `${carCalYear}년 ${carCalMonth + 1}월`;
+
+        const firstDay = new Date(carCalYear, carCalMonth, 1);
+        const lastDay = new Date(carCalYear, carCalMonth + 1, 0);
+        const startingDayOfWeek = firstDay.getDay(); // 0 (Sun) to 6 (Sat)
+        const totalDays = lastDay.getDate();
+
+        const prevMonthLastDay = new Date(carCalYear, carCalMonth, 0).getDate();
+
+        let cellsHtml = '';
+
+        const selectedCarId = carCalFilter ? carCalFilter.value : 'all';
+        const filteredRevenues = delegatedRevenues.filter(r => {
+            if (selectedCarId !== 'all' && r.carId !== selectedCarId) return false;
+            return true;
+        });
+
+        // Vibrant distinct colors per car
+        const carColorMap = {};
+        const colors = ['#2E7D32', '#1565C0', '#D84315', '#6A1B9A', '#00838F', '#4E342E'];
+        delegatedCars.forEach((c, idx) => {
+            carColorMap[c.id] = colors[idx % colors.length];
+        });
+
+        // 1. Previous month trailing days
+        for (let i = startingDayOfWeek - 1; i >= 0; i--) {
+            const dayNum = prevMonthLastDay - i;
+            cellsHtml += `
+                <div style="min-height: 110px; padding: 8px; border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); background: #FAF9F8; color: #BBB7B2; font-size: 12px;">
+                    <span style="font-weight: 500;">${dayNum}</span>
+                </div>
+            `;
+        }
+
+        // 2. Current month days
+        const now = new Date();
+        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+        for (let d = 1; d <= totalDays; d++) {
+            const dateStr = `${carCalYear}-${String(carCalMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+            const isToday = (dateStr === todayStr);
+
+            // Find bookings covering this date
+            const dayBookings = filteredRevenues.filter(r => {
+                if (!r.startDate || !r.endDate) return false;
+                return dateStr >= r.startDate && dateStr <= r.endDate;
+            });
+
+            let bookingsHtml = '';
+            dayBookings.forEach(rev => {
+                const car = delegatedCars.find(c => c.id === rev.carId);
+                const carLabel = car ? (car.model || car.plateNumber) : '차량';
+                const bgColor = rev.paymentStatus === 'pending' ? '#E65100' : (carColorMap[rev.carId] || '#2E7D32');
+                const statusBadge = rev.paymentStatus === 'pending' ? ' (대기)' : '';
+                
+                bookingsHtml += `
+                    <div class="cal-booking-pill" data-rev-id="${rev.id}" title="${carLabel}: ${rev.renterName} (${rev.startDate} ~ ${rev.endDate}) - MYR ${rev.amount}" style="background: ${bgColor}; color: white; padding: 4px 6px; border-radius: 4px; font-size: 11px; margin-top: 4px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <i class="fa-solid fa-car" style="font-size: 9px; margin-right: 3px;"></i>[${carLabel}] ${rev.renterName}${statusBadge}
+                    </div>
+                `;
+            });
+
+            const dayStyle = isToday 
+                ? 'background: rgba(197, 168, 128, 0.15); font-weight: 700;' 
+                : 'background: var(--white);';
+
+            cellsHtml += `
+                <div class="cal-date-cell" data-date="${dateStr}" style="min-height: 110px; padding: 8px; border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); ${dayStyle} transition: background 0.2s; cursor: pointer;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <span style="font-size: 12px; font-weight: 600; color: ${isToday ? 'var(--accent-color)' : 'var(--text-primary)'};">${d}</span>
+                        ${isToday ? '<span style="font-size: 10px; background: var(--accent-color); color: white; padding: 1px 5px; border-radius: 3px;">오늘</span>' : ''}
+                    </div>
+                    <div class="cal-events-list">
+                        ${bookingsHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        // 3. Next month leading days (fill 35 or 42 grid cells)
+        const totalRendered = startingDayOfWeek + totalDays;
+        const totalGridCells = totalRendered > 35 ? 42 : 35;
+        const nextDays = totalGridCells - totalRendered;
+
+        for (let i = 1; i <= nextDays; i++) {
+            cellsHtml += `
+                <div style="min-height: 110px; padding: 8px; border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); background: #FAF9F8; color: #BBB7B2; font-size: 12px;">
+                    <span style="font-weight: 500;">${i}</span>
+                </div>
+            `;
+        }
+
+        grid.innerHTML = cellsHtml;
+
+        // Click Handler on Booking Pills for Edit / Delete
+        grid.querySelectorAll('.cal-booking-pill').forEach(pill => {
+            pill.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const revId = pill.getAttribute('data-rev-id');
+                const rev = delegatedRevenues.find(r => r.id === revId);
+                if (rev) {
+                    document.getElementById('revenueId').value = rev.id;
+                    document.getElementById('revenueCarId').value = rev.carId || '';
+                    document.getElementById('revenueRenterName').value = rev.renterName || '';
+                    document.getElementById('revenueRenterContact').value = rev.renterContact || '';
+                    document.getElementById('revenueStartDate').value = rev.startDate || '';
+                    document.getElementById('revenueEndDate').value = rev.endDate || '';
+                    document.getElementById('revenueAmount').value = rev.amount || 0;
+                    document.getElementById('revenuePaymentStatus').value = rev.paymentStatus || 'completed';
+                    document.getElementById('revenueMemo').value = rev.memo || '';
+                    
+                    if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 렌트 매출/예약 정보 수정';
+                    if (deleteRevenueBtn) deleteRevenueBtn.classList.remove('hidden');
+
+                    openModal('revenueModal');
+                }
+            });
+        });
+
+        // Date Cell Click Handler for Fast Reservation Entry
+        grid.querySelectorAll('.cal-date-cell').forEach(cell => {
+            cell.addEventListener('click', (e) => {
+                if (!e.target.closest('.cal-booking-pill')) {
+                    const clickDate = cell.getAttribute('data-date');
+                    const openRevenueBtn = document.getElementById('openRevenueModalBtn');
+                    if (clickDate && openRevenueBtn) {
+                        const revCarSelect = document.getElementById('revenueCarId');
+                        const startDateInput = document.getElementById('revenueStartDate');
+                        const endDateInput = document.getElementById('revenueEndDate');
+                        
+                        document.getElementById('revenueId').value = '';
+                        document.getElementById('revenueForm').reset();
+
+                        if (startDateInput) startDateInput.value = clickDate;
+                        if (endDateInput) endDateInput.value = clickDate;
+                        if (revCarSelect && selectedCarId !== 'all') revCarSelect.value = selectedCarId;
+                        
+                        if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-circle-plus"></i> 렌트 매출/예약 등록';
+                        if (deleteRevenueBtn) deleteRevenueBtn.classList.add('hidden');
+
+                        openModal('revenueModal');
+                    }
+                }
+            });
+        });
+    }
+});
