@@ -2137,6 +2137,30 @@ body.faq-mode .faq-section {
         white-space: nowrap !important;
     }
 
+    /* Sub-Tab Mobile Navigation Short Labels */
+    .tab-text-full {
+        display: none !important;
+    }
+    .tab-text-short {
+        display: inline !important;
+    }
+    .car-tab-nav {
+        gap: 2px !important;
+        justify-content: space-between !important;
+        overflow-x: hidden !important;
+    }
+    .car-tab-nav button {
+        padding: 10px 4px !important;
+        font-size: 12px !important;
+        flex: 1 !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+    }
+}
+
+.tab-text-short {
+    display: none;
+}
     /* Month Grid 100% Width Fit on Mobile */
     .car-cal-grid-inner {
         min-width: 0 !important;

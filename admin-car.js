@@ -1324,15 +1324,16 @@ document.addEventListener('DOMContentLoaded', () => {
             let bookingsHtml = '';
             dayBookings.forEach(rev => {
                 const car = delegatedCars.find(c => c.id === rev.carId);
-                const carLabel = car ? (car.model || car.plateNumber) : '차량';
+                const carModelName = car ? (car.model || car.plateNumber || '차') : '차';
+                const modelInitial = carModelName.trim().charAt(0).toUpperCase();
                 const carColor = (car && car.color) ? car.color : (carColorMap[rev.carId] || '#2E7D32');
                 const isPending = rev.paymentStatus === 'pending';
                 const bgColor = isPending ? '#E65100' : carColor;
                 const statusBadge = isPending ? ' (대기)' : '';
                 
                 bookingsHtml += `
-                    <div class="cal-booking-pill" data-rev-id="${rev.id}" title="${carLabel}: ${rev.renterName} (${rev.startDate} ~ ${rev.endDate}) - MYR ${rev.amount}" style="background: ${bgColor}; color: white; padding: 3px 5px; border-radius: 4px; font-size: 11px; margin-top: 3px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                        <i class="fa-solid fa-car" style="font-size: 9px; margin-right: 2px;"></i>[${carLabel}] ${rev.renterName}${statusBadge}
+                    <div class="cal-booking-pill" data-rev-id="${rev.id}" title="${carModelName}: ${rev.renterName} (${rev.startDate} ~ ${rev.endDate}) - MYR ${rev.amount}" style="background: ${bgColor}; color: white; padding: 3px 4px; border-radius: 4px; font-size: 11px; margin-top: 3px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        [${modelInitial}]${rev.renterName}${statusBadge}
                     </div>
                 `;
             });
