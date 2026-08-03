@@ -11,7 +11,7 @@
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="style.css?v=14">
+    <link rel="stylesheet" href="style.css?v=20260804_02">
 </head>
 <body>
 
@@ -362,6 +362,11 @@
                                             <button type="button" id="carCalTodayBtn" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">오늘</button>
                                             <button type="button" id="carCalNextBtn" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;"><i class="fa-solid fa-chevron-right"></i></button>
                                         </div>
+                                        <!-- View Switcher Toggle -->
+                                        <div style="display: flex; gap: 4px; margin-left: 6px;">
+                                            <button type="button" id="carCalViewGridBtn" class="btn btn-primary" style="padding: 6px 10px; font-size: 12px; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-calendar"></i> 달력</button>
+                                            <button type="button" id="carCalViewAgendaBtn" class="btn btn-secondary" style="padding: 6px 10px; font-size: 12px; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-list-ul"></i> 목록</button>
+                                        </div>
                                     </div>
                                     <div class="car-cal-header-right" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                                         <label for="carCalFilter" style="font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap;">조회 차량:</label>
@@ -380,7 +385,7 @@
 
                                 <!-- Calendar Grid Wrapper -->
                                 <div class="car-cal-grid-wrapper" style="border: 1px solid var(--border-color); border-radius: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch;">
-                                    <div class="car-cal-grid-inner" style="min-width: 650px;">
+                                    <div class="car-cal-grid-inner">
                                         <!-- Days Header -->
                                         <div style="display: grid; grid-template-columns: repeat(7, 1fr); background: rgba(197, 168, 128, 0.1); text-align: center; font-weight: 600; font-size: 13px; border-bottom: 1px solid var(--border-color);">
                                             <div style="padding: 10px; color: #D32F2F;">일</div>
@@ -397,6 +402,9 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Agenda List Container -->
+                                <div id="carCalAgendaList" class="hidden" style="margin-top: 15px;"></div>
                             </div>
                         </div>
 
@@ -859,7 +867,7 @@
     <script src="https://apis.google.com/js/api.js" async defer></script>
 
     <!-- Admin JS core & Car JS -->
-    <script src="admin.js?v=14"></script>
-    <script src="admin-car.js?v=2"></script>
+    <script src="admin.js?v=20260804_02"></script>
+    <script src="admin-car.js?v=20260804_02"></script>
 </body>
 </html>
