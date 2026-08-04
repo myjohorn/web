@@ -429,7 +429,7 @@
     <div class="admin-modal" id="expenseModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
         <div style="background: var(--white); width: 90%; max-width: 550px; border-radius: 6px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-                <h3 style="font-size: 18px; font-weight: 600; margin: 0; color: #C62828;"><i class="fa-solid fa-circle-minus"></i> 정비 및 지출 비용 등록</h3>
+                <h3 id="expenseModalTitle" style="font-size: 18px; font-weight: 600; margin: 0; color: #C62828;"><i class="fa-solid fa-circle-minus"></i> 정비 및 지출 비용 등록</h3>
                 <button type="button" class="close-modal-btn" data-modal="expenseModal" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-secondary);">&times;</button>
             </div>
             <form id="expenseForm" onsubmit="return false;">
@@ -475,8 +475,9 @@
                     <textarea id="expenseDescription" class="form-control" rows="2" placeholder="정비 내역 또는 카센터 영수증 메모" style="font-size: 13px; padding: 10px; resize: none;"></textarea>
                 </div>
                 <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" id="deleteExpenseBtn" class="btn btn-secondary hidden" style="padding: 10px 18px; font-size: 13px; color: #E24C4C; border-color: #E24C4C; margin-right: auto;"><i class="fa-solid fa-trash"></i> 삭제</button>
                     <button type="button" class="btn btn-secondary close-modal-btn" data-modal="expenseModal" style="padding: 10px 18px; font-size: 13px;">취소</button>
-                    <button type="button" id="saveExpenseBtn" class="btn btn-primary" style="padding: 10px 22px; font-size: 13px; background: #C62828; border-color: #C62828;">비용 등록</button>
+                    <button type="button" id="saveExpenseBtn" class="btn btn-primary" style="padding: 10px 22px; font-size: 13px; background: #C62828; border-color: #C62828;">비용 저장</button>
                 </div>
             </form>
         </div>
@@ -533,6 +534,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <!-- Admin Car JS -->
-    <script src="admin-car.js?v=20260804_05"></script>
+    <script src="admin-car.js?v=20260804_06"></script>
 </body>
 </html>

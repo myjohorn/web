@@ -723,6 +723,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const openExpenseModalBtn = document.getElementById('openExpenseModalBtn');
+    const expenseModalTitle = document.getElementById('expenseModalTitle');
+    const deleteExpenseBtn = document.getElementById('deleteExpenseBtn');
+
     if (openExpenseModalBtn) {
         openExpenseModalBtn.addEventListener('click', () => {
             if (delegatedCars.length === 0) {
@@ -732,6 +735,8 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('expenseId').value = '';
             document.getElementById('expenseForm').reset();
             document.getElementById('expenseDate').value = getLocalDateString(new Date());
+            if (expenseModalTitle) expenseModalTitle.innerHTML = '<i class="fa-solid fa-circle-minus"></i> 정비 및 지출 비용 등록';
+            if (deleteExpenseBtn) deleteExpenseBtn.classList.add('hidden');
             openModal('expenseModal');
         });
     }
@@ -739,6 +744,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveExpenseBtn = document.getElementById('saveExpenseBtn');
     if (saveExpenseBtn) {
         saveExpenseBtn.addEventListener('click', () => {
+            const id = document.getElementById('expenseId').value;
             const carId = document.getElementById('expenseCarId').value;
             const category = document.getElementById('expenseCategory').value;
             const expenseDate = document.getElementById('expenseDate').value;
@@ -758,12 +764,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 amount,
                 deductibleFromOwner,
                 description,
-                createdAt: new Date().toISOString()
+                updatedAt: new Date().toISOString()
             };
 
-            db.ref('delegated_car_expenses').push(expObj).then(() => {
-                closeModal('expenseModal');
-            });
+            if (id) {
+                db.ref(`delegated_car_expenses/${id}`).update(expObj).then(() => {
+                    closeModal('expenseModal');
+                });
+            } else {
+                expObj.createdAt = new Date().toISOString();
+                db.ref('delegated_car_expenses').push(expObj).then(() => {
+                    closeModal('expenseModal');
+                });
+            }
+        });
+    }
+
+    if (deleteExpenseBtn) {
+        deleteExpenseBtn.addEventListener('click', () => {
+            const id = document.getElementById('expenseId').value;
+            if (id && confirm('이 비용 내역을 삭제하시겠습니까?')) {
+                db.ref(`delegated_car_expenses/${id}`).remove().then(() => {
+                    closeModal('expenseModal');
+                });
+            }
         });
     }
 
@@ -867,7 +891,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td data-label="금액" style="font-weight: 700; color: ${amountColor};">${amountPrefix} MYR ${item.amount.toLocaleString()}</td>
                     <td data-label="공제 여부">${item.deductibleStr}</td>
                     <td data-label="관리">
-                        ${isRev ? `<button type="button" class="btn btn-secondary edit-ledger-btn" data-type="${item.type}" data-id="${item.id}" style="padding: 4px 8px; font-size: 11px; margin-right: 4px;">수정</button>` : ''}
+                        <button type="button" class="btn btn-secondary edit-ledger-btn" data-type="${item.type}" data-id="${item.id}" style="padding: 4px 8px; font-size: 11px; margin-right: 4px;">수정</button>
                         <button type="button" class="btn btn-secondary delete-ledger-btn" data-type="${item.type}" data-id="${item.id}" style="padding: 4px 8px; font-size: 11px; color: #E24C4C; border-color: #E24C4C;">
                             삭제
                         </button>
@@ -898,6 +922,22 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (deleteRevenueBtn) deleteRevenueBtn.classList.remove('hidden');
 
                         openModal('revenueModal');
+                    }
+                } else if (itemType === 'expense') {
+                    const exp = delegatedExpenses.find(e => e.id === itemId);
+                    if (exp) {
+                        document.getElementById('expenseId').value = exp.id;
+                        document.getElementById('expenseCarId').value = exp.carId || '';
+                        document.getElementById('expenseCategory').value = exp.category || 'repair';
+                        document.getElementById('expenseDate').value = exp.expenseDate || '';
+                        document.getElementById('expenseAmount').value = exp.amount || 0;
+                        document.getElementById('expenseDeductible').checked = exp.deductibleFromOwner !== false;
+                        document.getElementById('expenseDescription').value = exp.description || '';
+
+                        if (expenseModalTitle) expenseModalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 정비 및 지출 비용 정보 수정';
+                        if (deleteExpenseBtn) deleteExpenseBtn.classList.remove('hidden');
+
+                        openModal('expenseModal');
                     }
                 }
             });
