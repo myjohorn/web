@@ -822,7 +822,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     date: r.startDate,
                     carPlate: car ? car.plateNumber : '삭제된 차량',
                     carModel: car ? car.model : '',
-                    details: `임차인: ${r.renterName} (${r.startDate} ~ ${r.endDate})`,
+                    details: `${r.renterName} (${r.startDate} ~ ${r.endDate})`,
                     amount: r.amount,
                     deductibleStr: '해당 없음',
                     statusBadge: r.paymentStatus === 'completed' ? '<span class="status-badge status-approved">결제완료</span>' : '<span class="status-badge status-pending">입금대기</span>',
@@ -888,7 +888,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td data-label="구분">${typeBadge}</td>
                     <td data-label="차량">${item.carPlate} <span style="font-size: 11px; color: var(--text-secondary);">(${item.carModel})</span></td>
                     <td data-label="상세 내역" style="text-align: left;">${item.details}</td>
-                    <td data-label="금액" style="font-weight: 700; color: ${amountColor};">${amountPrefix} MYR ${item.amount.toLocaleString()}</td>
+                    <td data-label="금액" style="font-weight: 700; color: ${amountColor};">${amountPrefix} ${item.amount.toLocaleString()}</td>
                     <td data-label="공제 여부">${item.deductibleStr}</td>
                     <td data-label="관리">
                         <button type="button" class="btn btn-secondary edit-ledger-btn" data-type="${item.type}" data-id="${item.id}" style="padding: 4px 8px; font-size: 11px; margin-right: 4px;">수정</button>
@@ -1017,10 +1017,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <tr>
                     <td data-label="차량 정보"><strong>${car.plateNumber}</strong> <span style="font-size: 11px; color: var(--text-secondary);">(${car.model})</span></td>
                     <td data-label="차주명">${car.ownerName}</td>
-                    <td data-label="총 매출 ($R$)" style="font-weight: 600; color: #2E7D32;">MYR ${grossRevenue.toLocaleString()}</td>
-                    <td data-label="수수료 ($F$)" style="font-size: 12px;">MYR ${feeAmount.toLocaleString()} <span style="color: var(--accent-color); font-size: 11px;">(${feeRate}%)</span></td>
-                    <td data-label="공제 비용 ($E$)" style="font-weight: 600; color: #C62828;">MYR ${totalExpenses.toLocaleString()}</td>
-                    <td data-label="차주 배당금 ($P$)" style="font-size: 15px; font-weight: 700; color: ${payoutColor};">MYR ${netOwnerPayout.toLocaleString()}</td>
+                    <td data-label="총 매출 ($R$)" style="font-weight: 600; color: #2E7D32;">${grossRevenue.toLocaleString()}</td>
+                    <td data-label="수수료 ($F$)" style="font-size: 12px;">${feeAmount.toLocaleString()} <span style="color: var(--accent-color); font-size: 11px;">(${feeRate}%)</span></td>
+                    <td data-label="공제 비용 ($E$)" style="font-weight: 600; color: #C62828;">${totalExpenses.toLocaleString()}</td>
+                    <td data-label="차주 배당금 ($P$)" style="font-size: 15px; font-weight: 700; color: ${payoutColor};">${netOwnerPayout.toLocaleString()}</td>
                     <td data-label="정산 상태">${statusBadge}</td>
                     <td data-label="명세서/확정">
                         <div style="display: flex; gap: 6px; justify-content: flex-end;">
@@ -1085,7 +1085,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <tr style="background: #F5F5F5; border-bottom: 1px solid #DDD;">
                             <th style="padding: 6px; text-align: left;">대여 기간</th>
                             <th style="padding: 6px; text-align: left;">임차인</th>
-                            <th style="padding: 6px; text-align: right;">금액 (MYR)</th>
+                            <th style="padding: 6px; text-align: right;">금액</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1093,12 +1093,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             <tr style="border-bottom: 1px solid #EEE;">
                                 <td style="padding: 6px;">${r.startDate} ~ ${r.endDate}</td>
                                 <td style="padding: 6px;">${r.renterName}</td>
-                                <td style="padding: 6px; text-align: right;">MYR ${r.amount.toLocaleString()}</td>
+                                <td style="padding: 6px; text-align: right;">${r.amount.toLocaleString()}</td>
                             </tr>
                         `).join('') : '<tr><td colspan="3" style="text-align: center; padding: 10px; color: #888;">당월 렌트 매출 내역 없음</td></tr>'}
                         <tr style="font-weight: 700; background: #E8F5E9;">
                             <td colspan="2" style="padding: 8px;">렌트 총 매출 합계 ($R$)</td>
-                            <td style="padding: 8px; text-align: right; color: #2E7D32;">MYR ${grossRevenue.toLocaleString()}</td>
+                            <td style="padding: 8px; text-align: right; color: #2E7D32;">${grossRevenue.toLocaleString()}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1109,7 +1109,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <tr style="background: #F5F5F5; border-bottom: 1px solid #DDD;">
                             <th style="padding: 6px; text-align: left;">발생 일자</th>
                             <th style="padding: 6px; text-align: left;">비용 구분 / 상세 내용</th>
-                            <th style="padding: 6px; text-align: right;">금액 (MYR)</th>
+                            <th style="padding: 6px; text-align: right;">금액</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1117,12 +1117,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             <tr style="border-bottom: 1px solid #EEE;">
                                 <td style="padding: 6px;">${e.expenseDate}</td>
                                 <td style="padding: 6px;">${e.description || e.category}</td>
-                                <td style="padding: 6px; text-align: right;">MYR ${e.amount.toLocaleString()}</td>
+                                <td style="padding: 6px; text-align: right;">${e.amount.toLocaleString()}</td>
                             </tr>
                         `).join('') : '<tr><td colspan="3" style="text-align: center; padding: 10px; color: #888;">당월 차주 공제 비용 내역 없음</td></tr>'}
                         <tr style="font-weight: 700; background: #FFEBEE;">
                             <td colspan="2" style="padding: 8px;">공제 비용 합계 ($E$)</td>
-                            <td style="padding: 8px; text-align: right; color: #C62828;">MYR ${totalExpenses.toLocaleString()}</td>
+                            <td style="padding: 8px; text-align: right; color: #C62828;">${totalExpenses.toLocaleString()}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1131,19 +1131,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="background: #F8F9FA; padding: 15px; border-radius: 6px; border: 1px solid #E9ECEF;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
                         <span>(+) 총 렌트 매출 ($R$):</span>
-                        <strong>MYR ${grossRevenue.toLocaleString()}</strong>
+                        <strong>${grossRevenue.toLocaleString()}</strong>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: var(--accent-color);">
                         <span>(-) 위탁 관리 수수료 ($F$, ${feeRate}%):</span>
-                        <strong>- MYR ${feeAmount.toLocaleString()}</strong>
+                        <strong>- ${feeAmount.toLocaleString()}</strong>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px; color: #C62828;">
                         <span>(-) 차주 정비/공제 비용 ($E$):</span>
-                        <strong>- MYR ${totalExpenses.toLocaleString()}</strong>
+                        <strong>- ${totalExpenses.toLocaleString()}</strong>
                     </div>
                     <div style="display: flex; justify-content: space-between; border-top: 2px dashed #CBD5E1; padding-top: 10px; font-size: 16px; font-weight: 700; color: #1565C0;">
                         <span>최종 차주 입금 배당금 ($P = R - F - E$):</span>
-                        <span>MYR ${netOwnerPayout.toLocaleString()}</span>
+                        <span>${netOwnerPayout.toLocaleString()}</span>
                     </div>
                 </div>
             `;
@@ -1232,10 +1232,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const statTotalExpenses = document.getElementById('statTotalExpenses');
         const statNetPayout = document.getElementById('statNetPayout');
 
-        if (statGrossRevenue) statGrossRevenue.textContent = `MYR ${grossRevenue.toLocaleString()}`;
-        if (statFeeProfit) statFeeProfit.textContent = `MYR ${companyFeeProfit.toLocaleString()}`;
-        if (statTotalExpenses) statTotalExpenses.textContent = `MYR ${totalExpenses.toLocaleString()}`;
-        if (statNetPayout) statNetPayout.textContent = `MYR ${totalOwnerPayouts.toLocaleString()}`;
+        if (statGrossRevenue) statGrossRevenue.textContent = grossRevenue.toLocaleString();
+        if (statFeeProfit) statFeeProfit.textContent = companyFeeProfit.toLocaleString();
+        if (statTotalExpenses) statTotalExpenses.textContent = totalExpenses.toLocaleString();
+        if (statNetPayout) statNetPayout.textContent = totalOwnerPayouts.toLocaleString();
     }
 
     // Helper: format Date object to YYYY-MM-DD
@@ -1371,7 +1371,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const statusBadge = isPending ? ' (대기)' : '';
                 
                 bookingsHtml += `
-                    <div class="cal-booking-pill" data-rev-id="${rev.id}" title="${carModelName} (${car ? car.plateNumber : ''}): ${rev.renterName} (${rev.startDate} ~ ${rev.endDate}) - MYR ${rev.amount}" style="background: ${bgColor}; color: white; padding: 3px 5px; border-radius: 4px; font-size: 11px; margin-top: 3px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <div class="cal-booking-pill" data-rev-id="${rev.id}" title="${carModelName} (${car ? car.plateNumber : ''}): ${rev.renterName} (${rev.startDate} ~ ${rev.endDate}) - ${rev.amount.toLocaleString()}" style="background: ${bgColor}; color: white; padding: 3px 5px; border-radius: 4px; font-size: 11px; margin-top: 3px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                         <span class="pill-car-name">[${carModelName}] </span>${rev.renterName}${statusBadge}
                     </div>
                 `;
@@ -1501,7 +1501,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     <div style="font-size: 13px; color: var(--text-primary); line-height: 1.6; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 8px; margin-bottom: 10px;">
                         <div><i class="fa-solid fa-calendar-days" style="color: var(--text-secondary); width: 16px;"></i> <strong>대여 기간:</strong> ${rev.startDate} ~ ${rev.endDate}</div>
-                        <div><i class="fa-solid fa-money-bill-wave" style="color: #2E7D32; width: 16px;"></i> <strong>렌트 금액:</strong> MYR ${rev.amount.toLocaleString()}</div>
+                        <div><i class="fa-solid fa-money-bill-wave" style="color: #2E7D32; width: 16px;"></i> <strong>렌트 금액:</strong> ${rev.amount.toLocaleString()}</div>
                         ${rev.memo ? `<div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;"><i class="fa-solid fa-note-sticky" style="width: 16px;"></i> ${rev.memo}</div>` : ''}
                     </div>
 
