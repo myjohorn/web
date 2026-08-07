@@ -391,8 +391,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 cell.classList.add('today');
             }
 
-            const todayBadge = isToday ? ' <span class="today-badge">오늘</span>' : '';
-
             // Disable past dates
             let isPast = thisDate < today && !isToday;
             let isBooked = lockedDatesMap[dateStr] && lockedDatesMap[dateStr].length > 0;
@@ -411,9 +409,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isBooked) {
                 const bookingsList = lockedDatesMap[dateStr];
                 const tagsMarkup = bookingsList.map(b => `<span class="booking-name-tag">${maskName(b.name)}</span>`).join('');
-                cell.innerHTML = `<span class="date-num">${day}${todayBadge}</span>${tagsMarkup}`;
+                cell.innerHTML = `<span class="date-num">${day}</span>${tagsMarkup}`;
             } else {
-                cell.innerHTML = `<span class="date-num">${day}${todayBadge}</span>`;
+                cell.innerHTML = `<span class="date-num">${day}</span>`;
             }
 
             // Highlight selected range

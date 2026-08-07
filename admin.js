@@ -642,12 +642,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 cell.classList.add('today');
             }
 
-            const todayBadge = isToday ? ' <span class="today-badge">오늘</span>' : '';
-
             const bookingsList = lockedDatesMap[dateStr];
             if (bookingsList && bookingsList.length > 0) {
                 cell.classList.add('booked-cell');
-                cell.innerHTML = `<span class="date-num">${day}${todayBadge}</span>`;
+                cell.innerHTML = `<span class="date-num">${day}</span>`;
                 
                 bookingsList.forEach(booking => {
                     const tag = document.createElement('span');
@@ -716,7 +714,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             } else {
-                cell.innerHTML = `<span class="date-num">${day}${todayBadge}</span>`;
+                cell.innerHTML = `<span class="date-num">${day}</span>`;
                 cell.addEventListener('click', () => {
                     document.querySelectorAll('#adminCalendarDates .calendar-cell').forEach(c => c.classList.remove('active-select'));
                     cell.classList.add('active-select');

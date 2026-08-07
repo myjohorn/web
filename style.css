@@ -656,18 +656,6 @@ section {
     border: 1.5px solid #F59E0B !important;
 }
 
-.today-badge {
-    font-size: 10px;
-    background: linear-gradient(135deg, #E65100 0%, #D97706 100%) !important;
-    color: #FFFFFF !important;
-    padding: 1px 5px !important;
-    border-radius: 4px !important;
-    font-weight: 700 !important;
-    box-shadow: 0 1px 3px rgba(230, 81, 0, 0.3) !important;
-    display: inline-block;
-    vertical-align: middle;
-    margin-left: 2px;
-}
 
 .calendar-cell:hover:not(.disabled):not(.prev-month):not(.next-month) {
     background-color: var(--bg-secondary);

@@ -1385,7 +1385,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="cal-date-cell ${isToday ? 'today' : ''}" data-date="${dateStr}" style="${dayStyle} transition: background 0.2s; cursor: pointer;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
                         <span class="date-num" style="font-size: 12px; font-weight: 700; color: ${isToday ? '#9A3412' : 'var(--text-primary)'};">${d}</span>
-                        ${isToday ? '<span class="today-badge">오늘</span>' : ''}
                     </div>
                     <div class="cal-events-list">
                         ${bookingsHtml}
