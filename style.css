@@ -645,7 +645,28 @@ section {
 
 .calendar-cell.today {
     font-weight: bold;
-    color: var(--accent-color);
+    color: #9A3412;
+    background-color: #FFF7ED !important;
+    border: 1.5px solid #F59E0B !important;
+    box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.2), 0 2px 4px rgba(245, 158, 11, 0.12);
+}
+
+.cal-date-cell.today {
+    background-color: #FFF7ED !important;
+    border: 1.5px solid #F59E0B !important;
+}
+
+.today-badge {
+    font-size: 10px;
+    background: linear-gradient(135deg, #E65100 0%, #D97706 100%) !important;
+    color: #FFFFFF !important;
+    padding: 1px 5px !important;
+    border-radius: 4px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 1px 3px rgba(230, 81, 0, 0.3) !important;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 2px;
 }
 
 .calendar-cell:hover:not(.disabled):not(.prev-month):not(.next-month) {

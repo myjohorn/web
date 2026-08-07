@@ -642,7 +642,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 cell.classList.add('today');
             }
 
-            const todayBadge = isToday ? ' <span class="today-badge" style="font-size: 10px; background: var(--accent-color); color: white; padding: 1px 4px; border-radius: 3px; font-weight: 600;">오늘</span>' : '';
+            const todayBadge = isToday ? ' <span class="today-badge">오늘</span>' : '';
 
             const bookingsList = lockedDatesMap[dateStr];
             if (bookingsList && bookingsList.length > 0) {

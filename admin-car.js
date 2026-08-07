@@ -1378,14 +1378,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const dayStyle = isToday 
-                ? 'background: rgba(197, 168, 128, 0.15); font-weight: 700;' 
+                ? 'background: #FFF7ED; font-weight: 700; border: 1.5px solid #F59E0B;' 
                 : 'background: var(--white);';
 
             cellsHtml += `
-                <div class="cal-date-cell" data-date="${dateStr}" style="${dayStyle} transition: background 0.2s; cursor: pointer;">
+                <div class="cal-date-cell ${isToday ? 'today' : ''}" data-date="${dateStr}" style="${dayStyle} transition: background 0.2s; cursor: pointer;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-                        <span class="date-num" style="font-size: 12px; font-weight: 600; color: ${isToday ? 'var(--accent-color)' : 'var(--text-primary)'};">${d}</span>
-                        ${isToday ? '<span style="font-size: 9px; background: var(--accent-color); color: white; padding: 1px 4px; border-radius: 3px;">오늘</span>' : ''}
+                        <span class="date-num" style="font-size: 12px; font-weight: 700; color: ${isToday ? '#9A3412' : 'var(--text-primary)'};">${d}</span>
+                        ${isToday ? '<span class="today-badge">오늘</span>' : ''}
                     </div>
                     <div class="cal-events-list">
                         ${bookingsHtml}
