@@ -75,6 +75,30 @@ document.addEventListener('DOMContentLoaded', () => {
         return dateStr.split('T')[0];
     }
 
+    // Contract Status Evaluation Helper
+    function getContractStatus(startDate, endDate) {
+        if (!startDate || !endDate) {
+            return { status: 'none', label: '기간 미지정', cssClass: 'expiring', text: '계약기간 미지정' };
+        }
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        const end = new Date(endDate);
+        end.setHours(0,0,0,0);
+        const start = new Date(startDate);
+        start.setHours(0,0,0,0);
+
+        const diffDays = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+        if (today < start) {
+            return { status: 'upcoming', label: '계약 대기', cssClass: 'expiring', text: `${startDate} 시작 예정` };
+        } else if (diffDays < 0) {
+            return { status: 'expired', label: '계약 만료', cssClass: 'expired', text: `${Math.abs(diffDays)}일 전 만료` };
+        } else if (diffDays <= 60) {
+            return { status: 'expiring', label: `만료 임박 (D-${diffDays})`, cssClass: 'expiring', text: `만료 D-${diffDays}` };
+        } else {
+            return { status: 'active', label: '계약중 (유효)', cssClass: 'active', text: '계약 유효' };
+        }
+    }
+
     // ----------------------------------------------------
     // 3. Authentication Flow & Session Management
     // ----------------------------------------------------
@@ -200,72 +224,102 @@ document.addEventListener('DOMContentLoaded', () => {
             {
                 nameEn: "Marlborough College Malaysia",
                 nameKo: "말보로 컬리지 말레이시아",
+                contractStartDate: "2025-01-01",
+                contractEndDate: "2027-12-31",
                 commissionType: "percentage",
                 defaultRate: 10,
                 defaultSettlement: "2", // 2 terms split
-                contactPerson: "Admissions & Accounts Dept",
-                email: "admissions@marlboroughcollege.my",
-                phone: "+60 7-560 2200",
+                adminContactName: "Admissions Office / Mr. James",
+                adminContactEmail: "admissions@marlboroughcollege.my",
+                adminContactPhone: "+60 7-560 2200",
+                financeContactName: "Finance & Accounts / Ms. Sarah Lee",
+                financeContactEmail: "finance@marlboroughcollege.my",
+                financeContactPhone: "+60 7-560 2288",
                 location: "Iskandar Puteri, Johor",
                 memo: "영국 명문 보딩스쿨, Term 1 시작 30일 내 1차(50%), Term 2 시작 시 2차(50%) 정산"
             },
             {
                 nameEn: "Raffles American School",
                 nameKo: "래플스 아메리칸 스쿨",
+                contractStartDate: "2025-01-01",
+                contractEndDate: "2026-12-31",
                 commissionType: "percentage",
                 defaultRate: 15,
                 defaultSettlement: "1", // 1-time
-                contactPerson: "Finance Team / Ms. Joyce",
-                email: "finance@raffles-american-school.edu.my",
-                phone: "+60 7-509 8888",
+                adminContactName: "Admissions / Mr. David",
+                adminContactEmail: "admissions@raffles-american-school.edu.my",
+                adminContactPhone: "+60 7-509 8888",
+                financeContactName: "Finance Department / Ms. Joyce Tan",
+                financeContactEmail: "finance@raffles-american-school.edu.my",
+                financeContactPhone: "+60 7-509 8890",
                 location: "Iskandar Puteri, Johor",
                 memo: "미국식 커리큘럼(AP), 입학 확인 및 학비 납부 후 1회 일괄 정산"
             },
             {
                 nameEn: "Sunway International School",
                 nameKo: "선웨이 국제학교",
+                contractStartDate: "2025-01-01",
+                contractEndDate: "2026-12-31",
                 commissionType: "percentage",
                 defaultRate: 10,
                 defaultSettlement: "1",
-                contactPerson: "Admissions Office",
-                email: "infosisj@sunway.edu.my",
-                phone: "+60 7-533 8070",
+                adminContactName: "Admissions Office",
+                adminContactEmail: "infosisj@sunway.edu.my",
+                adminContactPhone: "+60 7-533 8070",
+                financeContactName: "Accounts Division",
+                financeContactEmail: "accounts.sisj@sunway.edu.my",
+                financeContactPhone: "+60 7-533 8075",
                 location: "Sunway City Iskandar Puteri, Johor",
                 memo: "캐나다 온타리오 및 IB 커리큘럼"
             },
             {
                 nameEn: "Crescendo-HELP International School",
                 nameKo: "크레센도-헬프 국제학교",
+                contractStartDate: "2025-01-01",
+                contractEndDate: "2026-12-31",
                 commissionType: "percentage",
                 defaultRate: 10,
                 defaultSettlement: "1",
-                contactPerson: "Finance & Accounts",
-                email: "accounts@chis.edu.my",
-                phone: "+60 7-861 6788",
+                adminContactName: "Marketing & Admissions",
+                adminContactEmail: "admissions@chis.edu.my",
+                adminContactPhone: "+60 7-861 6788",
+                financeContactName: "Finance & Accounts Dept",
+                financeContactEmail: "accounts@chis.edu.my",
+                financeContactPhone: "+60 7-861 6790",
                 location: "Desa Cemerlang, Johor",
                 memo: "영국 캠브리지 IGCSE 커리큘럼, 가성비 우수 국제학교"
             },
             {
                 nameEn: "Shattuck-St. Mary's Forest City",
                 nameKo: "샤턱 세인트 메리스 포레스트 시티",
+                contractStartDate: "2025-01-01",
+                contractEndDate: "2026-12-31",
                 commissionType: "percentage",
                 defaultRate: 12,
                 defaultSettlement: "2",
-                contactPerson: "Admissions Dept",
-                email: "admissions@ssm-fc.org",
-                phone: "+60 7-500 5900",
+                adminContactName: "Admissions Department",
+                adminContactEmail: "admissions@ssm-fc.org",
+                adminContactPhone: "+60 7-500 5900",
+                financeContactName: "Bursar & Finance Office",
+                financeContactEmail: "finance@ssm-fc.org",
+                financeContactPhone: "+60 7-500 5910",
                 location: "Forest City, Johor",
                 memo: "미국 본교 직영, 올림피아드 및 골프/테니스 특성화"
             },
             {
                 nameEn: "Stellar International School",
                 nameKo: "스텔라 국제학교",
+                contractStartDate: "2025-01-01",
+                contractEndDate: "2026-12-31",
                 commissionType: "fixed",
                 defaultRate: 3500, // Fixed RM 3,500
                 defaultSettlement: "1",
-                contactPerson: "Admissions Officer",
-                email: "info@stellar.edu.my",
-                phone: "+60 7-364 3808",
+                adminContactName: "Admissions Officer",
+                adminContactEmail: "info@stellar.edu.my",
+                adminContactPhone: "+60 7-364 3808",
+                financeContactName: "Accounts Officer",
+                financeContactEmail: "finance@stellar.edu.my",
+                financeContactPhone: "+60 7-364 3810",
                 location: "Puteri Harbour, Johor",
                 memo: "푸테리 하버 인근 위치, 학생당 고정 커미션 RM 3,500 정산"
             }
@@ -298,11 +352,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const todayStr = new Date().toISOString().split('T')[0];
         const sampleAdmissions = [
             {
+                studentNameEn: "Minjun Kim",
+                studentNameKo: "김민준",
                 studentName: "김민준 (Minjun Kim)",
+                gradeEn: "Year 7 (Grade 7)",
+                gradeKo: "중학 1학년",
                 grade: "Year 7 (Grade 7)",
                 parentContact: "김성훈 / 010-3849-1120",
                 parentEmail: "minjun.parent@gmail.com",
                 schoolName: "Marlborough College Malaysia",
+                termEn: "2026-Term 1 (August Intake)",
+                termKo: "2026년 1학기 (8월 입학)",
                 term: "2026-Term 1 (August Intake)",
                 admissionDate: todayStr,
                 tuitionFee: 46000,
@@ -314,16 +374,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 entityName: "GLOBAL EDU CONSULTING SDN. BHD.",
                 memo: "Boarding school application complete, Term 1 invoice paid",
                 installments: [
-                    { term: "Term 1 (50%)", amount: 2300, dueDate: todayStr, status: "paid", invoiceNo: "INV-JHN-2026-001-T1" },
-                    { term: "Term 2 (50%)", amount: 2300, dueDate: "2027-01-15", status: "invoiced", invoiceNo: "INV-JHN-2026-001-T2" }
+                    { term: "Term 1 (50%)", amount: 2300, dueDate: todayStr, status: "paid", invoiceNo: "INV-MCM-202608-01" },
+                    { term: "Term 2 (50%)", amount: 2300, dueDate: "2027-01-15", status: "invoiced", invoiceNo: "INV-MCM-202608-02" }
                 ]
             },
             {
+                studentNameEn: "Jiwoo Lee",
+                studentNameKo: "이지우",
                 studentName: "이지우 (Jiwoo Lee)",
+                gradeEn: "Grade 4 (Primary 4)",
+                gradeKo: "초등 4학년",
                 grade: "Grade 4 (Primary 4)",
                 parentContact: "이진아 / 010-9284-5510",
                 parentEmail: "jiwoo.mom@naver.com",
                 schoolName: "Raffles American School",
+                termEn: "2026-Term 1 (August Intake)",
+                termKo: "2026년 1학기 (8월 입학)",
                 term: "2026-Term 1 (August Intake)",
                 admissionDate: todayStr,
                 tuitionFee: 38000,
@@ -335,15 +401,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 entityName: "GLOBAL EDU CONSULTING SDN. BHD.",
                 memo: "Admissions test passed, invoice sent to finance team",
                 installments: [
-                    { term: "Full 100%", amount: 5700, dueDate: todayStr, status: "invoiced", invoiceNo: "INV-JHN-2026-002" }
+                    { term: "Full 100%", amount: 5700, dueDate: todayStr, status: "invoiced", invoiceNo: "INV-RAS-202608-01" }
                 ]
             },
             {
+                studentNameEn: "Seoyun Park",
+                studentNameKo: "박서윤",
                 studentName: "박서윤 (Seoyun Park)",
+                gradeEn: "Year 9 (Grade 9)",
+                gradeKo: "중학 3학년",
                 grade: "Year 9 (Grade 9)",
                 parentContact: "박준영 / 010-4491-0029",
                 parentEmail: "seoyun.family@daum.net",
                 schoolName: "Stellar International School",
+                termEn: "2026-Term 1 (August Intake)",
+                termKo: "2026년 1학기 (8월 입학)",
                 term: "2026-Term 1 (August Intake)",
                 admissionDate: todayStr,
                 tuitionFee: 28000,
@@ -355,7 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 entityName: "GLOBAL EDU CONSULTING SDN. BHD.",
                 memo: "Fixed commission RM 3,500 received in full",
                 installments: [
-                    { term: "Full 100%", amount: 3500, dueDate: todayStr, status: "paid", invoiceNo: "INV-JHN-2026-003" }
+                    { term: "Full 100%", amount: 3500, dueDate: todayStr, status: "paid", invoiceNo: "INV-SIS-202608-01" }
                 ]
             }
         ];
@@ -364,40 +436,32 @@ document.addEventListener('DOMContentLoaded', () => {
             const newRef = db.ref('commission_admissions').push(adm);
             if (adm.status === 'partially_paid') {
                 db.ref('commission_invoices').push({
-                    invoiceNo: "INV-JHN-2026-001-T1",
-                    admissionId: newRef.key,
+                    invoiceNo: "INV-MCM-202608-01",
                     schoolName: adm.schoolName,
-                    studentName: adm.studentName,
-                    termName: "Term 1 (50%)",
-                    grade: adm.grade,
-                    commissionType: adm.commissionType,
-                    commissionRate: adm.commissionRate,
-                    tuitionFee: adm.tuitionFee,
+                    billingMonth: "2026-08",
                     entityName: adm.entityName,
                     issueDate: todayStr,
                     dueDate: todayStr,
                     amount: 2300,
-                    status: "paid"
-                });
-                db.ref('commission_invoices').push({
-                    invoiceNo: "INV-JHN-2026-001-T2",
-                    admissionId: newRef.key,
-                    schoolName: adm.schoolName,
-                    studentName: adm.studentName,
-                    termName: "Term 2 (50%)",
-                    grade: adm.grade,
-                    commissionType: adm.commissionType,
-                    commissionRate: adm.commissionRate,
-                    tuitionFee: adm.tuitionFee,
-                    entityName: adm.entityName,
-                    issueDate: todayStr,
-                    dueDate: "2027-01-15",
-                    amount: 2300,
-                    status: "issued"
+                    status: "paid",
+                    items: [
+                        {
+                            studentId: newRef.key,
+                            studentNameEn: adm.studentNameEn,
+                            studentNameKo: adm.studentNameKo,
+                            gradeEn: adm.gradeEn,
+                            termEn: adm.termEn,
+                            admissionDate: adm.admissionDate,
+                            tuitionFee: adm.tuitionFee,
+                            rate: "10% (Term 1)",
+                            amount: 2300,
+                            installmentTerm: "Term 1 (50%)"
+                        }
+                    ]
                 });
                 db.ref('commission_payments').push({
                     admissionId: newRef.key,
-                    invoiceNo: "INV-JHN-2026-001-T1",
+                    invoiceNo: "INV-MCM-202608-01",
                     schoolName: adm.schoolName,
                     studentName: adm.studentName,
                     termName: "Term 1 (50%)",
@@ -409,41 +473,57 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             } else if (adm.status === 'invoiced') {
                 db.ref('commission_invoices').push({
-                    invoiceNo: "INV-JHN-2026-002",
-                    admissionId: newRef.key,
+                    invoiceNo: "INV-RAS-202608-01",
                     schoolName: adm.schoolName,
-                    studentName: adm.studentName,
-                    termName: "Full 100%",
-                    grade: adm.grade,
-                    commissionType: adm.commissionType,
-                    commissionRate: adm.commissionRate,
-                    tuitionFee: adm.tuitionFee,
+                    billingMonth: "2026-08",
                     entityName: adm.entityName,
                     issueDate: todayStr,
                     dueDate: todayStr,
                     amount: 5700,
-                    status: "issued"
+                    status: "issued",
+                    items: [
+                        {
+                            studentId: newRef.key,
+                            studentNameEn: adm.studentNameEn,
+                            studentNameKo: adm.studentNameKo,
+                            gradeEn: adm.gradeEn,
+                            termEn: adm.termEn,
+                            admissionDate: adm.admissionDate,
+                            tuitionFee: adm.tuitionFee,
+                            rate: "15% (Full)",
+                            amount: 5700,
+                            installmentTerm: "Full 100%"
+                        }
+                    ]
                 });
             } else if (adm.status === 'paid') {
                 db.ref('commission_invoices').push({
-                    invoiceNo: "INV-JHN-2026-003",
-                    admissionId: newRef.key,
+                    invoiceNo: "INV-SIS-202608-01",
                     schoolName: adm.schoolName,
-                    studentName: adm.studentName,
-                    termName: "Full 100%",
-                    grade: adm.grade,
-                    commissionType: adm.commissionType,
-                    commissionRate: adm.commissionRate,
-                    tuitionFee: adm.tuitionFee,
+                    billingMonth: "2026-08",
                     entityName: adm.entityName,
                     issueDate: todayStr,
                     dueDate: todayStr,
                     amount: 3500,
-                    status: "paid"
+                    status: "paid",
+                    items: [
+                        {
+                            studentId: newRef.key,
+                            studentNameEn: adm.studentNameEn,
+                            studentNameKo: adm.studentNameKo,
+                            gradeEn: adm.gradeEn,
+                            termEn: adm.termEn,
+                            admissionDate: adm.admissionDate,
+                            tuitionFee: adm.tuitionFee,
+                            rate: "Fixed RM 3,500",
+                            amount: 3500,
+                            installmentTerm: "Full 100%"
+                        }
+                    ]
                 });
                 db.ref('commission_payments').push({
                     admissionId: newRef.key,
-                    invoiceNo: "INV-JHN-2026-003",
+                    invoiceNo: "INV-SIS-202608-01",
                     schoolName: adm.schoolName,
                     studentName: adm.studentName,
                     termName: "Full 100%",
@@ -525,6 +605,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    document.querySelectorAll('.admin-modal').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.admin-modal').forEach(m => {
+                if (m.style.display === 'flex' || m.style.display === 'block') {
+                    m.style.display = 'none';
+                }
+            });
+        }
+    });
+
+    // ----------------------------------------------------
+    // 7. Dynamic Dropdowns Updater
+    // ----------------------------------------------------
     // ----------------------------------------------------
     // 7. Dynamic Dropdowns Updater
     // ----------------------------------------------------
@@ -532,6 +633,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const admissionSchoolId = document.getElementById('admissionSchoolId');
         const admissionSchoolFilter = document.getElementById('admissionSchoolFilter');
         const paymentSchoolFilter = document.getElementById('paymentSchoolFilter');
+        const invoiceSchoolFilter = document.getElementById('invoiceSchoolFilter');
+        const monthlyInvoiceSchoolSelect = document.getElementById('monthlyInvoiceSchoolSelect');
 
         if (admissionSchoolId) {
             admissionSchoolId.innerHTML = '<option value="">-- 학교 선택 --</option>' +
@@ -545,14 +648,24 @@ document.addEventListener('DOMContentLoaded', () => {
             paymentSchoolFilter.innerHTML = '<option value="all">전체 학교</option>' +
                 schools.map(s => `<option value="${s.nameEn}">${s.nameEn}</option>`).join('');
         }
+        if (invoiceSchoolFilter) {
+            invoiceSchoolFilter.innerHTML = '<option value="all">전체 학교</option>' +
+                schools.map(s => `<option value="${s.nameEn}">${s.nameEn}</option>`).join('');
+        }
+        if (monthlyInvoiceSchoolSelect) {
+            monthlyInvoiceSchoolSelect.innerHTML = '<option value="">-- 대상 국제학교 선택 --</option>' +
+                schools.map(s => `<option value="${s.id}">${s.nameEn} (${s.nameKo || ''})</option>`).join('');
+        }
     }
 
     function updateEntityDropdowns() {
         const admissionEntityId = document.getElementById('admissionEntityId');
         const invoiceModalEntitySelect = document.getElementById('invoiceModalEntitySelect');
+        const monthlyInvoiceEntitySelect = document.getElementById('monthlyInvoiceEntitySelect');
 
         const optionsHtml = entities.map(e => `<option value="${e.id}" ${e.isDefault ? 'selected' : ''}>${e.name} (${e.regNo || ''})</option>`).join('');
         if (admissionEntityId) admissionEntityId.innerHTML = optionsHtml;
+        if (monthlyInvoiceEntitySelect) monthlyInvoiceEntitySelect.innerHTML = optionsHtml;
         if (invoiceModalEntitySelect) {
             invoiceModalEntitySelect.innerHTML = optionsHtml;
             invoiceModalEntitySelect.addEventListener('change', () => {
@@ -561,8 +674,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (selEnt) {
                         currentViewingInvoice.entityName = selEnt.name;
                         currentViewingInvoice.entityId = selEnt.id;
-                        const adm = admissions.find(a => a.id === currentViewingInvoice.admissionId);
-                        renderInvoiceSheet(currentViewingInvoice, selEnt, adm);
+                        const sch = schools.find(s => s.nameEn === currentViewingInvoice.schoolName || s.id === currentViewingInvoice.schoolId);
+                        renderInvoiceSheet(currentViewingInvoice, selEnt, sch);
                     }
                 }
             });
@@ -619,7 +732,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (schoolFilter !== 'all' && adm.schoolName !== schoolFilter) return false;
             if (statusFilter !== 'all' && adm.status !== statusFilter) return false;
             if (search) {
-                const combined = `${adm.studentName || ''} ${adm.parentContact || ''} ${adm.schoolName || ''} ${adm.grade || ''}`.toLowerCase();
+                const combined = `${adm.studentNameEn || ''} ${adm.studentNameKo || ''} ${adm.studentName || ''} ${adm.parentContact || ''} ${adm.schoolName || ''} ${adm.gradeEn || ''} ${adm.gradeKo || ''}`.toLowerCase();
                 if (!combined.includes(search)) return false;
             }
             return true;
@@ -655,20 +768,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? `<span class="installment-tag" style="background: rgba(2, 136, 209, 0.1); color: #0288D1; font-weight: 700;">고정 ${formatMYR(adm.commissionAmount)}</span>`
                 : `<span class="installment-tag">${adm.commissionRate || 10}% (비율)</span>`;
 
+            const studentNameDisplay = adm.studentNameEn 
+                ? `<strong style="color: var(--text-primary); font-size: 14px;">${adm.studentNameEn}</strong> <span style="font-size: 11px; color: #888;">(${adm.studentNameKo || ''})</span>`
+                : `<strong style="color: var(--text-primary); font-size: 14px;">${adm.studentName || '-'}</strong>`;
+
+            const gradeDisplay = adm.gradeEn 
+                ? `<span>${adm.gradeEn}</span> <span style="font-size: 10px; color: #888;">(${adm.gradeKo || ''})</span>`
+                : (adm.grade || '-');
+
+            const termDisplay = adm.termEn 
+                ? `<span>${adm.termEn}</span>`
+                : (adm.term || '-');
+
             return `
                 <tr>
                     <td>
-                        <strong style="color: var(--text-primary); font-size: 14px;">${adm.studentName || '-'}</strong>
+                        <div>${studentNameDisplay}</div>
                         <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">
                             <i class="fa-solid fa-phone" style="font-size: 10px;"></i> ${adm.parentContact || '-'}
                         </div>
                     </td>
                     <td>
                         <div style="font-weight: 600; color: var(--text-primary);">${adm.schoolName || '-'}</div>
-                        <div style="font-size: 11px; color: var(--accent-color);">${adm.grade || '-'}</div>
+                        <div style="font-size: 11px; color: var(--accent-color);">${gradeDisplay}</div>
                     </td>
                     <td>
-                        <div style="font-size: 13px;">${adm.term || '-'}</div>
+                        <div style="font-size: 12px; font-weight: 500;">${termDisplay}</div>
                         <div style="font-size: 11px; color: var(--text-secondary);">입학일: ${formatDate(adm.admissionDate)}</div>
                     </td>
                     <td style="font-weight: 600;">${adm.tuitionFee ? formatMYR(adm.tuitionFee) : '-'}</td>
@@ -819,13 +944,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 3. Reflect Default Settlement Mode (Installments Count)
                 if (admissionSettlementMode) admissionSettlementMode.value = defaultSettlement;
 
-                // 4. Show Auto Terms Notice
+                // 4. Show Auto Terms Notice with Contract Period
                 if (schoolAutoTermsNotice && schoolAutoTermsText) {
                     const settlementLabel = defaultSettlement === '1' ? '1회 일괄 정산' : `${defaultSettlement}회 분할 정산 (Term별)`;
                     const termsDesc = commType === 'fixed' 
                         ? `고정 금액 RM ${parseFloat(defaultRate).toLocaleString()} / ${settlementLabel}` 
                         : `학비의 ${defaultRate}% / ${settlementLabel}`;
-                    schoolAutoTermsText.textContent = `[${school.nameEn}] 기본 정산 조건 자동 반영: ${termsDesc}`;
+                    
+                    const contractInfo = school.contractStartDate && school.contractEndDate 
+                        ? ` | 계약기간: ${school.contractStartDate} ~ ${school.contractEndDate}`
+                        : '';
+
+                    schoolAutoTermsText.textContent = `[${school.nameEn}] 학교 계약 요율 자동 반영: ${termsDesc}${contractInfo}`;
                     schoolAutoTermsNotice.style.display = 'block';
                 }
 
@@ -904,18 +1034,34 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('admissionId').value = adm.id;
         
         // Find matching school in select
-        const sch = schools.find(s => s.nameEn === adm.schoolName || s.nameKo === adm.schoolName);
+        const sch = schools.find(s => s.nameEn === adm.schoolName || s.nameKo === adm.schoolName || s.id === adm.schoolId);
         if (sch && admissionSchoolId) admissionSchoolId.value = sch.id;
 
         const commType = adm.commissionType || 'percentage';
         document.getElementById('admissionCommissionType').value = commType;
         toggleCommissionTypeUI(commType);
 
-        document.getElementById('admissionTerm').value = adm.term || '';
+        if (document.getElementById('admissionStudentNameEn')) {
+            document.getElementById('admissionStudentNameEn').value = adm.studentNameEn || adm.studentName || '';
+        }
+        if (document.getElementById('admissionStudentNameKo')) {
+            document.getElementById('admissionStudentNameKo').value = adm.studentNameKo || '';
+        }
+        if (document.getElementById('admissionGradeEn')) {
+            document.getElementById('admissionGradeEn').value = adm.gradeEn || adm.grade || '';
+        }
+        if (document.getElementById('admissionGradeKo')) {
+            document.getElementById('admissionGradeKo').value = adm.gradeKo || '';
+        }
+        if (document.getElementById('admissionTermEn')) {
+            document.getElementById('admissionTermEn').value = adm.termEn || adm.term || '';
+        }
+        if (document.getElementById('admissionTermKo')) {
+            document.getElementById('admissionTermKo').value = adm.termKo || '';
+        }
+
         document.getElementById('admissionDate').value = adm.admissionDate || '';
         document.getElementById('admissionStatus').value = adm.status || 'applied';
-        document.getElementById('admissionStudentName').value = adm.studentName || '';
-        document.getElementById('admissionGrade').value = adm.grade || '';
         document.getElementById('admissionParentContact').value = adm.parentContact || '';
         document.getElementById('admissionParentEmail').value = adm.parentEmail || '';
         document.getElementById('admissionTuitionFee').value = adm.tuitionFee || '';
@@ -940,7 +1086,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const termsDesc = commType === 'fixed' 
                 ? `고정 금액 RM ${parseFloat(adm.commissionAmount).toLocaleString()} / ${settlementLabel}` 
                 : `학비의 ${adm.commissionRate}% / ${settlementLabel}`;
-            schoolAutoTermsText.textContent = `[${sch.nameEn}] 등록된 정산 조건: ${termsDesc}`;
+            schoolAutoTermsText.textContent = `[${sch.nameEn}] 등록된 계약 조건: ${termsDesc}`;
             schoolAutoTermsNotice.style.display = 'block';
         } else if (schoolAutoTermsNotice) {
             schoolAutoTermsNotice.style.display = 'none';
@@ -955,12 +1101,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saveAdmissionBtn) {
         saveAdmissionBtn.addEventListener('click', () => {
             const id = document.getElementById('admissionId').value;
-            const studentName = document.getElementById('admissionStudentName').value.trim();
+            const studentNameEn = document.getElementById('admissionStudentNameEn') ? document.getElementById('admissionStudentNameEn').value.trim() : '';
+            const studentNameKo = document.getElementById('admissionStudentNameKo') ? document.getElementById('admissionStudentNameKo').value.trim() : '';
             const schoolSelect = document.getElementById('admissionSchoolId');
             const schoolName = schoolSelect.options[schoolSelect.selectedIndex] ? schoolSelect.options[schoolSelect.selectedIndex].text.split('(')[0].trim() : '';
+            const schoolId = schoolSelect.value;
 
-            if (!studentName || !schoolName) {
-                alert('학생 이름과 대상 학교를 입력해주세요.');
+            if (!studentNameEn || !schoolName) {
+                alert('학생 영문 이름과 대상 국제학교를 입력해주세요.');
                 return;
             }
 
@@ -979,13 +1127,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 installments.push({ term, amount, dueDate, status });
             });
 
+            const gradeEn = document.getElementById('admissionGradeEn') ? document.getElementById('admissionGradeEn').value.trim() : '';
+            const gradeKo = document.getElementById('admissionGradeKo') ? document.getElementById('admissionGradeKo').value.trim() : '';
+            const termEn = document.getElementById('admissionTermEn') ? document.getElementById('admissionTermEn').value.trim() : '';
+            const termKo = document.getElementById('admissionTermKo') ? document.getElementById('admissionTermKo').value.trim() : '';
+
             const data = {
-                studentName,
+                studentNameEn,
+                studentNameKo,
+                studentName: studentNameKo ? `${studentNameKo} (${studentNameEn})` : studentNameEn,
+                schoolId,
                 schoolName,
-                grade: document.getElementById('admissionGrade').value.trim(),
+                gradeEn,
+                gradeKo,
+                grade: gradeEn,
+                termEn,
+                termKo,
+                term: termEn,
                 parentContact: document.getElementById('admissionParentContact').value.trim(),
                 parentEmail: document.getElementById('admissionParentEmail').value.trim(),
-                term: document.getElementById('admissionTerm').value.trim(),
                 admissionDate: document.getElementById('admissionDate').value,
                 status: document.getElementById('admissionStatus').value,
                 tuitionFee: parseFloat(document.getElementById('admissionTuitionFee').value) || 0,
@@ -994,6 +1154,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 commissionAmount: parseFloat(document.getElementById('admissionCommissionAmount').value) || 0,
                 settlementMode: document.getElementById('admissionSettlementMode').value,
                 entityName,
+                entityId: entitySelect.value,
                 memo: document.getElementById('admissionMemo').value.trim(),
                 installments,
                 updatedAt: new Date().toISOString()
@@ -1025,10 +1186,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ----------------------------------------------------
-    // 11. SUB-TAB 2 & MODAL 2: 100% English Invoice & Email Generator Engine
+    // 11. SUB-TAB 2 & MODAL 2 & 7: 100% English Invoice & Consolidated Monthly Invoicing Engine
     // ----------------------------------------------------
     const invoiceTableBody = document.getElementById('invoiceTableBody');
     const invoiceSearchInput = document.getElementById('invoiceSearchInput');
+    const invoiceSchoolFilter = document.getElementById('invoiceSchoolFilter');
     const invoiceStatusFilter = document.getElementById('invoiceStatusFilter');
     const invoiceSheetContainer = document.getElementById('invoiceSheetContainer');
     const invoiceModalEntitySelect = document.getElementById('invoiceModalEntitySelect');
@@ -1040,18 +1202,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const emailSubjectInput = document.getElementById('emailSubjectInput');
     const emailBodyTextarea = document.getElementById('emailBodyTextarea');
 
+    // Monthly Consolidated Invoice Creation Modal Elements
+    const openCreateMonthlyInvoiceBtn = document.getElementById('openCreateMonthlyInvoiceBtn');
+    const monthlyInvoiceSchoolSelect = document.getElementById('monthlyInvoiceSchoolSelect');
+    const monthlyInvoiceMonthInput = document.getElementById('monthlyInvoiceMonthInput');
+    const monthlyInvoiceNoInput = document.getElementById('monthlyInvoiceNoInput');
+    const monthlyInvoiceEntitySelect = document.getElementById('monthlyInvoiceEntitySelect');
+    const monthlyInvoiceIssueDateInput = document.getElementById('monthlyInvoiceIssueDateInput');
+    const monthlyInvoiceDueDateInput = document.getElementById('monthlyInvoiceDueDateInput');
+    const monthlyInvoiceFinanceContact = document.getElementById('monthlyInvoiceFinanceContact');
+    const monthlyInvoiceStudentsTableBody = document.getElementById('monthlyInvoiceStudentsTableBody');
+    const selectAllInvoiceStudents = document.getElementById('selectAllInvoiceStudents');
+    const eligibleStudentCount = document.getElementById('eligibleStudentCount');
+    const selectedInvoiceStudentCount = document.getElementById('selectedInvoiceStudentCount');
+    const monthlyInvoiceTotalClaimAmount = document.getElementById('monthlyInvoiceTotalClaimAmount');
+    const generateConsolidatedInvoiceBtn = document.getElementById('generateConsolidatedInvoiceBtn');
+
     let currentViewingInvoice = null;
 
     function renderInvoices() {
         if (!invoiceTableBody) return;
 
         const search = (invoiceSearchInput ? invoiceSearchInput.value.trim().toLowerCase() : '');
+        const schoolFilter = (invoiceSchoolFilter ? invoiceSchoolFilter.value : 'all');
         const statusFilter = (invoiceStatusFilter ? invoiceStatusFilter.value : 'all');
 
         const filtered = invoices.filter(inv => {
+            if (schoolFilter !== 'all' && inv.schoolName !== schoolFilter) return false;
             if (statusFilter !== 'all' && inv.status !== statusFilter) return false;
             if (search) {
-                const combined = `${inv.invoiceNo || ''} ${inv.schoolName || ''} ${inv.studentName || ''}`.toLowerCase();
+                const combined = `${inv.invoiceNo || ''} ${inv.schoolName || ''} ${inv.studentName || ''} ${inv.billingMonth || ''}`.toLowerCase();
                 if (!combined.includes(search)) return false;
             }
             return true;
@@ -1071,37 +1251,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
         invoiceTableBody.innerHTML = filtered.map(inv => {
             let statusBadge = '<span class="status-badge status-invoiced">발행됨</span>';
-            if (inv.status === 'paid') statusBadge = '<span class="status-badge status-paid">입금 완료</span>';
-            if (inv.status === 'overdue') statusBadge = '<span class="status-badge status-overdue">기한 초과</span>';
+            if (inv.status === 'paid') statusBadge = '<span class="status-badge status-paid"><i class="fa-solid fa-circle-check"></i> 입금 완료</span>';
+            if (inv.status === 'overdue') statusBadge = '<span class="status-badge status-overdue"><i class="fa-solid fa-triangle-exclamation"></i> 기한 초과</span>';
+
+            let studentTargetDisplay = '';
+            if (inv.items && inv.items.length > 0) {
+                const names = inv.items.map(i => i.studentNameEn || i.studentName).filter(Boolean);
+                const displayNames = names.slice(0, 2).join(', ') + (names.length > 2 ? ` 외 ${names.length - 2}명` : '');
+                studentTargetDisplay = `
+                    <div style="font-weight: 600; color: var(--text-primary);"><i class="fa-solid fa-users" style="color: var(--accent-color);"></i> 총 ${inv.items.length}명 통합 청구</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">${displayNames}</div>
+                `;
+            } else {
+                studentTargetDisplay = `
+                    <div>${inv.studentName || '-'}</div>
+                    <span class="installment-tag" style="font-size: 10px;">${inv.termName || 'Full 100%'}</span>
+                `;
+            }
+
+            const monthDisplay = inv.billingMonth ? `<span style="font-size: 11px; color: var(--accent-color); font-weight: 600; display: block;">[${inv.billingMonth}월분]</span>` : '';
 
             return `
                 <tr>
                     <td>
                         <strong style="color: var(--accent-color); font-family: monospace; font-size: 13px;">${inv.invoiceNo}</strong>
+                        ${monthDisplay}
                     </td>
                     <td style="font-weight: 600;">${inv.schoolName || '-'}</td>
-                    <td>
-                        <div>${inv.studentName || '-'}</div>
-                        <span class="installment-tag" style="font-size: 10px;">${inv.termName || 'Full 100%'}</span>
-                    </td>
+                    <td>${studentTargetDisplay}</td>
                     <td style="font-size: 12px; color: var(--text-secondary);">${inv.entityName || 'GLOBAL EDU'}</td>
                     <td>
                         <div style="font-size: 12px;">발행: ${formatDate(inv.issueDate)}</div>
                         <div style="font-size: 11px; color: #C62828;">기한: ${formatDate(inv.dueDate)}</div>
                     </td>
-                    <td style="font-weight: 700; color: #2E7D32;">${formatMYR(inv.amount)}</td>
+                    <td style="font-weight: 700; color: #2E7D32; font-size: 14px;">${formatMYR(inv.amount)}</td>
                     <td>${statusBadge}</td>
                     <td>
                         <div class="table-action-btns">
-                            <button type="button" class="btn btn-primary btn-view-invoice" data-id="${inv.id}" style="padding: 5px 9px; font-size: 11px;">
+                            <button type="button" class="btn btn-primary btn-view-invoice" data-id="${inv.id}" style="padding: 5px 9px; font-size: 11px;" title="공식 영문 인보이스 열람 및 인쇄">
                                 <i class="fa-solid fa-file-pdf"></i> 열람/PDF
                             </button>
                             ${inv.status !== 'paid' ? `
-                                <button type="button" class="btn btn-secondary btn-pay-invoice" data-id="${inv.id}" style="padding: 5px 9px; font-size: 11px; color: #2E7D32; border-color: #2E7D32;">
+                                <button type="button" class="btn btn-secondary btn-pay-invoice" data-id="${inv.id}" style="padding: 5px 9px; font-size: 11px; color: #2E7D32; border-color: #2E7D32;" title="입금 확인 처리">
                                     <i class="fa-solid fa-circle-check"></i> 입금
                                 </button>
                             ` : ''}
-                            <button type="button" class="btn btn-secondary btn-del-invoice" data-id="${inv.id}" style="padding: 5px 8px; font-size: 11px; color: #C62828; border-color: #C62828;">
+                            <button type="button" class="btn btn-secondary btn-del-invoice" data-id="${inv.id}" style="padding: 5px 8px; font-size: 11px; color: #C62828; border-color: #C62828;" title="인보이스 삭제">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>
@@ -1122,14 +1317,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (invoiceSearchInput) invoiceSearchInput.addEventListener('input', renderInvoices);
+    if (invoiceSchoolFilter) invoiceSchoolFilter.addEventListener('change', renderInvoices);
     if (invoiceStatusFilter) invoiceStatusFilter.addEventListener('change', renderInvoices);
 
-    // Open/Generate Invoice for an Admission
+    // Open/Generate Legacy Single-Student Invoice for an Admission
     function openInvoiceForAdmission(admissionId) {
         const adm = admissions.find(a => a.id === admissionId);
         if (!adm) return;
 
-        const invoiceNo = `INV-JHN-${new Date().getFullYear()}-${String(invoices.length + 1).padStart(3, '0')}`;
+        const schCode = (adm.schoolName || 'SCH').split(' ').map(w => w[0]).join('').substring(0, 4).toUpperCase();
+        const yyyymm = new Date().toISOString().substring(0, 7).replace('-', '');
+        const invoiceNo = `INV-${schCode}-${yyyymm}-${String(invoices.length + 1).padStart(2, '0')}`;
         const todayStr = new Date().toISOString().split('T')[0];
         
         const defaultEntity = entities.find(e => e.isDefault) || entities[0] || {
@@ -1143,26 +1341,44 @@ document.addEventListener('DOMContentLoaded', () => {
             swiftCode: "MBBEMYKL"
         };
 
+        const sch = schools.find(s => s.nameEn === adm.schoolName || s.nameKo === adm.schoolName || s.id === adm.schoolId) || {};
+
         const invoiceData = {
             invoiceNo,
             admissionId: adm.id,
+            schoolId: sch.id || '',
             schoolName: adm.schoolName,
-            studentName: adm.studentName,
-            grade: adm.grade || '',
-            termName: adm.term || 'Term Placement',
+            studentNameEn: adm.studentNameEn || adm.studentName,
+            studentName: adm.studentNameEn || adm.studentName,
+            gradeEn: adm.gradeEn || adm.grade || '',
+            termEn: adm.termEn || adm.term || 'Academic Term Placement',
             commissionType: adm.commissionType || 'percentage',
             tuitionFee: adm.tuitionFee || 0,
             commissionRate: adm.commissionRate || 10,
             amount: adm.commissionAmount || 0,
+            billingMonth: new Date().toISOString().substring(0, 7),
             issueDate: todayStr,
             dueDate: todayStr,
             status: "issued",
             entityId: defaultEntity.id || '',
-            entityName: defaultEntity.name
+            entityName: defaultEntity.name,
+            items: [
+                {
+                    studentId: adm.id,
+                    studentNameEn: adm.studentNameEn || adm.studentName,
+                    gradeEn: adm.gradeEn || adm.grade || '',
+                    termEn: adm.termEn || adm.term || '',
+                    admissionDate: adm.admissionDate,
+                    tuitionFee: adm.tuitionFee || 0,
+                    rate: adm.commissionType === 'fixed' ? 'Fixed Fee' : `${adm.commissionRate || 10}%`,
+                    amount: adm.commissionAmount || 0,
+                    installmentTerm: 'Placement Commission'
+                }
+            ]
         };
 
         currentViewingInvoice = invoiceData;
-        renderInvoiceSheet(invoiceData, defaultEntity, adm);
+        renderInvoiceSheet(invoiceData, defaultEntity, sch);
         openModal('invoiceModal');
     }
 
@@ -1170,14 +1386,281 @@ document.addEventListener('DOMContentLoaded', () => {
         const inv = invoices.find(i => i.id === invoiceId);
         if (!inv) return;
         currentViewingInvoice = inv;
-        const adm = admissions.find(a => a.id === inv.admissionId);
+        const sch = schools.find(s => s.nameEn === inv.schoolName || s.id === inv.schoolId) || {};
         const ent = entities.find(e => e.name === inv.entityName || e.id === inv.entityId) || entities[0];
-        renderInvoiceSheet(inv, ent, adm);
+        renderInvoiceSheet(inv, ent, sch);
         openModal('invoiceModal');
     }
 
-    // 100% ENGLISH INVOICE SHEET RENDERER
-    function renderInvoiceSheet(inv, entity, admission) {
+    // ----------------------------------------------------
+    // MONTHLY CONSOLIDATED INVOICE GENERATION LOGIC
+    // ----------------------------------------------------
+    let eligibleStudentRows = [];
+
+    if (openCreateMonthlyInvoiceBtn) {
+        openCreateMonthlyInvoiceBtn.addEventListener('click', () => {
+            const today = new Date();
+            const currentMonthStr = today.toISOString().substring(0, 7); // YYYY-MM
+            const todayStr = today.toISOString().split('T')[0];
+            
+            const dueDate = new Date();
+            dueDate.setDate(dueDate.getDate() + 30);
+            const dueDateStr = dueDate.toISOString().split('T')[0];
+
+            if (monthlyInvoiceMonthInput) monthlyInvoiceMonthInput.value = currentMonthStr;
+            if (monthlyInvoiceIssueDateInput) monthlyInvoiceIssueDateInput.value = todayStr;
+            if (monthlyInvoiceDueDateInput) monthlyInvoiceDueDateInput.value = dueDateStr;
+            if (monthlyInvoiceSchoolSelect) monthlyInvoiceSchoolSelect.value = schools.length > 0 ? schools[0].id : '';
+
+            loadEligibleStudentsForMonthlyInvoice();
+            openModal('monthlyInvoiceCreateModal');
+        });
+    }
+
+    if (monthlyInvoiceSchoolSelect) {
+        monthlyInvoiceSchoolSelect.addEventListener('change', loadEligibleStudentsForMonthlyInvoice);
+    }
+    if (monthlyInvoiceMonthInput) {
+        monthlyInvoiceMonthInput.addEventListener('change', loadEligibleStudentsForMonthlyInvoice);
+    }
+
+    function loadEligibleStudentsForMonthlyInvoice() {
+        const schoolId = monthlyInvoiceSchoolSelect ? monthlyInvoiceSchoolSelect.value : '';
+        const targetMonth = monthlyInvoiceMonthInput ? monthlyInvoiceMonthInput.value : '';
+        const sch = schools.find(s => s.id === schoolId);
+
+        if (!sch) {
+            if (monthlyInvoiceStudentsTableBody) {
+                monthlyInvoiceStudentsTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #999;">학교를 먼저 선택해주세요.</td></tr>';
+            }
+            if (monthlyInvoiceFinanceContact) monthlyInvoiceFinanceContact.textContent = '-';
+            return;
+        }
+
+        // Show School Accounting Recipient Contact
+        const financeContactEmail = sch.financeContactEmail || sch.email || '미등록';
+        const financeContactName = sch.financeContactName || sch.contactPerson || '회계 담당자';
+        const financeContactPhone = sch.financeContactPhone || sch.phone || '';
+        if (monthlyInvoiceFinanceContact) {
+            monthlyInvoiceFinanceContact.innerHTML = `<strong>${financeContactName}</strong> (${financeContactEmail} / ${financeContactPhone})`;
+        }
+
+        // Generate Invoice Number Format
+        const schCode = (sch.nameEn || 'SCH').split(' ').map(w => w[0]).join('').substring(0, 4).toUpperCase();
+        const yyyymm = (targetMonth || '2026-08').replace('-', '');
+        const autoInvNo = `INV-${schCode}-${yyyymm}-01`;
+        if (monthlyInvoiceNoInput) monthlyInvoiceNoInput.value = autoInvNo;
+
+        // Filter all student admissions for this school that have unsettled installments
+        const schoolAdmissions = admissions.filter(a => a.schoolId === sch.id || a.schoolName === sch.nameEn || a.schoolName === sch.nameKo);
+        
+        eligibleStudentRows = [];
+        schoolAdmissions.forEach(adm => {
+            const installments = adm.installments || [
+                { term: 'Full 100%', amount: adm.commissionAmount, dueDate: adm.admissionDate, status: adm.status === 'paid' ? 'paid' : 'pending' }
+            ];
+
+            installments.forEach((inst, instIdx) => {
+                // Exclude already paid/settled installments!
+                if (inst.status !== 'paid' && inst.status !== 'settled') {
+                    eligibleStudentRows.push({
+                        admissionId: adm.id,
+                        studentNameEn: adm.studentNameEn || adm.studentName,
+                        studentNameKo: adm.studentNameKo || '',
+                        gradeEn: adm.gradeEn || adm.grade || '-',
+                        gradeKo: adm.gradeKo || '',
+                        termEn: adm.termEn || adm.term || '-',
+                        admissionDate: adm.admissionDate,
+                        tuitionFee: parseFloat(adm.tuitionFee) || 0,
+                        commissionType: adm.commissionType || 'percentage',
+                        commissionRate: adm.commissionRate || 10,
+                        installmentIndex: instIdx,
+                        installmentTerm: inst.term || `Term ${instIdx + 1}`,
+                        amount: parseFloat(inst.amount) || 0,
+                        status: inst.status || 'pending'
+                    });
+                }
+            });
+        });
+
+        if (eligibleStudentCount) eligibleStudentCount.textContent = `${eligibleStudentRows.length}명/건`;
+
+        if (eligibleStudentRows.length === 0) {
+            if (monthlyInvoiceStudentsTableBody) {
+                monthlyInvoiceStudentsTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 30px; color: #888;">
+                            <i class="fa-solid fa-circle-check" style="color: #2E7D32; font-size: 24px; margin-bottom: 8px; display: block;"></i>
+                            해당 학교의 모든 학생 커미션이 이미 정산 완료되었거나 미정산 수속 건이 없습니다.
+                        </td>
+                    </tr>
+                `;
+            }
+            if (monthlyInvoiceTotalClaimAmount) monthlyInvoiceTotalClaimAmount.textContent = formatMYR(0);
+            if (selectedInvoiceStudentCount) selectedInvoiceStudentCount.textContent = '0명';
+            return;
+        }
+
+        if (monthlyInvoiceStudentsTableBody) {
+            monthlyInvoiceStudentsTableBody.innerHTML = eligibleStudentRows.map((row, idx) => `
+                <tr>
+                    <td style="text-align: center;">
+                        <input type="checkbox" class="invoice-student-checkbox" data-index="${idx}" checked style="transform: scale(1.2); cursor: pointer;">
+                    </td>
+                    <td>
+                        <strong style="color: var(--text-primary); font-size: 13px;">${row.studentNameEn}</strong>
+                        ${row.studentNameKo ? `<span style="font-size: 11px; color: #888;"> (${row.studentNameKo})</span>` : ''}
+                    </td>
+                    <td>
+                        <div style="font-size: 12px;">${row.gradeEn}</div>
+                    </td>
+                    <td>
+                        <div style="font-size: 12px;">${row.termEn}</div>
+                        <div style="font-size: 10px; color: #888;">${formatDate(row.admissionDate)}</div>
+                    </td>
+                    <td style="font-weight: 600; font-size: 12px;">${row.tuitionFee > 0 ? formatMYR(row.tuitionFee) : '-'}</td>
+                    <td>
+                        <span class="installment-tag" style="font-size: 11px;">${row.installmentTerm}</span>
+                    </td>
+                    <td style="text-align: right; font-weight: 700; color: #2E7D32; font-size: 13px;">
+                        ${formatMYR(row.amount)}
+                    </td>
+                </tr>
+            `).join('');
+
+            // Bind checkbox listeners
+            document.querySelectorAll('.invoice-student-checkbox').forEach(cb => {
+                cb.addEventListener('change', updateMonthlyInvoiceTotals);
+            });
+        }
+
+        updateMonthlyInvoiceTotals();
+    }
+
+    if (selectAllInvoiceStudents) {
+        selectAllInvoiceStudents.addEventListener('change', () => {
+            const checked = selectAllInvoiceStudents.checked;
+            document.querySelectorAll('.invoice-student-checkbox').forEach(cb => {
+                cb.checked = checked;
+            });
+            updateMonthlyInvoiceTotals();
+        });
+    }
+
+    const selectAllStudentsForInvoiceBtn = document.getElementById('selectAllStudentsForInvoiceBtn');
+    if (selectAllStudentsForInvoiceBtn) {
+        selectAllStudentsForInvoiceBtn.addEventListener('click', () => {
+            if (!selectAllInvoiceStudents) return;
+            selectAllInvoiceStudents.checked = !selectAllInvoiceStudents.checked;
+            const checked = selectAllInvoiceStudents.checked;
+            document.querySelectorAll('.invoice-student-checkbox').forEach(cb => {
+                cb.checked = checked;
+            });
+            updateMonthlyInvoiceTotals();
+        });
+    }
+
+    function updateMonthlyInvoiceTotals() {
+        const checkboxes = document.querySelectorAll('.invoice-student-checkbox:checked');
+        let total = 0;
+        checkboxes.forEach(cb => {
+            const idx = parseInt(cb.getAttribute('data-index'), 10);
+            if (eligibleStudentRows[idx]) {
+                total += eligibleStudentRows[idx].amount;
+            }
+        });
+
+        if (selectedInvoiceStudentCount) selectedInvoiceStudentCount.textContent = `${checkboxes.length}명`;
+        if (monthlyInvoiceTotalClaimAmount) monthlyInvoiceTotalClaimAmount.textContent = formatMYR(total);
+    }
+
+    if (generateConsolidatedInvoiceBtn) {
+        generateConsolidatedInvoiceBtn.addEventListener('click', () => {
+            const schoolId = monthlyInvoiceSchoolSelect.value;
+            const sch = schools.find(s => s.id === schoolId);
+            const invoiceNo = monthlyInvoiceNoInput.value.trim();
+            const billingMonth = monthlyInvoiceMonthInput.value;
+            const issueDate = monthlyInvoiceIssueDateInput.value;
+            const dueDate = monthlyInvoiceDueDateInput.value;
+            const entityId = monthlyInvoiceEntitySelect.value;
+            const ent = entities.find(e => e.id === entityId) || entities[0];
+
+            if (!sch || !invoiceNo) {
+                alert('학교와 인보이스 번호를 확인해주세요.');
+                return;
+            }
+
+            const checkedBoxes = document.querySelectorAll('.invoice-student-checkbox:checked');
+            if (checkedBoxes.length === 0) {
+                alert('인보이스에 포함할 학생을 최소 1명 이상 선택해주세요.');
+                return;
+            }
+
+            const selectedItems = [];
+            let totalAmount = 0;
+
+            checkedBoxes.forEach(cb => {
+                const idx = parseInt(cb.getAttribute('data-index'), 10);
+                const r = eligibleStudentRows[idx];
+                if (r) {
+                    selectedItems.push({
+                        admissionId: r.admissionId,
+                        studentNameEn: r.studentNameEn,
+                        studentNameKo: r.studentNameKo,
+                        gradeEn: r.gradeEn,
+                        termEn: r.termEn,
+                        admissionDate: r.admissionDate,
+                        tuitionFee: r.tuitionFee,
+                        rate: r.commissionType === 'fixed' ? 'Fixed Fee' : `${r.commissionRate}%`,
+                        installmentIndex: r.installmentIndex,
+                        installmentTerm: r.installmentTerm,
+                        amount: r.amount
+                    });
+                    totalAmount += r.amount;
+                }
+            });
+
+            const newInvoice = {
+                invoiceNo,
+                schoolId: sch.id,
+                schoolName: sch.nameEn,
+                billingMonth,
+                issueDate,
+                dueDate,
+                amount: totalAmount,
+                entityId: ent.id,
+                entityName: ent.name,
+                status: 'issued',
+                items: selectedItems,
+                createdAt: new Date().toISOString()
+            };
+
+            // Save new consolidated invoice
+            db.ref('commission_invoices').push(newInvoice).then((res) => {
+                // Update all included admissions' installments status to invoiced
+                selectedItems.forEach(item => {
+                    const adm = admissions.find(a => a.id === item.admissionId);
+                    if (adm && adm.installments && adm.installments[item.installmentIndex]) {
+                        adm.installments[item.installmentIndex].status = 'invoiced';
+                        adm.installments[item.installmentIndex].invoiceNo = invoiceNo;
+                        adm.installments[item.installmentIndex].invoiceId = res.key;
+                        
+                        db.ref(`commission_admissions/${item.admissionId}/installments`).set(adm.installments);
+                        db.ref(`commission_admissions/${item.admissionId}/status`).set('invoiced');
+                    }
+                });
+
+                closeModal('monthlyInvoiceCreateModal');
+                alert(`학교별 월별 통합 인보이스 (${invoiceNo} / ${selectedItems.length}명 청구) 가 성공적으로 생성되었습니다.`);
+                openInvoiceModalById(res.key);
+            });
+        });
+    }
+
+    // ----------------------------------------------------
+    // 100% ENGLISH INVOICE SHEET RENDERER (CONSOLIDATED & SINGLE)
+    // ----------------------------------------------------
+    function renderInvoiceSheet(inv, entity, school) {
         if (!invoiceSheetContainer) return;
 
         const ent = entity || {
@@ -1191,9 +1674,45 @@ document.addEventListener('DOMContentLoaded', () => {
             swiftCode: "MBBEMYKL"
         };
 
-        const sch = schools.find(s => s.nameEn === inv.schoolName) || {};
-        const isFixed = inv.commissionType === 'fixed';
-        const rateLabel = isFixed ? 'Fixed Flat Fee' : `${inv.commissionRate || 10}% on Tuition`;
+        const sch = school || schools.find(s => s.nameEn === inv.schoolName || s.id === inv.schoolId) || {};
+        const financeContact = sch.financeContactName || sch.adminContactName || sch.contactPerson || 'Finance & Accounts Department';
+        const financeEmail = sch.financeContactEmail || sch.email || '-';
+
+        // Prepare line items (100% English)
+        const items = (inv.items && inv.items.length > 0) ? inv.items : [
+            {
+                studentNameEn: inv.studentNameEn || inv.studentName || 'Student Placement',
+                gradeEn: inv.gradeEn || inv.grade || 'General Admission',
+                termEn: inv.termEn || inv.termName || 'Academic Term',
+                admissionDate: inv.issueDate,
+                tuitionFee: inv.tuitionFee || 0,
+                rate: inv.commissionType === 'fixed' ? 'Fixed Fee' : `${inv.commissionRate || 10}%`,
+                installmentTerm: inv.termName || 'Placement Commission',
+                amount: inv.amount || 0
+            }
+        ];
+
+        const rowsHtml = items.map((item, idx) => `
+            <tr style="border-bottom: 1px solid var(--border-color);">
+                <td style="padding: 10px 8px; text-align: center; color: #666;">${idx + 1}</td>
+                <td style="padding: 10px 10px; font-weight: 700; color: #1a1a1a;">
+                    ${item.studentNameEn}
+                </td>
+                <td style="padding: 10px 10px; color: #444;">${item.gradeEn || '-'}</td>
+                <td style="padding: 10px 10px; color: #444;">${item.termEn || '-'}</td>
+                <td style="padding: 10px 10px; text-align: right; color: #444;">
+                    ${item.tuitionFee > 0 ? formatMYR(item.tuitionFee) : 'Agreement Base'}
+                </td>
+                <td style="padding: 10px 10px; text-align: center;">
+                    <span style="font-size: 11px; background: #F0EAE1; padding: 2px 6px; border-radius: 3px; font-weight: 600;">
+                        ${item.installmentTerm || item.rate || 'Standard'}
+                    </span>
+                </td>
+                <td style="padding: 10px 12px; text-align: right; font-weight: 700; color: #1a1a1a;">
+                    ${formatMYR(item.amount)}
+                </td>
+            </tr>
+        `).join('');
 
         invoiceSheetContainer.innerHTML = `
             <div style="padding: 10px 5px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #111;">
@@ -1202,67 +1721,64 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div>
                         <h2 style="font-size: 21px; font-weight: 800; color: #1a1a1a; margin: 0; letter-spacing: -0.01em;">${ent.name}</h2>
                         <div style="font-size: 11px; color: #555; margin-top: 4px;">Company Reg. No: <strong>${ent.regNo || '-'}</strong></div>
-                        <div style="font-size: 11px; color: #555; margin-top: 2px; max-width: 400px; line-height: 1.4;">${ent.address || '-'}</div>
+                        <div style="font-size: 11px; color: #555; margin-top: 2px; max-width: 420px; line-height: 1.4;">${ent.address || '-'}</div>
                         <div style="font-size: 11px; color: #555; margin-top: 2px;">Email: ${ent.contact || '-'}</div>
                     </div>
                     <div style="text-align: right;">
                         <h1 style="font-size: 26px; font-weight: 800; color: var(--accent-color); margin: 0; letter-spacing: 0.05em;">INVOICE</h1>
                         <div style="font-size: 13px; font-weight: 700; color: #1a1a1a; margin-top: 5px;"># ${inv.invoiceNo}</div>
+                        ${inv.billingMonth ? `<div style="font-size: 11px; color: var(--accent-color); font-weight: 600; margin-top: 2px;">Billing Period: <strong>${inv.billingMonth}</strong></div>` : ''}
                         <div style="font-size: 11px; color: #555; margin-top: 3px;">Date of Issue: <strong>${formatDate(inv.issueDate)}</strong></div>
                         <div style="font-size: 11px; color: #C62828; margin-top: 2px;">Payment Due: <strong>${formatDate(inv.dueDate)}</strong></div>
                     </div>
                 </div>
 
-                <!-- Bill To & Placement Details (100% English) -->
-                <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; margin-bottom: 25px; font-size: 12px;">
-                    <div style="background: #FAF9F6; padding: 14px 16px; border-radius: 6px; border: 1px solid var(--border-color);">
-                        <strong style="color: var(--accent-color); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">BILL TO</strong>
-                        <div style="font-size: 14px; font-weight: 700; color: #1a1a1a;">${inv.schoolName}</div>
-                        <div style="color: #555; margin-top: 3px;">Attn: ${sch.contactPerson || 'Admissions & Finance Department'}</div>
-                        <div style="color: #555;">Email: ${sch.email || '-'}</div>
-                        <div style="color: #555;">Location: ${sch.location || 'Johor, Malaysia'}</div>
-                    </div>
-                    <div style="background: #FAF9F6; padding: 14px 16px; border-radius: 6px; border: 1px solid var(--border-color);">
-                        <strong style="color: var(--accent-color); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">STUDENT PLACEMENT DETAILS</strong>
-                        <div style="font-size: 13px; font-weight: 700; color: #1a1a1a;">Student: ${inv.studentName}</div>
-                        <div style="color: #555; margin-top: 3px;">Year / Grade: ${inv.grade || (admission ? admission.grade : '-')}</div>
-                        <div style="color: #555;">Intake Term: ${inv.termName || (admission ? admission.term : 'Academic Year Intake')}</div>
-                        <div style="color: #555;">Tuition Base: ${inv.tuitionFee ? formatMYR(inv.tuitionFee) : 'Fixed Agreement'}</div>
+                <!-- Bill To Box (Strictly English & Addressed to Finance Contact) -->
+                <div style="background: #FAF9F6; padding: 16px 18px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 22px; font-size: 12px;">
+                    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px;">
+                        <div>
+                            <strong style="color: var(--accent-color); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">BILL TO (INSTITUTION)</strong>
+                            <div style="font-size: 15px; font-weight: 800; color: #1a1a1a;">${inv.schoolName}</div>
+                            <div style="color: #555; margin-top: 4px;">Attn: <strong>${financeContact}</strong></div>
+                            <div style="color: #555;">Email: ${financeEmail}</div>
+                            <div style="color: #555;">Location: ${sch.location || 'Johor, Malaysia'}</div>
+                        </div>
+                        <div style="border-left: 1px solid #E5E0D8; padding-left: 18px;">
+                            <strong style="color: var(--accent-color); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">BILLING SUMMARY</strong>
+                            <div style="color: #555;">Total Placements Invoiced: <strong>${items.length} Student(s)</strong></div>
+                            <div style="color: #555; margin-top: 2px;">Service: Student Recruitment & Placement Services</div>
+                            <div style="color: #555; margin-top: 2px;">Currency: <strong>Malaysian Ringgit (MYR)</strong></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Line Items Table (100% English) -->
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 13px;">
+                <!-- Multi-Student Table (100% English) -->
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 22px; font-size: 12px;">
                     <thead>
                         <tr style="background: #1a1a1a; color: #ffffff;">
-                            <th style="padding: 10px 12px; text-align: left; font-weight: 600;">Description</th>
-                            <th style="padding: 10px 12px; text-align: right; font-weight: 600;">Tuition Base</th>
-                            <th style="padding: 10px 12px; text-align: right; font-weight: 600;">Commission Terms</th>
-                            <th style="padding: 10px 12px; text-align: right; font-weight: 600;">Amount (MYR)</th>
+                            <th style="padding: 10px 8px; text-align: center; font-weight: 600; width: 35px;">No.</th>
+                            <th style="padding: 10px 10px; text-align: left; font-weight: 600;">Student Name (EN)</th>
+                            <th style="padding: 10px 10px; text-align: left; font-weight: 600;">Grade / Year</th>
+                            <th style="padding: 10px 10px; text-align: left; font-weight: 600;">Intake Term</th>
+                            <th style="padding: 10px 10px; text-align: right; font-weight: 600;">Tuition Fee</th>
+                            <th style="padding: 10px 10px; text-align: center; font-weight: 600;">Terms / Installment</th>
+                            <th style="padding: 10px 12px; text-align: right; font-weight: 600;">Claim Amount (MYR)</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr style="border-bottom: 1px solid var(--border-color);">
-                            <td style="padding: 12px; line-height: 1.4;">
-                                <strong>Student Admission & Placement Commission Fee</strong>
-                                <div style="font-size: 11px; color: #666;">Student: ${inv.studentName} | ${inv.schoolName} (${inv.termName || 'Term Placement'})</div>
-                            </td>
-                            <td style="padding: 12px; text-align: right;">${inv.tuitionFee ? formatMYR(inv.tuitionFee) : '-'}</td>
-                            <td style="padding: 12px; text-align: right;">${rateLabel}</td>
-                            <td style="padding: 12px; text-align: right; font-weight: 700;">${formatMYR(inv.amount)}</td>
-                        </tr>
+                        ${rowsHtml}
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="3" style="padding: 10px 12px; text-align: right; font-weight: 600; color: #666;">Subtotal:</td>
+                            <td colspan="6" style="padding: 10px 12px; text-align: right; font-weight: 600; color: #666;">Subtotal:</td>
                             <td style="padding: 10px 12px; text-align: right; font-weight: 600;">${formatMYR(inv.amount)}</td>
                         </tr>
                         <tr>
-                            <td colspan="3" style="padding: 6px 12px; text-align: right; font-weight: 600; color: #666;">SST / Service Tax (0% Exempt):</td>
-                            <td style="padding: 6px 12px; text-align: right; font-weight: 600;">RM 0.00</td>
+                            <td colspan="6" style="padding: 4px 12px; text-align: right; font-weight: 600; color: #666;">Service Tax / SST (0% Exempt):</td>
+                            <td style="padding: 4px 12px; text-align: right; font-weight: 600;">RM 0.00</td>
                         </tr>
-                        <tr style="border-top: 2px solid #1a1a1a; font-size: 15px;">
-                            <td colspan="3" style="padding: 12px; text-align: right; font-weight: 800; color: #1a1a1a;">TOTAL DUE:</td>
+                        <tr style="border-top: 2px solid #1a1a1a; font-size: 14px;">
+                            <td colspan="6" style="padding: 12px; text-align: right; font-weight: 800; color: #1a1a1a;">TOTAL AMOUNT DUE:</td>
                             <td style="padding: 12px; text-align: right; font-weight: 800; color: #2E7D32; font-size: 16px;">${formatMYR(inv.amount)}</td>
                         </tr>
                     </tfoot>
@@ -1284,17 +1800,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                     <div style="font-size: 11px; color: #777; margin-top: 8px; border-top: 1px dashed var(--border-color); padding-top: 6px;">
-                        * Please quote Invoice No. <strong>${inv.invoiceNo}</strong> as payment reference.
+                        * Please quote Invoice No. <strong>${inv.invoiceNo}</strong> as remittance reference.
                     </div>
                 </div>
 
                 <!-- Signatory Footer (100% English) -->
-                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; padding-top: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 25px; padding-top: 15px;">
                     <div style="font-size: 11px; color: #888; line-height: 1.4;">
-                        Thank you for your valued partnership.<br>
-                        JohorN Edu Consulting & Settlement Care Services
+                        Thank you for your valued partnership with JohorN Education Consulting.<br>
+                        Authorized Agent & Official Education Placement Partner
                     </div>
-                    <div style="text-align: center; border-top: 1px solid #aaa; padding-top: 8px; width: 200px;">
+                    <div style="text-align: center; border-top: 1px solid #aaa; padding-top: 8px; width: 220px;">
                         <div style="font-size: 12px; font-weight: 700; color: #1a1a1a;">${ent.director || 'Authorized Signatory'}</div>
                         <div style="font-size: 10px; color: #777;">${ent.name}</div>
                     </div>
@@ -1302,28 +1818,34 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        // Update Email Composer Box
-        updateEmailComposer(inv, ent, sch, admission);
+        // Update Email Composer Box targeting school's finance contact email!
+        updateEmailComposer(inv, ent, sch);
     }
 
-    // AUTOMATIC EMAIL GENERATOR FUNCTION
-    function updateEmailComposer(inv, ent, sch, admission) {
-        const recipient = sch.email || 'admissions@school.edu.my';
-        const subject = `[INVOICE: ${inv.invoiceNo}] Commission Invoice for Student Placement - ${inv.studentName} (${inv.schoolName})`;
+    // AUTOMATIC EMAIL GENERATOR FUNCTION (Targets Finance Contact)
+    function updateEmailComposer(inv, ent, sch) {
+        const recipient = sch.financeContactEmail || sch.email || 'accounts@school.edu.my';
+        const financeContact = sch.financeContactName || sch.contactPerson || 'Finance & Accounts Department';
+        const monthLabel = inv.billingMonth ? ` (${inv.billingMonth})` : '';
+        const subject = `[COMMISSION INVOICE: ${inv.invoiceNo}] Student Placement Commission - ${inv.schoolName}${monthLabel}`;
         
-        const body = `Dear ${sch.contactPerson || 'Admissions & Finance Team'},
+        const items = inv.items || [];
+        const studentListText = items.length > 0 
+            ? items.map((i, idx) => `  ${idx + 1}. ${i.studentNameEn} (Grade: ${i.gradeEn || '-'}, Term: ${i.termEn || '-'}) -> ${formatMYR(i.amount)}`).join('\n')
+            : `  1. ${inv.studentNameEn || inv.studentName || '-'} (Grade: ${inv.gradeEn || '-'}) -> ${formatMYR(inv.amount)}`;
+
+        const body = `Dear ${financeContact},
 
 Greetings from ${ent.name}.
 
-Please find attached our official commission invoice for the student admission & placement detailed below:
+Please find attached our official commission invoice #${inv.invoiceNo} for student recruitment & placement services for ${inv.schoolName}.
 
-[PLACEMENT DETAILS]
+[INVOICE SUMMARY]
 • Invoice Number: ${inv.invoiceNo}
-• Student Name: ${inv.studentName}
-• Target School: ${inv.schoolName}
-• Grade / Year Group: ${inv.grade || (admission ? admission.grade : '-')}
-• Intake Term: ${inv.termName || 'Term Placement'}
-• Commission Amount Due: ${formatMYR(inv.amount)}
+• Target Institution: ${inv.schoolName}
+• Invoiced Students: ${items.length || 1} student(s)
+${studentListText}
+• Total Claim Amount Due: ${formatMYR(inv.amount)}
 • Payment Due Date: ${formatDate(inv.dueDate)}
 
 [REMITTANCE BANK DETAILS]
@@ -1333,8 +1855,8 @@ Please find attached our official commission invoice for the student admission &
 • SWIFT / BIC Code: ${ent.swiftCode || '-'}
 • Payment Reference: ${inv.invoiceNo}
 
-The official PDF invoice is attached to this email for your accounting and remittance records.
-Kindly acknowledge receipt and notify us once the payment has been processed.
+The official PDF invoice is attached for your accounting and remittance records.
+Kindly acknowledge receipt and notify us once payment is remitted.
 
 Thank you very much for your valued partnership.
 
@@ -1367,7 +1889,7 @@ Email / Contact: ${ent.contact || '-'}`.trim();
             if (!body) return;
 
             navigator.clipboard.writeText(body).then(() => {
-                alert('학교 정산 담당자 발송용 영문 이메일 본문 전체가 클립보드에 복사되었습니다!\n\n인보이스 PDF 파일을 첨부하여 이메일을 발송하세요.');
+                alert('학교 회계 담당자 발송용 영문 이메일 본문 전체가 클립보드에 복사되었습니다!\n\n인보이스 PDF 파일을 첨부하여 회계팀에 이메일을 발송하세요.');
             }).catch(() => {
                 prompt('아래 텍스트를 복사하세요:', body);
             });
@@ -1392,7 +1914,7 @@ Email / Contact: ${ent.contact || '-'}`.trim();
     }
 
     // ----------------------------------------------------
-    // 12. SUB-TAB 3 & MODAL 3: Payments & Settlement Confirmation
+    // 12. SUB-TAB 3 & MODAL 3 & 8: Payments & Settlement Confirmation & Rich Details Modal
     // ----------------------------------------------------
     const paymentTableBody = document.getElementById('paymentTableBody');
     const paymentSchoolFilter = document.getElementById('paymentSchoolFilter');
@@ -1419,7 +1941,7 @@ Email / Contact: ${ent.contact || '-'}`.trim();
                 <tr>
                     <td colspan="9" style="text-align: center; padding: 40px; color: var(--text-secondary);">
                         <i class="fa-solid fa-receipt" style="font-size: 32px; color: #C5A880; margin-bottom: 10px; display: block;"></i>
-                        선택한 기간에 등록된 커미션 입금 내역이 없습니다.
+                        선택한 조건에 등록된 커미션 입금 내역이 없습니다.
                     </td>
                 </tr>
             `;
@@ -1427,12 +1949,12 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         }
 
         paymentTableBody.innerHTML = filtered.map(p => `
-            <tr>
+            <tr class="payment-row-clickable" data-id="${p.id}" title="클릭하여 상세 입금/정산 정보 보기">
                 <td style="font-weight: 600;">${formatDate(p.paymentDate)}</td>
                 <td style="font-weight: 600; color: var(--text-primary);">${p.schoolName || '-'}</td>
                 <td>
-                    <div>${p.studentName || '-'}</div>
-                    <span class="installment-tag" style="font-size: 10px;">${p.termName || '전액'}</span>
+                    <div>${p.studentName || (p.studentListSummary || '-')}</div>
+                    <span class="installment-tag" style="font-size: 10px;">${p.termName || '정산완료'}</span>
                 </td>
                 <td style="font-family: monospace; font-size: 12px; color: var(--accent-color);">${p.invoiceNo || '-'}</td>
                 <td style="font-weight: 700; color: #2E7D32; font-size: 14px;">${formatMYR(p.amount)}</td>
@@ -1440,9 +1962,12 @@ Email / Contact: ${ent.contact || '-'}`.trim();
                 <td style="font-family: monospace; font-size: 11px;">${p.refNo || '-'}</td>
                 <td style="font-size: 12px; color: var(--text-secondary);">${p.memo || '-'}</td>
                 <td>
-                    <div class="table-action-btns">
-                        <button type="button" class="btn btn-primary btn-view-payment-inv" data-invoice-no="${p.invoiceNo || ''}" data-admission-id="${p.admissionId || ''}" style="padding: 5px 9px; font-size: 11px; display: flex; align-items: center; gap: 4px;" title="발행되었던 인보이스 PDF 열람">
-                            <i class="fa-solid fa-file-pdf"></i> 인보이스
+                    <div class="table-action-btns" onclick="event.stopPropagation();">
+                        <button type="button" class="btn btn-secondary btn-detail-payment" data-id="${p.id}" style="padding: 5px 8px; font-size: 11px; color: var(--accent-color);" title="상세보기">
+                            <i class="fa-solid fa-circle-info"></i> 상세
+                        </button>
+                        <button type="button" class="btn btn-primary btn-view-payment-inv" data-invoice-no="${p.invoiceNo || ''}" data-invoice-id="${p.invoiceId || ''}" data-admission-id="${p.admissionId || ''}" style="padding: 5px 8px; font-size: 11px;" title="인보이스 PDF 열람">
+                            <i class="fa-solid fa-file-pdf"></i>
                         </button>
                         <button type="button" class="btn btn-secondary btn-del-payment" data-id="${p.id}" style="padding: 5px 8px; font-size: 11px; color: #C62828; border-color: #C62828;" title="입금 내역 삭제">
                             <i class="fa-solid fa-trash"></i>
@@ -1452,15 +1977,30 @@ Email / Contact: ${ent.contact || '-'}`.trim();
             </tr>
         `).join('');
 
-        // Bind Payment Row Invoice View
+        // Bind Payment Row Click to Details Modal
+        document.querySelectorAll('.payment-row-clickable').forEach(row => {
+            row.addEventListener('click', () => {
+                const id = row.getAttribute('data-id');
+                if (id) openPaymentDetailModal(id);
+            });
+        });
+
+        document.querySelectorAll('.btn-detail-payment').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = btn.getAttribute('data-id');
+                if (id) openPaymentDetailModal(id);
+            });
+        });
+
         document.querySelectorAll('.btn-view-payment-inv').forEach(btn => {
             btn.addEventListener('click', () => {
+                const invId = btn.getAttribute('data-invoice-id');
                 const invNo = btn.getAttribute('data-invoice-no');
                 const admId = btn.getAttribute('data-admission-id');
 
                 let matchedInv = null;
-                if (invNo) matchedInv = invoices.find(i => i.invoiceNo === invNo);
-                if (!matchedInv && admId) matchedInv = invoices.find(i => i.admissionId === admId);
+                if (invId) matchedInv = invoices.find(i => i.id === invId);
+                if (!matchedInv && invNo) matchedInv = invoices.find(i => i.invoiceNo === invNo);
 
                 if (matchedInv) {
                     openInvoiceModalById(matchedInv.id);
@@ -1485,6 +2025,163 @@ Email / Contact: ${ent.contact || '-'}`.trim();
     if (paymentMonthFilter) paymentMonthFilter.addEventListener('change', renderPayments);
     if (paymentSchoolFilter) paymentSchoolFilter.addEventListener('change', renderPayments);
 
+    // ----------------------------------------------------
+    // PAYMENT DETAILS MODAL (Request 4)
+    // ----------------------------------------------------
+    function openPaymentDetailModal(paymentId) {
+        const p = payments.find(pay => pay.id === paymentId);
+        if (!p) return;
+
+        const inv = invoices.find(i => i.id === p.invoiceId || i.invoiceNo === p.invoiceNo);
+        const sch = schools.find(s => s.nameEn === p.schoolName || (inv && s.nameEn === inv.schoolName)) || {};
+        const adm = admissions.find(a => a.id === p.admissionId);
+
+        const container = document.getElementById('paymentDetailContent');
+        if (!container) return;
+
+        // Collect student items
+        let studentRowsHtml = '';
+        if (inv && inv.items && inv.items.length > 0) {
+            studentRowsHtml = inv.items.map((item, idx) => `
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 8px; text-align: center; color: #888;">${idx + 1}</td>
+                    <td style="padding: 8px;"><strong>${item.studentNameEn}</strong> ${item.studentNameKo ? `(${item.studentNameKo})` : ''}</td>
+                    <td style="padding: 8px;">${item.gradeEn || '-'}</td>
+                    <td style="padding: 8px;">${item.termEn || '-'}</td>
+                    <td style="padding: 8px; text-align: right;">${item.tuitionFee > 0 ? formatMYR(item.tuitionFee) : '-'}</td>
+                    <td style="padding: 8px; text-align: right; font-weight: 700; color: #2E7D32;">${formatMYR(item.amount)}</td>
+                </tr>
+            `).join('');
+        } else {
+            const sName = p.studentName || (adm ? adm.studentName : '-');
+            const sGrade = adm ? (adm.gradeEn || adm.grade) : '-';
+            const sTerm = p.termName || (adm ? (adm.termEn || adm.term) : '-');
+            const sTuition = adm ? adm.tuitionFee : 0;
+            studentRowsHtml = `
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 8px; text-align: center; color: #888;">1</td>
+                    <td style="padding: 8px;"><strong>${sName}</strong></td>
+                    <td style="padding: 8px;">${sGrade}</td>
+                    <td style="padding: 8px;">${sTerm}</td>
+                    <td style="padding: 8px; text-align: right;">${sTuition > 0 ? formatMYR(sTuition) : '-'}</td>
+                    <td style="padding: 8px; text-align: right; font-weight: 700; color: #2E7D32;">${formatMYR(p.amount)}</td>
+                </tr>
+            `;
+        }
+
+        container.innerHTML = `
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                <!-- Card 1: Payment Info -->
+                <div style="background: #F9F8F6; border: 1px solid var(--border-color); border-radius: 8px; padding: 18px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <span style="font-size: 12px; font-weight: 700; color: var(--accent-color); text-transform: uppercase;">
+                            <i class="fa-solid fa-money-bill-transfer"></i> 입금 및 정산 내역
+                        </span>
+                        <span class="status-badge status-paid"><i class="fa-solid fa-circle-check"></i> 입금 완료</span>
+                    </div>
+                    <div style="font-size: 26px; font-weight: 800; color: #2E7D32; margin-bottom: 10px;">
+                        ${formatMYR(p.amount)}
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.7;">
+                        <div>• <strong>입금 일자:</strong> ${formatDate(p.paymentDate)}</div>
+                        <div>• <strong>수취 계좌:</strong> ${p.bank || 'Maybank 법인 계좌'}</div>
+                        <div>• <strong>거래 참조번호 (Ref):</strong> <span style="font-family: monospace; font-weight: 600; color: #1a1a1a;">${p.refNo || '-'}</span></div>
+                        <div>• <strong>정산 메모:</strong> ${p.memo || '-'}</div>
+                    </div>
+                </div>
+
+                <!-- Card 2: School & Accounting Info -->
+                <div style="background: #FFFDF9; border: 1px solid var(--border-color); border-left: 4px solid var(--accent-color); border-radius: 8px; padding: 18px;">
+                    <span style="font-size: 12px; font-weight: 700; color: var(--accent-color); text-transform: uppercase; display: block; margin-bottom: 8px;">
+                        <i class="fa-solid fa-school"></i> 대상 국제학교 및 회계 담당자
+                    </span>
+                    <h4 style="font-size: 16px; font-weight: 700; margin: 0 0 6px 0; color: var(--text-primary);">${p.schoolName || '-'}</h4>
+                    <div style="font-size: 12px; color: #888; margin-bottom: 10px;">${sch.location || 'Johor, Malaysia'}</div>
+                    
+                    <div style="background: #F5F2EB; padding: 10px 12px; border-radius: 6px; font-size: 12px; line-height: 1.6;">
+                        <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 2px;">
+                            <i class="fa-solid fa-file-invoice-dollar" style="color: var(--accent-color);"></i> 회계 담당자: ${sch.financeContactName || sch.contactPerson || '-'}
+                        </div>
+                        <div>• 이메일: <strong>${sch.financeContactEmail || sch.email || '-'}</strong></div>
+                        <div>• 연락처: ${sch.financeContactPhone || sch.phone || '-'}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3: Invoiced Students Table -->
+            <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                <h4 style="font-size: 14px; font-weight: 700; color: var(--text-primary); margin: 0 0 12px 0;">
+                    <i class="fa-solid fa-user-graduate" style="color: var(--accent-color);"></i> 본 정산에 포함된 학생 명단 및 커미션 배분
+                </h4>
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                    <thead>
+                        <tr style="background: #F4F2EE; color: var(--text-primary);">
+                            <th style="padding: 8px; width: 35px; text-align: center;">No.</th>
+                            <th style="padding: 8px; text-align: left;">학생 영문명 (한글)</th>
+                            <th style="padding: 8px; text-align: left;">학년</th>
+                            <th style="padding: 8px; text-align: left;">학기 / 입학일</th>
+                            <th style="padding: 8px; text-align: right;">학비 (MYR)</th>
+                            <th style="padding: 8px; text-align: right;">정산 입금액 (MYR)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${studentRowsHtml}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Card 4: Linked Invoice Details -->
+            <div style="background: #FAF9F6; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-size: 11px; color: var(--accent-color); font-weight: 700; text-transform: uppercase;">연결된 공식 인보이스</div>
+                    <div style="font-size: 15px; font-weight: 800; font-family: monospace; color: #1a1a1a; margin-top: 2px;">${p.invoiceNo || '연결 인보이스 없음'}</div>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">
+                        발행 법인: ${inv ? inv.entityName : 'GLOBAL EDU CONSULTING'} | 청구월: ${inv ? (inv.billingMonth || '-') : '-'}
+                    </div>
+                </div>
+                ${inv ? `
+                    <button type="button" class="btn btn-primary btn-open-linked-inv" data-id="${inv.id}" style="padding: 8px 14px; font-size: 12px;">
+                        <i class="fa-solid fa-file-pdf"></i> 공식 인보이스 열람
+                    </button>
+                ` : ''}
+            </div>
+        `;
+
+        const openLinkedBtn = container.querySelector('.btn-open-linked-inv');
+        if (openLinkedBtn) {
+            openLinkedBtn.addEventListener('click', () => {
+                closeModal('paymentDetailModal');
+                openInvoiceModalById(openLinkedBtn.getAttribute('data-id'));
+            });
+        }
+
+        const viewInvBtn = document.getElementById('paymentDetailViewInvoiceBtn');
+        if (viewInvBtn) {
+            if (inv) {
+                viewInvBtn.style.display = 'inline-flex';
+                viewInvBtn.onclick = () => {
+                    closeModal('paymentDetailModal');
+                    openInvoiceModalById(inv.id);
+                };
+            } else {
+                viewInvBtn.style.display = 'none';
+            }
+        }
+
+        const deleteBtn = document.getElementById('paymentDetailDeleteBtn');
+        if (deleteBtn) {
+            deleteBtn.onclick = () => {
+                if (confirm('해당 입금 내역을 삭제하시겠습니까?')) {
+                    db.ref('commission_payments/' + p.id).remove().then(() => {
+                        closeModal('paymentDetailModal');
+                    });
+                }
+            };
+        }
+
+        openModal('paymentDetailModal');
+    }
+
     function openPaymentForAdmission(admissionId) {
         const adm = admissions.find(a => a.id === admissionId);
         if (!adm) return;
@@ -1495,10 +2192,10 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         document.getElementById('paymentAmountInput').value = adm.commissionAmount || 0;
         document.getElementById('paymentBankInput').value = 'Maybank 법인 계좌';
         document.getElementById('paymentRefInput').value = '';
-        document.getElementById('paymentMemoInput').value = `${adm.schoolName} 입금 확인`;
+        document.getElementById('paymentMemoInput').value = `${adm.schoolName} 커미션 입금 확인`;
 
         document.getElementById('paymentTargetSummaryBox').innerHTML = `
-            <strong>대상 학생:</strong> ${adm.studentName} (${adm.schoolName})<br>
+            <strong>대상 학생:</strong> ${adm.studentNameEn || adm.studentName} (${adm.schoolName})<br>
             <strong>총 커미션:</strong> ${formatMYR(adm.commissionAmount)} | <strong>정산:</strong> ${adm.settlementMode || 1}회 정산
         `;
 
@@ -1515,13 +2212,13 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         document.getElementById('paymentAmountInput').value = inv.amount || 0;
         document.getElementById('paymentBankInput').value = 'Maybank 법인 계좌';
         document.getElementById('paymentRefInput').value = '';
-        document.getElementById('paymentMemoInput').value = `인보이스 ${inv.invoiceNo} 입금 확인`;
+        document.getElementById('paymentMemoInput').value = `인보이스 ${inv.invoiceNo} 정산 입금 확인`;
 
-        document.getElementById('paymentTargetSummaryBox').innerHTML = `
-            <strong>인보이스:</strong> ${inv.invoiceNo} (${inv.schoolName})<br>
-            <strong>학생명:</strong> ${inv.studentName} | <strong>청구액:</strong> ${formatMYR(inv.amount)}
-        `;
+        const targetSummary = inv.items && inv.items.length > 0 
+            ? `<strong>인보이스:</strong> ${inv.invoiceNo} (${inv.schoolName} - ${inv.billingMonth || ''}월분)<br><strong>포함 학생:</strong> 총 ${inv.items.length}명 | <strong>청구액:</strong> ${formatMYR(inv.amount)}`
+            : `<strong>인보이스:</strong> ${inv.invoiceNo} (${inv.schoolName})<br><strong>학생명:</strong> ${inv.studentNameEn || inv.studentName} | <strong>청구액:</strong> ${formatMYR(inv.amount)}`;
 
+        document.getElementById('paymentTargetSummaryBox').innerHTML = targetSummary;
         openModal('paymentModal');
     }
 
@@ -1543,13 +2240,23 @@ Email / Contact: ${ent.contact || '-'}`.trim();
             const adm = admissions.find(a => a.id === admissionId);
             const inv = invoices.find(i => i.id === invoiceId);
 
+            let studentSummary = '';
+            if (inv && inv.items && inv.items.length > 0) {
+                studentSummary = `${inv.items.length}명 (${inv.items.map(i => i.studentNameEn).slice(0, 2).join(', ')}${inv.items.length > 2 ? ' 외' : ''})`;
+            } else if (inv) {
+                studentSummary = inv.studentNameEn || inv.studentName || '';
+            } else if (adm) {
+                studentSummary = adm.studentNameEn || adm.studentName || '';
+            }
+
             const paymentRecord = {
                 admissionId: admissionId || '',
                 invoiceId: invoiceId || '',
-                invoiceNo: inv ? inv.invoiceNo : (adm ? `INV-${adm.studentName}` : ''),
+                invoiceNo: inv ? inv.invoiceNo : (adm ? `INV-${adm.studentNameEn || adm.studentName}` : ''),
                 schoolName: inv ? inv.schoolName : (adm ? adm.schoolName : ''),
-                studentName: inv ? inv.studentName : (adm ? adm.studentName : ''),
-                termName: inv ? inv.termName : (adm ? adm.term : ''),
+                studentName: studentSummary,
+                studentListSummary: studentSummary,
+                termName: inv ? (inv.billingMonth ? `${inv.billingMonth}월 통합정산` : (inv.termName || '완납')) : (adm ? adm.term : '완납'),
                 paymentDate,
                 amount,
                 bank,
@@ -1565,19 +2272,33 @@ Email / Contact: ${ent.contact || '-'}`.trim();
                     db.ref('commission_invoices/' + invoiceId).update({ status: 'paid' });
                 }
 
-                // Update Admission status to paid or partially_paid
-                if (admissionId && adm) {
+                // If invoice had multiple items, mark each student's installments as paid!
+                if (inv && inv.items && inv.items.length > 0) {
+                    inv.items.forEach(item => {
+                        const targetAdm = admissions.find(a => a.id === item.admissionId);
+                        if (targetAdm && targetAdm.installments && targetAdm.installments[item.installmentIndex]) {
+                            targetAdm.installments[item.installmentIndex].status = 'paid';
+                            targetAdm.installments[item.installmentIndex].paymentDate = paymentDate;
+                            
+                            const allPaid = targetAdm.installments.every(inst => inst.status === 'paid');
+                            db.ref(`commission_admissions/${item.admissionId}/installments`).set(targetAdm.installments);
+                            if (allPaid) {
+                                db.ref(`commission_admissions/${item.admissionId}/status`).set('paid');
+                            }
+                        }
+                    });
+                } else if (admissionId && adm) {
                     db.ref('commission_admissions/' + admissionId).update({ status: 'paid' });
                 }
 
                 closeModal('paymentModal');
-                alert('입금 확인 및 정산 완료 처리가 저장되었습니다.');
+                alert('입금 확인 및 커미션 정산 완료 처리가 저장되었습니다.');
             });
         });
     }
 
     // ----------------------------------------------------
-    // 13. SUB-TAB 4 & MODAL 4: Partner International Schools
+    // 13. SUB-TAB 4 & MODAL 4 & 6: Partner International Schools & Enrolled Students Modal
     // ----------------------------------------------------
     const schoolsListGrid = document.getElementById('schoolsListGrid');
     const openAddSchoolBtn = document.getElementById('openAddSchoolBtn');
@@ -1591,7 +2312,7 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         schoolCommissionType.addEventListener('change', () => {
             if (schoolCommissionType.value === 'fixed') {
                 if (schoolValueLabel) schoolValueLabel.innerHTML = '기본 고정 금액 (MYR) <span style="color: #C62828;">*</span>';
-                if (schoolDefaultRate) schoolDefaultRate.placeholder = '예: 3000';
+                if (schoolDefaultRate) schoolDefaultRate.placeholder = '예: 3500';
             } else {
                 if (schoolValueLabel) schoolValueLabel.innerHTML = '기본 요율 (%) <span style="color: #C62828;">*</span>';
                 if (schoolDefaultRate) schoolDefaultRate.placeholder = '10';
@@ -1612,57 +2333,244 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         }
 
         schoolsListGrid.innerHTML = schools.map(sch => {
-            const schoolAdmissions = admissions.filter(a => a.schoolName === sch.nameEn);
+            const schoolAdmissions = admissions.filter(a => a.schoolName === sch.nameEn || a.schoolName === sch.nameKo || a.schoolId === sch.id);
             const totalCount = schoolAdmissions.length;
+            const settledCount = schoolAdmissions.filter(a => a.status === 'paid').length;
+            const pendingCount = totalCount - settledCount;
             const totalCommission = schoolAdmissions.reduce((sum, a) => sum + (parseFloat(a.commissionAmount) || 0), 0);
 
             const rateTag = sch.commissionType === 'fixed'
                 ? `<span class="installment-tag" style="background: rgba(2, 136, 209, 0.1); color: #0288D1; font-weight: 700;">고정 ${formatMYR(sch.defaultRate || 0)}</span>`
                 : `<span class="installment-tag" style="background: rgba(46, 125, 50, 0.1); color: #2E7D32; font-weight: 700;">${sch.defaultRate || 10}%</span>`;
 
+            // Contract Status Badge
+            const contractStatus = getContractStatus(sch.contractStartDate, sch.contractEndDate);
+            const contractDatesDisplay = (sch.contractStartDate && sch.contractEndDate) 
+                ? `${sch.contractStartDate} ~ ${sch.contractEndDate}`
+                : '계약기간 미지정';
+
             return `
                 <div class="school-card">
                     <div>
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
                             <h4 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; line-height: 1.3;">${sch.nameEn}</h4>
                             ${rateTag}
                         </div>
-                        <div style="font-size: 12px; color: var(--accent-color); font-weight: 500; margin-bottom: 12px;">${sch.nameKo || ''}</div>
+                        <div style="font-size: 12px; color: var(--accent-color); font-weight: 500; margin-bottom: 10px;">${sch.nameKo || ''}</div>
                         
-                        <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 15px;">
-                            <div><i class="fa-solid fa-user-tie" style="width: 16px; color: #8C8782;"></i> ${sch.contactPerson || '입학/재무팀'}</div>
-                            <div><i class="fa-solid fa-envelope" style="width: 16px; color: #8C8782;"></i> ${sch.email || '-'}</div>
-                            <div><i class="fa-solid fa-phone" style="width: 16px; color: #8C8782;"></i> ${sch.phone || '-'}</div>
-                            <div><i class="fa-solid fa-location-dot" style="width: 16px; color: #8C8782;"></i> ${sch.location || '-'}</div>
+                        <!-- Contract Period Badge -->
+                        <div style="background: #FAF8F5; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 10px; margin-bottom: 12px; font-size: 11px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="color: #666;"><i class="fa-solid fa-file-contract" style="color: var(--accent-color);"></i> 계약기간</span>
+                                <span class="contract-badge ${contractStatus.cssClass}">${contractStatus.label}</span>
+                            </div>
+                            <div style="font-weight: 600; color: #1a1a1a; margin-top: 4px;">${contractDatesDisplay}</div>
+                        </div>
+
+                        <!-- Admin Contact -->
+                        <div class="school-contact-box">
+                            <div style="font-weight: 700; color: #555; margin-bottom: 4px;">
+                                <i class="fa-solid fa-user-tie"></i> 어드민 담당자
+                            </div>
+                            <div>• 성명: <strong>${sch.adminContactName || sch.contactPerson || '-'}</strong></div>
+                            <div>• 이메일: ${sch.adminContactEmail || sch.email || '-'}</div>
+                            <div>• 연락처: ${sch.adminContactPhone || sch.phone || '-'}</div>
+                        </div>
+
+                        <!-- Finance Contact (Invoice Destination) -->
+                        <div class="school-contact-box finance-box">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <span style="font-weight: 700; color: var(--accent-color);">
+                                    <i class="fa-solid fa-file-invoice-dollar"></i> 회계/정산 담당자
+                                </span>
+                                <span style="font-size: 10px; background: rgba(197, 168, 128, 0.2); color: var(--accent-color); padding: 1px 6px; border-radius: 3px; font-weight: 600;">인보이스 발송처</span>
+                            </div>
+                            <div>• 성명: <strong>${sch.financeContactName || sch.contactPerson || '-'}</strong></div>
+                            <div>• 이메일: <strong style="color: var(--text-primary);">${sch.financeContactEmail || sch.email || '-'}</strong></div>
+                            <div>• 연락처: ${sch.financeContactPhone || sch.phone || '-'}</div>
                         </div>
                     </div>
 
-                    <div style="border-top: 1px solid var(--border-color); padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
-                        <div style="font-size: 11px; color: var(--text-secondary);">
-                            수속 <strong>${totalCount}명</strong> | 커미션 <strong style="color: #2E7D32;">${formatMYR(totalCommission)}</strong>
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 10px;">
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px;">
+                            총 학생 <strong>${totalCount}명</strong> (정산완료 ${settledCount}명 / 진행중 ${pendingCount}명)<br>
+                            총 커미션: <strong style="color: #2E7D32;">${formatMYR(totalCommission)}</strong>
                         </div>
-                        <button type="button" class="btn btn-secondary btn-edit-school" data-id="${sch.id}" style="padding: 4px 10px; font-size: 11px;">
-                            <i class="fa-solid fa-pen"></i> 수정
-                        </button>
+                        <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 8px;">
+                            <button type="button" class="btn btn-primary btn-view-school-students" data-id="${sch.id}" style="padding: 6px 10px; font-size: 11px;">
+                                <i class="fa-solid fa-users"></i> 등록 학생 명단 (${totalCount}명)
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-edit-school" data-id="${sch.id}" style="padding: 6px 10px; font-size: 11px;">
+                                <i class="fa-solid fa-pen"></i> 학교/계약 수정
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
         }).join('');
 
+        document.querySelectorAll('.btn-view-school-students').forEach(btn => {
+            btn.addEventListener('click', () => openSchoolStudentsModal(btn.getAttribute('data-id')));
+        });
         document.querySelectorAll('.btn-edit-school').forEach(btn => {
             btn.addEventListener('click', () => openEditSchoolModal(btn.getAttribute('data-id')));
         });
     }
 
+    // ----------------------------------------------------
+    // SCHOOL ENROLLED STUDENTS FULL VIEW MODAL (Request 3)
+    // ----------------------------------------------------
+    function openSchoolStudentsModal(schoolId) {
+        const sch = schools.find(s => s.id === schoolId);
+        if (!sch) return;
+
+        const schoolStudents = admissions.filter(a => a.schoolId === sch.id || a.schoolName === sch.nameEn || a.schoolName === sch.nameKo);
+        const totalTuition = schoolStudents.reduce((sum, a) => sum + (parseFloat(a.tuitionFee) || 0), 0);
+        const totalCommission = schoolStudents.reduce((sum, a) => sum + (parseFloat(a.commissionAmount) || 0), 0);
+        
+        let settledAmount = 0;
+        schoolStudents.forEach(a => {
+            const insts = a.installments || [];
+            insts.filter(i => i.status === 'paid').forEach(i => settledAmount += (parseFloat(i.amount) || 0));
+        });
+        const pendingAmount = Math.max(0, totalCommission - settledAmount);
+
+        // Header Title
+        const titleEl = document.getElementById('schoolStudentsModalTitle');
+        if (titleEl) {
+            titleEl.innerHTML = `<i class="fa-solid fa-school" style="color: var(--accent-color);"></i> ${sch.nameEn} - 등록 학생 전체 명단 (${schoolStudents.length}명)`;
+        }
+
+        // Summary Banner
+        const bannerEl = document.getElementById('schoolStudentsSummaryBanner');
+        const contractStatus = getContractStatus(sch.contractStartDate, sch.contractEndDate);
+        if (bannerEl) {
+            bannerEl.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; margin-bottom: 15px;">
+                    <div>
+                        <h3 style="margin: 0 0 4px 0; font-size: 18px; color: var(--text-primary);">${sch.nameEn} <span style="font-size: 13px; color: var(--accent-color);">(${sch.nameKo || ''})</span></h3>
+                        <div style="font-size: 12px; color: #666;"><i class="fa-solid fa-location-dot"></i> ${sch.location || 'Johor, Malaysia'}</div>
+                        <div style="font-size: 12px; color: #444; margin-top: 6px;">
+                            • 계약기간: <strong>${sch.contractStartDate || '-'} ~ ${sch.contractEndDate || '-'}</strong>
+                            <span class="contract-badge ${contractStatus.cssClass}" style="margin-left: 6px;">${contractStatus.label}</span>
+                        </div>
+                    </div>
+                    <div style="background: var(--white); padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 12px;">
+                        <div style="font-weight: 700; color: var(--accent-color); margin-bottom: 4px;"><i class="fa-solid fa-file-invoice-dollar"></i> 회계/정산 담당자 (인보이스 수신처)</div>
+                        <div>• 성명: <strong>${sch.financeContactName || sch.contactPerson || '-'}</strong></div>
+                        <div>• 이메일: <strong>${sch.financeContactEmail || sch.email || '-'}</strong> | 전화: ${sch.financeContactPhone || sch.phone || '-'}</div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; border-top: 1px solid var(--border-color); padding-top: 12px; text-align: center;">
+                    <div style="background: var(--white); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 11px; color: #888;">총 등록 학생</div>
+                        <div style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin-top: 2px;">${schoolStudents.length}명</div>
+                    </div>
+                    <div style="background: var(--white); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 11px; color: #888;">총 학비 규모</div>
+                        <div style="font-size: 15px; font-weight: 800; color: #1a1a1a; margin-top: 2px;">${formatMYR(totalTuition)}</div>
+                    </div>
+                    <div style="background: var(--white); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 11px; color: #888;">총 예상 커미션</div>
+                        <div style="font-size: 15px; font-weight: 800; color: var(--accent-color); margin-top: 2px;">${formatMYR(totalCommission)}</div>
+                    </div>
+                    <div style="background: var(--white); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 11px; color: #888;">정산 완료 입금액</div>
+                        <div style="font-size: 15px; font-weight: 800; color: #2E7D32; margin-top: 2px;">${formatMYR(settledAmount)}</div>
+                    </div>
+                    <div style="background: var(--white); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 11px; color: #888;">미정산 잔액</div>
+                        <div style="font-size: 15px; font-weight: 800; color: #C62828; margin-top: 2px;">${formatMYR(pendingAmount)}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Table Body
+        const tableBody = document.getElementById('schoolStudentsTableBody');
+        if (tableBody) {
+            if (schoolStudents.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 30px; color: #888;">
+                            이 학교에 등록된 수속 학생이 없습니다.
+                        </td>
+                    </tr>
+                `;
+            } else {
+                tableBody.innerHTML = schoolStudents.map((adm, idx) => {
+                    const statusBadge = getStatusBadge(adm.status);
+                    const insts = adm.installments || [];
+                    const paidCount = insts.filter(i => i.status === 'paid').length;
+                    
+                    return `
+                        <tr>
+                            <td style="text-align: center; color: #888;">${idx + 1}</td>
+                            <td>
+                                <strong>${adm.studentNameEn || adm.studentName}</strong>
+                                ${adm.studentNameKo ? `<span style="font-size: 11px; color: #888;"> (${adm.studentNameKo})</span>` : ''}
+                                <div style="font-size: 10px; color: #888;">${adm.parentContact || '-'}</div>
+                            </td>
+                            <td>
+                                <div>${adm.gradeEn || adm.grade || '-'}</div>
+                                ${adm.gradeKo ? `<span style="font-size: 10px; color: #888;">${adm.gradeKo}</span>` : ''}
+                            </td>
+                            <td>
+                                <div>${adm.termEn || adm.term || '-'}</div>
+                                <div style="font-size: 10px; color: #888;">입학: ${formatDate(adm.admissionDate)}</div>
+                            </td>
+                            <td style="font-weight: 600;">${adm.tuitionFee > 0 ? formatMYR(adm.tuitionFee) : '-'}</td>
+                            <td style="font-weight: 700; color: var(--accent-color);">${formatMYR(adm.commissionAmount)}</td>
+                            <td>
+                                <span class="installment-tag">${adm.settlementMode === '1' ? '1회' : `${adm.settlementMode}회`} (${paidCount}/${insts.length || 1} 완료)</span>
+                            </td>
+                            <td>${statusBadge}</td>
+                            <td>
+                                <button type="button" class="btn btn-secondary btn-edit-from-school-modal" data-id="${adm.id}" style="padding: 4px 8px; font-size: 11px;">
+                                    <i class="fa-solid fa-pen"></i> 수정
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                tableBody.querySelectorAll('.btn-edit-from-school-modal').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        closeModal('schoolStudentsModal');
+                        openEditAdmissionModal(btn.getAttribute('data-id'));
+                    });
+                });
+            }
+        }
+
+        // Bind "Add new student for this school" button
+        const addStudentBtn = document.getElementById('addNewStudentForThisSchoolBtn');
+        if (addStudentBtn) {
+            addStudentBtn.onclick = () => {
+                closeModal('schoolStudentsModal');
+                if (openAddAdmissionBtn) openAddAdmissionBtn.click();
+                if (admissionSchoolId) {
+                    admissionSchoolId.value = sch.id;
+                    admissionSchoolId.dispatchEvent(new Event('change'));
+                }
+            };
+        }
+
+        openModal('schoolStudentsModal');
+    }
+
     if (openAddSchoolBtn) {
         openAddSchoolBtn.addEventListener('click', () => {
-            document.getElementById('schoolModalTitle').innerHTML = '<i class="fa-solid fa-school" style="color: var(--accent-color);"></i> 협력 국제학교 추가';
+            document.getElementById('schoolModalTitle').innerHTML = '<i class="fa-solid fa-school" style="color: var(--accent-color);"></i> 협력 국제학교 및 커미션 계약 정책 등록';
             document.getElementById('schoolId').value = '';
             document.getElementById('schoolForm').reset();
             document.getElementById('schoolCommissionType').value = 'percentage';
             if (schoolValueLabel) schoolValueLabel.innerHTML = '기본 요율 (%) <span style="color: #C62828;">*</span>';
             document.getElementById('schoolDefaultRate').value = '10';
             document.getElementById('schoolDefaultSettlement').value = '1';
+            document.getElementById('schoolContractStartDate').value = '2025-01-01';
+            document.getElementById('schoolContractEndDate').value = '2026-12-31';
             if (deleteSchoolBtn) deleteSchoolBtn.classList.add('hidden');
             openModal('schoolModal');
         });
@@ -1672,26 +2580,36 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         const sch = schools.find(s => s.id === id);
         if (!sch) return;
 
-        document.getElementById('schoolModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: var(--accent-color);"></i> 협력 국제학교 정보 수정';
+        document.getElementById('schoolModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: var(--accent-color);"></i> 협력 국제학교 및 계약 정책 수정';
         document.getElementById('schoolId').value = sch.id;
         document.getElementById('schoolNameEn').value = sch.nameEn || '';
         document.getElementById('schoolNameKo').value = sch.nameKo || '';
-        
+        document.getElementById('schoolLocation').value = sch.location || '';
+        document.getElementById('schoolContractStartDate').value = sch.contractStartDate || '';
+        document.getElementById('schoolContractEndDate').value = sch.contractEndDate || '';
+
         const commType = sch.commissionType || 'percentage';
         document.getElementById('schoolCommissionType').value = commType;
         if (commType === 'fixed') {
             if (schoolValueLabel) schoolValueLabel.innerHTML = '기본 고정 금액 (MYR) <span style="color: #C62828;">*</span>';
-            document.getElementById('schoolDefaultRate').value = sch.defaultRate || 3000;
+            document.getElementById('schoolDefaultRate').value = sch.defaultRate || 3500;
         } else {
             if (schoolValueLabel) schoolValueLabel.innerHTML = '기본 요율 (%) <span style="color: #C62828;">*</span>';
             document.getElementById('schoolDefaultRate').value = sch.defaultRate || 10;
         }
 
         document.getElementById('schoolDefaultSettlement').value = sch.defaultSettlement || '1';
-        document.getElementById('schoolContactPerson').value = sch.contactPerson || '';
-        document.getElementById('schoolEmail').value = sch.email || '';
-        document.getElementById('schoolPhone').value = sch.phone || '';
-        document.getElementById('schoolLocation').value = sch.location || '';
+        
+        // Admin Contact
+        document.getElementById('schoolAdminContactName').value = sch.adminContactName || sch.contactPerson || '';
+        document.getElementById('schoolAdminContactEmail').value = sch.adminContactEmail || sch.email || '';
+        document.getElementById('schoolAdminContactPhone').value = sch.adminContactPhone || sch.phone || '';
+        
+        // Finance Contact
+        document.getElementById('schoolFinanceContactName').value = sch.financeContactName || sch.contactPerson || '';
+        document.getElementById('schoolFinanceContactEmail').value = sch.financeContactEmail || sch.email || '';
+        document.getElementById('schoolFinanceContactPhone').value = sch.financeContactPhone || sch.phone || '';
+
         document.getElementById('schoolMemo').value = sch.memo || '';
 
         if (deleteSchoolBtn) deleteSchoolBtn.classList.remove('hidden');
@@ -1702,10 +2620,11 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         saveSchoolBtn.addEventListener('click', () => {
             const id = document.getElementById('schoolId').value;
             const nameEn = document.getElementById('schoolNameEn').value.trim();
-            const email = document.getElementById('schoolEmail').value.trim();
+            const financeEmail = document.getElementById('schoolFinanceContactEmail').value.trim();
+            const adminEmail = document.getElementById('schoolAdminContactEmail').value.trim();
 
-            if (!nameEn || !email) {
-                alert('학교 영문명과 이메일을 입력해주세요.');
+            if (!nameEn) {
+                alert('국제학교 공식 영문명을 입력해주세요.');
                 return;
             }
 
@@ -1714,14 +2633,23 @@ Email / Contact: ${ent.contact || '-'}`.trim();
             const data = {
                 nameEn,
                 nameKo: document.getElementById('schoolNameKo').value.trim(),
+                location: document.getElementById('schoolLocation').value.trim(),
+                contractStartDate: document.getElementById('schoolContractStartDate').value,
+                contractEndDate: document.getElementById('schoolContractEndDate').value,
                 commissionType: commType,
                 defaultRate: parseFloat(document.getElementById('schoolDefaultRate').value) || 10,
                 defaultSettlement: document.getElementById('schoolDefaultSettlement').value,
-                contactPerson: document.getElementById('schoolContactPerson').value.trim(),
-                email,
-                phone: document.getElementById('schoolPhone').value.trim(),
-                location: document.getElementById('schoolLocation').value.trim(),
-                memo: document.getElementById('schoolMemo').value.trim()
+                adminContactName: document.getElementById('schoolAdminContactName').value.trim(),
+                adminContactEmail: adminEmail,
+                adminContactPhone: document.getElementById('schoolAdminContactPhone').value.trim(),
+                financeContactName: document.getElementById('schoolFinanceContactName').value.trim(),
+                financeContactEmail: financeEmail,
+                financeContactPhone: document.getElementById('schoolFinanceContactPhone').value.trim(),
+                contactPerson: document.getElementById('schoolAdminContactName').value.trim(),
+                email: financeEmail || adminEmail,
+                phone: document.getElementById('schoolFinanceContactPhone').value.trim(),
+                memo: document.getElementById('schoolMemo').value.trim(),
+                updatedAt: new Date().toISOString()
             };
 
             if (id) {
@@ -1729,6 +2657,7 @@ Email / Contact: ${ent.contact || '-'}`.trim();
                     closeModal('schoolModal');
                 });
             } else {
+                data.createdAt = new Date().toISOString();
                 db.ref('commission_schools').push(data).then(() => {
                     closeModal('schoolModal');
                 });
@@ -1740,7 +2669,7 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         deleteSchoolBtn.addEventListener('click', () => {
             const id = document.getElementById('schoolId').value;
             if (!id) return;
-            if (confirm('해당 국제학교 정보를 삭제하시겠습니까?')) {
+            if (confirm('해당 국제학교 및 커미션 정책 정보를 삭제하시겠습니까?')) {
                 db.ref('commission_schools/' + id).remove().then(() => {
                     closeModal('schoolModal');
                 });

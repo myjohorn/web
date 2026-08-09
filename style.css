@@ -2484,3 +2484,54 @@ body.faq-mode .faq-section {
         margin: 10mm;
     }
 }
+
+/* Contract Status Badges */
+.contract-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+.contract-badge.active {
+    background: rgba(46, 125, 50, 0.1);
+    color: #2E7D32;
+    border: 1px solid rgba(46, 125, 50, 0.2);
+}
+.contract-badge.expiring {
+    background: rgba(239, 108, 0, 0.1);
+    color: #EF6C00;
+    border: 1px solid rgba(239, 108, 0, 0.2);
+}
+.contract-badge.expired {
+    background: rgba(198, 40, 40, 0.1);
+    color: #C62828;
+    border: 1px solid rgba(198, 40, 40, 0.2);
+}
+
+/* Clickable Payment Table Row */
+.payment-row-clickable {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+.payment-row-clickable:hover {
+    background-color: #FAF8F5 !important;
+}
+
+/* School Card Contact Box */
+.school-contact-box {
+    background: #FAF9F7;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+.school-contact-box.finance-box {
+    background: #FFFDF9;
+    border-left: 3px solid var(--accent-color);
+}
+

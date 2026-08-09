@@ -1,0 +1,8 @@
+{
+  "appId": "kr.johorn.admin",
+  "appName": "JohorN Admin",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}
