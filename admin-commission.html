@@ -385,15 +385,28 @@
 
                 <!-- Section 3: Financial & Commission Terms -->
                 <div style="border-top: 1px dashed var(--border-color); padding-top: 15px; margin-bottom: 18px;">
-                    <h4 style="font-size: 13px; font-weight: 700; color: var(--accent-color); margin-bottom: 10px;">3. 학비 및 커미션 조건</h4>
-                    <div class="form-row" style="display: grid; grid-template-columns: 1.2fr 1fr 1.2fr; gap: 12px; margin-bottom: 12px;">
+                    <h4 style="font-size: 13px; font-weight: 700; color: var(--accent-color); margin-bottom: 10px;">3. 학비 및 커미션 산정 조건</h4>
+                    <div class="form-row" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 15px; margin-bottom: 12px;">
                         <div class="form-group">
-                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">납부 학비 총액 (MYR) <span style="color: #C62828;">*</span></label>
-                            <input type="number" id="admissionTuitionFee" class="form-control" placeholder="예: 45000" min="0" required style="font-size: 13px; padding: 10px;">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">커미션 산정 방식 <span style="color: #C62828;">*</span></label>
+                            <select id="admissionCommissionType" class="form-control" style="font-size: 13px; padding: 10px; font-weight: 600;">
+                                <option value="percentage">학비 대비 비율 (%)</option>
+                                <option value="fixed">고정 확정 금액 (MYR)</option>
+                            </select>
                         </div>
                         <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">납부 학비 총액 (MYR)</label>
+                            <input type="number" id="admissionTuitionFee" class="form-control" placeholder="예: 45000" min="0" style="font-size: 13px; padding: 10px;">
+                        </div>
+                    </div>
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group" id="admissionRateWrapper">
                             <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">커미션 요율 (%) <span style="color: #C62828;">*</span></label>
-                            <input type="number" id="admissionCommissionRate" class="form-control" placeholder="10" min="0" max="100" step="0.5" required style="font-size: 13px; padding: 10px;">
+                            <input type="number" id="admissionCommissionRate" class="form-control" placeholder="10" min="0" max="100" step="0.5" style="font-size: 13px; padding: 10px;">
+                        </div>
+                        <div class="form-group" id="admissionFixedWrapper" style="display: none;">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">고정 커미션 금액 (MYR) <span style="color: #C62828;">*</span></label>
+                            <input type="number" id="admissionFixedAmount" class="form-control" placeholder="예: 3000" min="0" style="font-size: 13px; padding: 10px;">
                         </div>
                         <div class="form-group">
                             <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">총 예상 커미션액 (MYR)</label>
@@ -585,10 +598,17 @@
                     </div>
                 </div>
 
-                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 15px;">
                     <div class="form-group">
-                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">기본 커미션 요율 (%) <span style="color: #C62828;">*</span></label>
-                        <input type="number" id="schoolDefaultRate" class="form-control" placeholder="10" min="0" max="100" step="0.5" required style="font-size: 13px; padding: 10px;">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">커미션 산정 방식</label>
+                        <select id="schoolCommissionType" class="form-control" style="font-size: 13px; padding: 10px;">
+                            <option value="percentage">비율 (%)</option>
+                            <option value="fixed">고정 금액 (MYR)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="schoolValueWrapper">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;" id="schoolValueLabel">기본 요율 (%) <span style="color: #C62828;">*</span></label>
+                        <input type="number" id="schoolDefaultRate" class="form-control" placeholder="10" min="0" step="0.5" required style="font-size: 13px; padding: 10px;">
                     </div>
                     <div class="form-group">
                         <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">기본 정산 방식</label>

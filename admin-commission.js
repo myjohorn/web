@@ -200,6 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
             {
                 nameEn: "Marlborough College Malaysia",
                 nameKo: "말보로 컬리지 말레이시아",
+                commissionType: "percentage",
                 defaultRate: 10,
                 defaultSettlement: "2", // 2 terms split
                 contactPerson: "Admissions & Accounts Dept",
@@ -211,6 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
             {
                 nameEn: "Raffles American School",
                 nameKo: "래플스 아메리칸 스쿨",
+                commissionType: "percentage",
                 defaultRate: 15,
                 defaultSettlement: "1", // 1-time
                 contactPerson: "Finance Team / Ms. Joyce",
@@ -222,6 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
             {
                 nameEn: "Sunway International School",
                 nameKo: "선웨이 국제학교",
+                commissionType: "percentage",
                 defaultRate: 10,
                 defaultSettlement: "1",
                 contactPerson: "Admissions Office",
@@ -233,6 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
             {
                 nameEn: "Crescendo-HELP International School",
                 nameKo: "크레센도-헬프 국제학교",
+                commissionType: "percentage",
                 defaultRate: 10,
                 defaultSettlement: "1",
                 contactPerson: "Finance & Accounts",
@@ -244,6 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
             {
                 nameEn: "Shattuck-St. Mary's Forest City",
                 nameKo: "샤턱 세인트 메리스 포레스트 시티",
+                commissionType: "percentage",
                 defaultRate: 12,
                 defaultSettlement: "2",
                 contactPerson: "Admissions Dept",
@@ -255,13 +260,14 @@ document.addEventListener('DOMContentLoaded', () => {
             {
                 nameEn: "Stellar International School",
                 nameKo: "스텔라 국제학교",
-                defaultRate: 10,
+                commissionType: "fixed",
+                defaultRate: 3500, // Fixed RM 3,500
                 defaultSettlement: "1",
                 contactPerson: "Admissions Officer",
                 email: "info@stellar.edu.my",
                 phone: "+60 7-364 3808",
                 location: "Puteri Harbour, Johor",
-                memo: "푸테리 하버 인근 위치, 싱가포르 및 영국 커리큘럼"
+                memo: "푸테리 하버 인근 위치, 학생당 고정 커미션 RM 3,500 정산"
             }
         ];
 
@@ -300,6 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 term: "2026-Term 1 (8월 입학)",
                 admissionDate: todayStr,
                 tuitionFee: 46000,
+                commissionType: "percentage",
                 commissionRate: 10,
                 commissionAmount: 4600,
                 settlementMode: "2",
@@ -320,6 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 term: "2026-Term 1 (8월 입학)",
                 admissionDate: todayStr,
                 tuitionFee: 38000,
+                commissionType: "percentage",
                 commissionRate: 15,
                 commissionAmount: 5700,
                 settlementMode: "1",
@@ -335,44 +343,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 grade: "Year 9 (중3)",
                 parentContact: "박준영 / 010-4491-0029",
                 parentEmail: "seoyun.family@daum.net",
-                schoolName: "Sunway International School",
+                schoolName: "Stellar International School",
                 term: "2026-Term 1 (8월 입학)",
                 admissionDate: todayStr,
-                tuitionFee: 32000,
-                commissionRate: 10,
-                commissionAmount: 3200,
+                tuitionFee: 28000,
+                commissionType: "fixed",
+                commissionRate: 3500,
+                commissionAmount: 3500,
                 settlementMode: "1",
                 status: "paid",
                 entityName: "GLOBAL EDU CONSULTING SDN. BHD.",
-                memo: "입학 학비 납부 및 Maybank 입금 완료 확인",
+                memo: "고정 커미션 RM 3,500 전액 입금 완료 확인",
                 installments: [
-                    { term: "Full 100%", amount: 3200, dueDate: todayStr, status: "paid", invoiceNo: "INV-JHN-2026-003" }
-                ]
-            },
-            {
-                studentName: "최도현 (Dohyun Choi)",
-                grade: "Year 5 (초5)",
-                parentContact: "최민석 / 010-7712-3390",
-                parentEmail: "dohyun.c@gmail.com",
-                schoolName: "Crescendo-HELP International School",
-                term: "2026-Term 1 (8월 입학)",
-                admissionDate: todayStr,
-                tuitionFee: 26000,
-                commissionRate: 10,
-                commissionAmount: 2600,
-                settlementMode: "1",
-                status: "enrolled",
-                entityName: "GLOBAL EDU CONSULTING SDN. BHD.",
-                memo: "오퍼레터 서명 완료, 인보이스 발행 예정",
-                installments: [
-                    { term: "Full 100%", amount: 2600, dueDate: todayStr, status: "pending", invoiceNo: "" }
+                    { term: "Full 100%", amount: 3500, dueDate: todayStr, status: "paid", invoiceNo: "INV-JHN-2026-003" }
                 ]
             }
         ];
 
         sampleAdmissions.forEach(adm => {
             const newRef = db.ref('commission_admissions').push(adm);
-            // Create matching sample invoices and payments
             if (adm.status === 'partially_paid') {
                 db.ref('commission_invoices').push({
                     invoiceNo: "INV-JHN-2026-001-T1",
@@ -380,6 +369,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     schoolName: adm.schoolName,
                     studentName: adm.studentName,
                     termName: "Term 1 (50%)",
+                    commissionType: adm.commissionType,
+                    commissionRate: adm.commissionRate,
                     entityName: adm.entityName,
                     issueDate: todayStr,
                     dueDate: todayStr,
@@ -392,6 +383,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     schoolName: adm.schoolName,
                     studentName: adm.studentName,
                     termName: "Term 2 (50%)",
+                    commissionType: adm.commissionType,
+                    commissionRate: adm.commissionRate,
                     entityName: adm.entityName,
                     issueDate: todayStr,
                     dueDate: "2027-01-15",
@@ -417,6 +410,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     schoolName: adm.schoolName,
                     studentName: adm.studentName,
                     termName: "Full 100%",
+                    commissionType: adm.commissionType,
+                    commissionRate: adm.commissionRate,
                     entityName: adm.entityName,
                     issueDate: todayStr,
                     dueDate: todayStr,
@@ -430,10 +425,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     schoolName: adm.schoolName,
                     studentName: adm.studentName,
                     termName: "Full 100%",
+                    commissionType: adm.commissionType,
+                    commissionRate: adm.commissionRate,
                     entityName: adm.entityName,
                     issueDate: todayStr,
                     dueDate: todayStr,
-                    amount: 3200,
+                    amount: 3500,
                     status: "paid"
                 });
                 db.ref('commission_payments').push({
@@ -443,10 +440,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     studentName: adm.studentName,
                     termName: "Full 100%",
                     paymentDate: todayStr,
-                    amount: 3200,
+                    amount: 3500,
                     bank: "Maybank 법인 계좌",
                     refNo: "TT-9842145",
-                    memo: "Sunway 전액 입금 완료"
+                    memo: "고정 커미션 RM 3,500 입금 확인"
                 });
             }
         });
@@ -530,7 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (admissionSchoolId) {
             admissionSchoolId.innerHTML = '<option value="">-- 학교 선택 --</option>' +
-                schools.map(s => `<option value="${s.id}" data-rate="${s.defaultRate || 10}" data-settlement="${s.defaultSettlement || '1'}">${s.nameEn} (${s.nameKo || ''})</option>`).join('');
+                schools.map(s => `<option value="${s.id}" data-type="${s.commissionType || 'percentage'}" data-rate="${s.defaultRate || 10}" data-settlement="${s.defaultSettlement || '1'}">${s.nameEn} (${s.nameKo || ''})</option>`).join('');
         }
         if (admissionSchoolFilter) {
             admissionSchoolFilter.innerHTML = '<option value="all">전체 국제학교</option>' +
@@ -631,6 +628,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const installmentModeLabel = adm.settlementMode === '1' ? '1회 일괄' : `${adm.settlementMode || 1}회 분할`;
 
+            // Commission Condition Badge (Rate vs Fixed)
+            const isFixed = adm.commissionType === 'fixed';
+            const commissionTag = isFixed 
+                ? `<span class="installment-tag" style="background: rgba(2, 136, 209, 0.1); color: #0288D1; font-weight: 700;">고정 ${formatMYR(adm.commissionAmount)}</span>`
+                : `<span class="installment-tag">${adm.commissionRate || 10}% (비율)</span>`;
+
             return `
                 <tr>
                     <td>
@@ -647,10 +650,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div style="font-size: 13px;">${adm.term || '-'}</div>
                         <div style="font-size: 11px; color: var(--text-secondary);">입학일: ${formatDate(adm.admissionDate)}</div>
                     </td>
-                    <td style="font-weight: 600;">${formatMYR(adm.tuitionFee)}</td>
-                    <td>
-                        <span class="installment-tag">${adm.commissionRate || 10}%</span>
-                    </td>
+                    <td style="font-weight: 600;">${adm.tuitionFee ? formatMYR(adm.tuitionFee) : '-'}</td>
+                    <td>${commissionTag}</td>
                     <td>
                         <div style="font-size: 12px; font-weight: 600;">
                             ${installmentModeLabel} (${paidInstallments.length}/${installments.length || 1}회 완납)
@@ -721,19 +722,41 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
     const openAddAdmissionBtn = document.getElementById('openAddAdmissionBtn');
     const admissionSchoolId = document.getElementById('admissionSchoolId');
+    const admissionCommissionType = document.getElementById('admissionCommissionType');
     const admissionTuitionFee = document.getElementById('admissionTuitionFee');
     const admissionCommissionRate = document.getElementById('admissionCommissionRate');
+    const admissionFixedAmount = document.getElementById('admissionFixedAmount');
+    const admissionRateWrapper = document.getElementById('admissionRateWrapper');
+    const admissionFixedWrapper = document.getElementById('admissionFixedWrapper');
     const admissionCommissionAmount = document.getElementById('admissionCommissionAmount');
     const admissionSettlementMode = document.getElementById('admissionSettlementMode');
     const installmentsList = document.getElementById('installmentsList');
     const saveAdmissionBtn = document.getElementById('saveAdmissionBtn');
     const deleteAdmissionBtn = document.getElementById('deleteAdmissionBtn');
 
+    function toggleCommissionTypeUI(type) {
+        if (type === 'fixed') {
+            if (admissionRateWrapper) admissionRateWrapper.style.display = 'none';
+            if (admissionFixedWrapper) admissionFixedWrapper.style.display = 'block';
+        } else {
+            if (admissionRateWrapper) admissionRateWrapper.style.display = 'block';
+            if (admissionFixedWrapper) admissionFixedWrapper.style.display = 'none';
+        }
+    }
+
     // Auto calculate commission amount & split schedules
     function calculateAdmissionFinancials() {
-        const tuition = parseFloat(admissionTuitionFee ? admissionTuitionFee.value : 0) || 0;
-        const rate = parseFloat(admissionCommissionRate ? admissionCommissionRate.value : 10) || 10;
-        const totalCommission = Math.round(tuition * (rate / 100));
+        const type = admissionCommissionType ? admissionCommissionType.value : 'percentage';
+        toggleCommissionTypeUI(type);
+
+        let totalCommission = 0;
+        if (type === 'percentage') {
+            const tuition = parseFloat(admissionTuitionFee ? admissionTuitionFee.value : 0) || 0;
+            const rate = parseFloat(admissionCommissionRate ? admissionCommissionRate.value : 10) || 10;
+            totalCommission = Math.round(tuition * (rate / 100));
+        } else {
+            totalCommission = parseFloat(admissionFixedAmount ? admissionFixedAmount.value : 0) || 0;
+        }
 
         if (admissionCommissionAmount) {
             admissionCommissionAmount.value = totalCommission;
@@ -742,17 +765,28 @@ document.addEventListener('DOMContentLoaded', () => {
         renderInstallmentsScheduleInputs(totalCommission);
     }
 
+    if (admissionCommissionType) admissionCommissionType.addEventListener('change', calculateAdmissionFinancials);
     if (admissionTuitionFee) admissionTuitionFee.addEventListener('input', calculateAdmissionFinancials);
     if (admissionCommissionRate) admissionCommissionRate.addEventListener('input', calculateAdmissionFinancials);
+    if (admissionFixedAmount) admissionFixedAmount.addEventListener('input', calculateAdmissionFinancials);
     if (admissionSettlementMode) admissionSettlementMode.addEventListener('change', calculateAdmissionFinancials);
 
     if (admissionSchoolId) {
         admissionSchoolId.addEventListener('change', () => {
             const selectedOpt = admissionSchoolId.options[admissionSchoolId.selectedIndex];
             if (selectedOpt && selectedOpt.value) {
+                const commType = selectedOpt.getAttribute('data-type') || 'percentage';
                 const defaultRate = selectedOpt.getAttribute('data-rate');
                 const defaultSettlement = selectedOpt.getAttribute('data-settlement');
-                if (defaultRate && admissionCommissionRate) admissionCommissionRate.value = defaultRate;
+                
+                if (admissionCommissionType) admissionCommissionType.value = commType;
+                toggleCommissionTypeUI(commType);
+
+                if (commType === 'fixed') {
+                    if (admissionFixedAmount) admissionFixedAmount.value = defaultRate || 3000;
+                } else {
+                    if (admissionCommissionRate) admissionCommissionRate.value = defaultRate || 10;
+                }
                 if (defaultSettlement && admissionSettlementMode) admissionSettlementMode.value = defaultSettlement;
                 calculateAdmissionFinancials();
             }
@@ -807,8 +841,10 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('admissionId').value = '';
             document.getElementById('admissionForm').reset();
             document.getElementById('admissionDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('admissionCommissionType').value = 'percentage';
             document.getElementById('admissionCommissionRate').value = '10';
             document.getElementById('admissionSettlementMode').value = '1';
+            toggleCommissionTypeUI('percentage');
             if (deleteAdmissionBtn) deleteAdmissionBtn.classList.add('hidden');
             calculateAdmissionFinancials();
             openModal('admissionModal');
@@ -826,6 +862,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const sch = schools.find(s => s.nameEn === adm.schoolName);
         if (sch && admissionSchoolId) admissionSchoolId.value = sch.id;
 
+        const commType = adm.commissionType || 'percentage';
+        document.getElementById('admissionCommissionType').value = commType;
+        toggleCommissionTypeUI(commType);
+
         document.getElementById('admissionTerm').value = adm.term || '';
         document.getElementById('admissionDate').value = adm.admissionDate || '';
         document.getElementById('admissionStatus').value = adm.status || 'applied';
@@ -834,7 +874,13 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('admissionParentContact').value = adm.parentContact || '';
         document.getElementById('admissionParentEmail').value = adm.parentEmail || '';
         document.getElementById('admissionTuitionFee').value = adm.tuitionFee || '';
-        document.getElementById('admissionCommissionRate').value = adm.commissionRate || 10;
+        
+        if (commType === 'fixed') {
+            document.getElementById('admissionFixedAmount').value = adm.commissionAmount || 0;
+        } else {
+            document.getElementById('admissionCommissionRate').value = adm.commissionRate || 10;
+        }
+
         document.getElementById('admissionCommissionAmount').value = adm.commissionAmount || 0;
         document.getElementById('admissionSettlementMode').value = adm.settlementMode || '1';
         document.getElementById('admissionMemo').value = adm.memo || '';
@@ -862,6 +908,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            const commType = document.getElementById('admissionCommissionType').value;
             const entitySelect = document.getElementById('admissionEntityId');
             const entityName = entitySelect.options[entitySelect.selectedIndex] ? entitySelect.options[entitySelect.selectedIndex].text.split('(')[0].trim() : 'GLOBAL EDU CONSULTING SDN. BHD.';
 
@@ -886,7 +933,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 admissionDate: document.getElementById('admissionDate').value,
                 status: document.getElementById('admissionStatus').value,
                 tuitionFee: parseFloat(document.getElementById('admissionTuitionFee').value) || 0,
-                commissionRate: parseFloat(document.getElementById('admissionCommissionRate').value) || 10,
+                commissionType: commType,
+                commissionRate: commType === 'percentage' ? (parseFloat(document.getElementById('admissionCommissionRate').value) || 10) : 0,
                 commissionAmount: parseFloat(document.getElementById('admissionCommissionAmount').value) || 0,
                 settlementMode: document.getElementById('admissionSettlementMode').value,
                 entityName,
@@ -1041,7 +1089,8 @@ document.addEventListener('DOMContentLoaded', () => {
             schoolName: adm.schoolName,
             studentName: adm.studentName,
             grade: adm.grade || '',
-            termName: adm.term || 'Term 1 Placement',
+            termName: adm.term || 'Term Placement',
+            commissionType: adm.commissionType || 'percentage',
             tuitionFee: adm.tuitionFee || 0,
             commissionRate: adm.commissionRate || 10,
             amount: adm.commissionAmount || 0,
@@ -1082,6 +1131,8 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const sch = schools.find(s => s.nameEn === inv.schoolName) || {};
+        const isFixed = inv.commissionType === 'fixed';
+        const rateLabel = isFixed ? 'Fixed Fee' : `${inv.commissionRate || 10}%`;
 
         invoiceSheetContainer.innerHTML = `
             <div style="padding: 10px 5px;">
@@ -1115,7 +1166,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div style="font-size: 13px; font-weight: 700; color: #1a1a1a;">Student: ${inv.studentName}</div>
                         <div style="color: #666; margin-top: 3px;">Year / Grade: ${inv.grade || (admission ? admission.grade : '-')}</div>
                         <div style="color: #666;">Intake Term: ${inv.termName || (admission ? admission.term : '2026 Academic Year')}</div>
-                        <div style="color: #666;">Tuition Base: ${formatMYR(inv.tuitionFee || (admission ? admission.tuitionFee : 0))}</div>
+                        <div style="color: #666;">Tuition Base: ${inv.tuitionFee ? formatMYR(inv.tuitionFee) : 'Fixed Flat Agreement'}</div>
                     </div>
                 </div>
 
@@ -1125,7 +1176,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <tr style="background: #1a1a1a; color: #ffffff;">
                             <th style="padding: 10px 12px; text-align: left; font-weight: 600;">Description (서비스 항목)</th>
                             <th style="padding: 10px 12px; text-align: right; font-weight: 600;">Tuition Fee</th>
-                            <th style="padding: 10px 12px; text-align: right; font-weight: 600;">Rate</th>
+                            <th style="padding: 10px 12px; text-align: right; font-weight: 600;">Rate / Terms</th>
                             <th style="padding: 10px 12px; text-align: right; font-weight: 600;">Amount (MYR)</th>
                         </tr>
                     </thead>
@@ -1135,8 +1186,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <strong>Student Admission & Placement Commission Fee</strong>
                                 <div style="font-size: 11px; color: #666;">Student: ${inv.studentName} | ${inv.schoolName} (${inv.termName || 'Term Placement'})</div>
                             </td>
-                            <td style="padding: 12px; text-align: right;">${formatMYR(inv.tuitionFee || (admission ? admission.tuitionFee : 0))}</td>
-                            <td style="padding: 12px; text-align: right;">${inv.commissionRate || 10}%</td>
+                            <td style="padding: 12px; text-align: right;">${inv.tuitionFee ? formatMYR(inv.tuitionFee) : '-'}</td>
+                            <td style="padding: 12px; text-align: right;">${rateLabel}</td>
                             <td style="padding: 12px; text-align: right; font-weight: 700;">${formatMYR(inv.amount)}</td>
                         </tr>
                     </tbody>
@@ -1421,8 +1472,23 @@ ${ent.name || 'JohorN'}
     // ----------------------------------------------------
     const schoolsListGrid = document.getElementById('schoolsListGrid');
     const openAddSchoolBtn = document.getElementById('openAddSchoolBtn');
+    const schoolCommissionType = document.getElementById('schoolCommissionType');
+    const schoolValueLabel = document.getElementById('schoolValueLabel');
+    const schoolDefaultRate = document.getElementById('schoolDefaultRate');
     const saveSchoolBtn = document.getElementById('saveSchoolBtn');
     const deleteSchoolBtn = document.getElementById('deleteSchoolBtn');
+
+    if (schoolCommissionType) {
+        schoolCommissionType.addEventListener('change', () => {
+            if (schoolCommissionType.value === 'fixed') {
+                if (schoolValueLabel) schoolValueLabel.innerHTML = '기본 고정 금액 (MYR) <span style="color: #C62828;">*</span>';
+                if (schoolDefaultRate) schoolDefaultRate.placeholder = '예: 3000';
+            } else {
+                if (schoolValueLabel) schoolValueLabel.innerHTML = '기본 요율 (%) <span style="color: #C62828;">*</span>';
+                if (schoolDefaultRate) schoolDefaultRate.placeholder = '10';
+            }
+        });
+    }
 
     function renderSchools() {
         if (!schoolsListGrid) return;
@@ -1441,12 +1507,16 @@ ${ent.name || 'JohorN'}
             const totalCount = schoolAdmissions.length;
             const totalCommission = schoolAdmissions.reduce((sum, a) => sum + (parseFloat(a.commissionAmount) || 0), 0);
 
+            const rateTag = sch.commissionType === 'fixed'
+                ? `<span class="installment-tag" style="background: rgba(2, 136, 209, 0.1); color: #0288D1; font-weight: 700;">고정 ${formatMYR(sch.defaultRate || 0)}</span>`
+                : `<span class="installment-tag" style="background: rgba(46, 125, 50, 0.1); color: #2E7D32; font-weight: 700;">${sch.defaultRate || 10}%</span>`;
+
             return `
                 <div class="school-card">
                     <div>
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                             <h4 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; line-height: 1.3;">${sch.nameEn}</h4>
-                            <span class="installment-tag" style="background: rgba(46, 125, 50, 0.1); color: #2E7D32; font-weight: 700;">${sch.defaultRate || 10}%</span>
+                            ${rateTag}
                         </div>
                         <div style="font-size: 12px; color: var(--accent-color); font-weight: 500; margin-bottom: 12px;">${sch.nameKo || ''}</div>
                         
@@ -1480,6 +1550,8 @@ ${ent.name || 'JohorN'}
             document.getElementById('schoolModalTitle').innerHTML = '<i class="fa-solid fa-school" style="color: var(--accent-color);"></i> 협력 국제학교 추가';
             document.getElementById('schoolId').value = '';
             document.getElementById('schoolForm').reset();
+            document.getElementById('schoolCommissionType').value = 'percentage';
+            if (schoolValueLabel) schoolValueLabel.innerHTML = '기본 요율 (%) <span style="color: #C62828;">*</span>';
             document.getElementById('schoolDefaultRate').value = '10';
             document.getElementById('schoolDefaultSettlement').value = '1';
             if (deleteSchoolBtn) deleteSchoolBtn.classList.add('hidden');
@@ -1495,7 +1567,17 @@ ${ent.name || 'JohorN'}
         document.getElementById('schoolId').value = sch.id;
         document.getElementById('schoolNameEn').value = sch.nameEn || '';
         document.getElementById('schoolNameKo').value = sch.nameKo || '';
-        document.getElementById('schoolDefaultRate').value = sch.defaultRate || 10;
+        
+        const commType = sch.commissionType || 'percentage';
+        document.getElementById('schoolCommissionType').value = commType;
+        if (commType === 'fixed') {
+            if (schoolValueLabel) schoolValueLabel.innerHTML = '기본 고정 금액 (MYR) <span style="color: #C62828;">*</span>';
+            document.getElementById('schoolDefaultRate').value = sch.defaultRate || 3000;
+        } else {
+            if (schoolValueLabel) schoolValueLabel.innerHTML = '기본 요율 (%) <span style="color: #C62828;">*</span>';
+            document.getElementById('schoolDefaultRate').value = sch.defaultRate || 10;
+        }
+
         document.getElementById('schoolDefaultSettlement').value = sch.defaultSettlement || '1';
         document.getElementById('schoolContactPerson').value = sch.contactPerson || '';
         document.getElementById('schoolEmail').value = sch.email || '';
@@ -1518,9 +1600,12 @@ ${ent.name || 'JohorN'}
                 return;
             }
 
+            const commType = document.getElementById('schoolCommissionType').value;
+
             const data = {
                 nameEn,
                 nameKo: document.getElementById('schoolNameKo').value.trim(),
+                commissionType: commType,
                 defaultRate: parseFloat(document.getElementById('schoolDefaultRate').value) || 10,
                 defaultSettlement: document.getElementById('schoolDefaultSettlement').value,
                 contactPerson: document.getElementById('schoolContactPerson').value.trim(),
