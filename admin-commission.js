@@ -354,7 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
             {
                 studentNameEn: "Minjun Kim",
                 studentNameKo: "김민준",
-                studentName: "김민준 (Minjun Kim)",
+                studentName: "Minjun Kim",
                 gradeEn: "Year 7 (Grade 7)",
                 gradeKo: "중학 1학년",
                 grade: "Year 7 (Grade 7)",
@@ -381,7 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
             {
                 studentNameEn: "Jiwoo Lee",
                 studentNameKo: "이지우",
-                studentName: "이지우 (Jiwoo Lee)",
+                studentName: "Jiwoo Lee",
                 gradeEn: "Grade 4 (Primary 4)",
                 gradeKo: "초등 4학년",
                 grade: "Grade 4 (Primary 4)",
@@ -407,7 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
             {
                 studentNameEn: "Seoyun Park",
                 studentNameKo: "박서윤",
-                studentName: "박서윤 (Seoyun Park)",
+                studentName: "Seoyun Park",
                 gradeEn: "Year 9 (Grade 9)",
                 gradeKo: "중학 3학년",
                 grade: "Year 9 (Grade 9)",
@@ -1343,15 +1343,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const sch = schools.find(s => s.nameEn === adm.schoolName || s.nameKo === adm.schoolName || s.id === adm.schoolId) || {};
 
+        const schoolNameEn = sch.nameEn || toPureEnglish(adm.schoolName, 'International School');
+        const studentNameEn = toPureEnglish(adm.studentNameEn || adm.studentName, 'Student Placement');
+        const gradeEn = toPureEnglish(adm.gradeEn || adm.grade, 'General Grade');
+        const termEn = toPureEnglish(adm.termEn || adm.term, 'Academic Term Placement');
+
         const invoiceData = {
             invoiceNo,
             admissionId: adm.id,
             schoolId: sch.id || '',
-            schoolName: adm.schoolName,
-            studentNameEn: adm.studentNameEn || adm.studentName,
-            studentName: adm.studentNameEn || adm.studentName,
-            gradeEn: adm.gradeEn || adm.grade || '',
-            termEn: adm.termEn || adm.term || 'Academic Term Placement',
+            schoolName: schoolNameEn,
+            studentNameEn: studentNameEn,
+            studentName: studentNameEn,
+            gradeEn: gradeEn,
+            termEn: termEn,
             commissionType: adm.commissionType || 'percentage',
             tuitionFee: adm.tuitionFee || 0,
             commissionRate: adm.commissionRate || 10,
@@ -1365,9 +1370,9 @@ document.addEventListener('DOMContentLoaded', () => {
             items: [
                 {
                     studentId: adm.id,
-                    studentNameEn: adm.studentNameEn || adm.studentName,
-                    gradeEn: adm.gradeEn || adm.grade || '',
-                    termEn: adm.termEn || adm.term || '',
+                    studentNameEn: studentNameEn,
+                    gradeEn: gradeEn,
+                    termEn: termEn,
                     admissionDate: adm.admissionDate,
                     tuitionFee: adm.tuitionFee || 0,
                     rate: adm.commissionType === 'fixed' ? 'Fixed Fee' : `${adm.commissionRate || 10}%`,
@@ -1386,7 +1391,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const inv = invoices.find(i => i.id === invoiceId);
         if (!inv) return;
         currentViewingInvoice = inv;
-        const sch = schools.find(s => s.nameEn === inv.schoolName || s.id === inv.schoolId) || {};
+        const sch = schools.find(s => s.nameEn === inv.schoolName || s.nameKo === inv.schoolName || s.id === inv.schoolId) || {};
         const ent = entities.find(e => e.name === inv.entityName || e.id === inv.entityId) || entities[0];
         renderInvoiceSheet(inv, ent, sch);
         openModal('invoiceModal');
@@ -1658,6 +1663,45 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ----------------------------------------------------
+    // PURE ENGLISH SANITIZER FOR INVOICES & EMAILS
+    // ----------------------------------------------------
+    function toPureEnglish(str, fallback = '') {
+        if (!str || typeof str !== 'string') return fallback;
+        let s = str.trim();
+
+        // 1. If format is '한글 (English)' -> extract English inside parentheses
+        const parenEnMatch = s.match(/\(([A-Za-z0-9\s.,'-]+)\)/);
+        if (parenEnMatch && parenEnMatch[1] && /[A-Za-z]/.test(parenEnMatch[1])) {
+            const outsideParen = s.replace(/\([^\)]*\)/g, '').trim();
+            if (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(outsideParen) && !/[A-Za-z]/.test(outsideParen)) {
+                s = parenEnMatch[1].trim();
+            }
+        }
+
+        // 2. Remove any parentheses/brackets that contain Korean (e.g. '(초4)', '(8월 입학)', '(중1)')
+        s = s.replace(/\([^\)]*[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]+[^\)]*\)/g, '');
+        s = s.replace(/\[[^\]]*[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]+[^\]]*\]/g, '');
+
+        // 3. Remove all remaining Korean characters
+        let cleaned = s.replace(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]+/g, '');
+
+        // 4. Clean leftover brackets, dangling dashes, slashes, extra spaces
+        cleaned = cleaned.replace(/\(\s*\)/g, '')
+                         .replace(/\[\s*\]/g, '')
+                         .replace(/\s*-\s*$/g, '')
+                         .replace(/^\s*-\s*/g, '')
+                         .replace(/\s*\/\s*$/g, '')
+                         .replace(/^\s*\/\s*/g, '')
+                         .replace(/\s+/g, ' ')
+                         .trim();
+
+        if (!cleaned || !/[A-Za-z0-9]/.test(cleaned)) {
+            return fallback;
+        }
+        return cleaned;
+    }
+
+    // ----------------------------------------------------
     // 100% ENGLISH INVOICE SHEET RENDERER (CONSOLIDATED & SINGLE)
     // ----------------------------------------------------
     function renderInvoiceSheet(inv, entity, school) {
@@ -1674,16 +1718,17 @@ document.addEventListener('DOMContentLoaded', () => {
             swiftCode: "MBBEMYKL"
         };
 
-        const sch = school || schools.find(s => s.nameEn === inv.schoolName || s.id === inv.schoolId) || {};
-        const financeContact = sch.financeContactName || sch.adminContactName || sch.contactPerson || 'Finance & Accounts Department';
+        const sch = school || schools.find(s => s.nameEn === inv.schoolName || s.nameKo === inv.schoolName || s.id === inv.schoolId) || {};
+        const schoolNameEn = sch.nameEn || toPureEnglish(inv.schoolName, 'Partner International School');
+        const financeContact = toPureEnglish(sch.financeContactName || sch.adminContactName || sch.contactPerson, 'Finance & Accounts Department');
         const financeEmail = sch.financeContactEmail || sch.email || '-';
 
-        // Prepare line items (100% English)
-        const items = (inv.items && inv.items.length > 0) ? inv.items : [
+        // Prepare line items (100% English, guaranteed no Korean)
+        const rawItems = (inv.items && inv.items.length > 0) ? inv.items : [
             {
-                studentNameEn: inv.studentNameEn || inv.studentName || 'Student Placement',
-                gradeEn: inv.gradeEn || inv.grade || 'General Admission',
-                termEn: inv.termEn || inv.termName || 'Academic Term',
+                studentNameEn: inv.studentNameEn || inv.studentName,
+                gradeEn: inv.gradeEn || inv.grade,
+                termEn: inv.termEn || inv.termName,
                 admissionDate: inv.issueDate,
                 tuitionFee: inv.tuitionFee || 0,
                 rate: inv.commissionType === 'fixed' ? 'Fixed Fee' : `${inv.commissionRate || 10}%`,
@@ -1691,6 +1736,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 amount: inv.amount || 0
             }
         ];
+
+        const items = rawItems.map(item => ({
+            studentNameEn: toPureEnglish(item.studentNameEn || item.studentName, 'Student Placement'),
+            gradeEn: toPureEnglish(item.gradeEn || item.grade, 'General Grade'),
+            termEn: toPureEnglish(item.termEn || item.term, 'Academic Term'),
+            admissionDate: item.admissionDate,
+            tuitionFee: item.tuitionFee || 0,
+            rate: toPureEnglish(item.rate || (item.commissionType === 'fixed' ? 'Fixed Fee' : `${item.commissionRate || 10}%`), 'Standard'),
+            installmentTerm: toPureEnglish(item.installmentTerm || item.term || 'Placement Commission', 'Placement Commission'),
+            amount: item.amount || 0
+        }));
 
         const rowsHtml = items.map((item, idx) => `
             <tr style="border-bottom: 1px solid var(--border-color);">
@@ -1738,7 +1794,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px;">
                         <div>
                             <strong style="color: var(--accent-color); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">BILL TO (INSTITUTION)</strong>
-                            <div style="font-size: 15px; font-weight: 800; color: #1a1a1a;">${inv.schoolName}</div>
+                            <div style="font-size: 15px; font-weight: 800; color: #1a1a1a;">${schoolNameEn}</div>
                             <div style="color: #555; margin-top: 4px;">Attn: <strong>${financeContact}</strong></div>
                             <div style="color: #555;">Email: ${financeEmail}</div>
                             <div style="color: #555;">Location: ${sch.location || 'Johor, Malaysia'}</div>
@@ -1819,30 +1875,31 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
 
         // Update Email Composer Box targeting school's finance contact email!
-        updateEmailComposer(inv, ent, sch);
+        updateEmailComposer(inv, ent, sch, items, schoolNameEn, financeContact);
     }
 
-    // AUTOMATIC EMAIL GENERATOR FUNCTION (Targets Finance Contact)
-    function updateEmailComposer(inv, ent, sch) {
+    // AUTOMATIC EMAIL GENERATOR FUNCTION (Targets Finance Contact, 100% Pure English)
+    function updateEmailComposer(inv, ent, sch, itemsList, schoolNameEn, financeContactName) {
         const recipient = sch.financeContactEmail || sch.email || 'accounts@school.edu.my';
-        const financeContact = sch.financeContactName || sch.contactPerson || 'Finance & Accounts Department';
+        const targetSchoolName = schoolNameEn || sch.nameEn || toPureEnglish(inv.schoolName, 'Partner School');
+        const financeContact = financeContactName || toPureEnglish(sch.financeContactName || sch.contactPerson, 'Finance & Accounts Department');
         const monthLabel = inv.billingMonth ? ` (${inv.billingMonth})` : '';
-        const subject = `[COMMISSION INVOICE: ${inv.invoiceNo}] Student Placement Commission - ${inv.schoolName}${monthLabel}`;
+        const subject = `[COMMISSION INVOICE: ${inv.invoiceNo}] Student Placement Commission - ${targetSchoolName}${monthLabel}`;
         
-        const items = inv.items || [];
+        const items = itemsList || inv.items || [];
         const studentListText = items.length > 0 
-            ? items.map((i, idx) => `  ${idx + 1}. ${i.studentNameEn} (Grade: ${i.gradeEn || '-'}, Term: ${i.termEn || '-'}) -> ${formatMYR(i.amount)}`).join('\n')
-            : `  1. ${inv.studentNameEn || inv.studentName || '-'} (Grade: ${inv.gradeEn || '-'}) -> ${formatMYR(inv.amount)}`;
+            ? items.map((i, idx) => `  ${idx + 1}. ${toPureEnglish(i.studentNameEn, 'Student')} (Grade: ${toPureEnglish(i.gradeEn, '-')}, Term: ${toPureEnglish(i.termEn, '-')}) -> ${formatMYR(i.amount)}`).join('\n')
+            : `  1. ${toPureEnglish(inv.studentNameEn || inv.studentName, 'Student')} (Grade: ${toPureEnglish(inv.gradeEn, '-')}) -> ${formatMYR(inv.amount)}`;
 
         const body = `Dear ${financeContact},
 
 Greetings from ${ent.name}.
 
-Please find attached our official commission invoice #${inv.invoiceNo} for student recruitment & placement services for ${inv.schoolName}.
+Please find attached our official commission invoice #${inv.invoiceNo} for student recruitment & placement services for ${targetSchoolName}.
 
 [INVOICE SUMMARY]
 • Invoice Number: ${inv.invoiceNo}
-• Target Institution: ${inv.schoolName}
+• Target Institution: ${targetSchoolName}
 • Invoiced Students: ${items.length || 1} student(s)
 ${studentListText}
 • Total Claim Amount Due: ${formatMYR(inv.amount)}
