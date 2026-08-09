@@ -14,19 +14,27 @@
         if (window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
             const { App } = window.Capacitor.Plugins;
             App.addListener('backButton', ({ canGoBack }) => {
-                // Check if any modal is currently open
-                const openModals = document.querySelectorAll('.modal.show, .modal-backdrop, .dialog-active, [style*="display: block"]');
-                const closeBtn = document.querySelector('.modal.show .btn-close, .modal.show .close, .modal.show [data-bs-dismiss="modal"]');
-                
-                if (closeBtn) {
-                    closeBtn.click();
+                // 1. Check if any admin modal is open
+                const openAdminModals = Array.from(document.querySelectorAll('.admin-modal, .modal')).filter(m => {
+                    const style = window.getComputedStyle(m);
+                    return style.display === 'flex' || style.display === 'block';
+                });
+
+                if (openAdminModals.length > 0) {
+                    const topModal = openAdminModals[openAdminModals.length - 1];
+                    const closeBtn = topModal.querySelector('.close-modal-btn, .btn-close, .close');
+                    if (closeBtn) {
+                        closeBtn.click();
+                    } else {
+                        topModal.style.display = 'none';
+                    }
                     return;
                 }
 
+                // 2. Navigation history or Exit prompt
                 if (window.history.length > 1 && canGoBack) {
                     window.history.back();
                 } else {
-                    // Prompt or minimize
                     if (confirm('JohorN 관리자 앱을 종료하시겠습니까?')) {
                         App.exitApp();
                     }

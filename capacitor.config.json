@@ -3,6 +3,8 @@
   "appName": "JohorN Admin",
   "webDir": "www",
   "server": {
+    "url": "https://johorn.kr/admin.html",
+    "cleartext": true,
     "androidScheme": "https"
   }
 }
