@@ -743,6 +743,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
     const openAddAdmissionBtn = document.getElementById('openAddAdmissionBtn');
     const admissionSchoolId = document.getElementById('admissionSchoolId');
+    const schoolAutoTermsNotice = document.getElementById('schoolAutoTermsNotice');
+    const schoolAutoTermsText = document.getElementById('schoolAutoTermsText');
     const admissionCommissionType = document.getElementById('admissionCommissionType');
     const admissionTuitionFee = document.getElementById('admissionTuitionFee');
     const admissionCommissionRate = document.getElementById('admissionCommissionRate');
@@ -792,24 +794,45 @@ document.addEventListener('DOMContentLoaded', () => {
     if (admissionFixedAmount) admissionFixedAmount.addEventListener('input', calculateAdmissionFinancials);
     if (admissionSettlementMode) admissionSettlementMode.addEventListener('change', calculateAdmissionFinancials);
 
+    // AUTOMATIC APPLICATION OF SCHOOL TERMS WHEN SELECTING SCHOOL
     if (admissionSchoolId) {
         admissionSchoolId.addEventListener('change', () => {
-            const selectedOpt = admissionSchoolId.options[admissionSchoolId.selectedIndex];
-            if (selectedOpt && selectedOpt.value) {
-                const commType = selectedOpt.getAttribute('data-type') || 'percentage';
-                const defaultRate = selectedOpt.getAttribute('data-rate');
-                const defaultSettlement = selectedOpt.getAttribute('data-settlement');
-                
+            const schoolId = admissionSchoolId.value;
+            const school = schools.find(s => s.id === schoolId);
+
+            if (school) {
+                const commType = school.commissionType || 'percentage';
+                const defaultRate = school.defaultRate || (commType === 'fixed' ? 3500 : 10);
+                const defaultSettlement = school.defaultSettlement || '1';
+
+                // 1. Reflect Commission Type
                 if (admissionCommissionType) admissionCommissionType.value = commType;
                 toggleCommissionTypeUI(commType);
 
+                // 2. Reflect Default Rate / Fixed Amount
                 if (commType === 'fixed') {
-                    if (admissionFixedAmount) admissionFixedAmount.value = defaultRate || 3000;
+                    if (admissionFixedAmount) admissionFixedAmount.value = defaultRate;
                 } else {
-                    if (admissionCommissionRate) admissionCommissionRate.value = defaultRate || 10;
+                    if (admissionCommissionRate) admissionCommissionRate.value = defaultRate;
                 }
-                if (defaultSettlement && admissionSettlementMode) admissionSettlementMode.value = defaultSettlement;
+
+                // 3. Reflect Default Settlement Mode (Installments Count)
+                if (admissionSettlementMode) admissionSettlementMode.value = defaultSettlement;
+
+                // 4. Show Auto Terms Notice
+                if (schoolAutoTermsNotice && schoolAutoTermsText) {
+                    const settlementLabel = defaultSettlement === '1' ? '1회 일괄 정산' : `${defaultSettlement}회 분할 정산 (Term별)`;
+                    const termsDesc = commType === 'fixed' 
+                        ? `고정 금액 RM ${parseFloat(defaultRate).toLocaleString()} / ${settlementLabel}` 
+                        : `학비의 ${defaultRate}% / ${settlementLabel}`;
+                    schoolAutoTermsText.textContent = `[${school.nameEn}] 기본 정산 조건 자동 반영: ${termsDesc}`;
+                    schoolAutoTermsNotice.style.display = 'block';
+                }
+
+                // 5. Recalculate & Rebuild Installment Schedule Rows
                 calculateAdmissionFinancials();
+            } else {
+                if (schoolAutoTermsNotice) schoolAutoTermsNotice.style.display = 'none';
             }
         });
     }
@@ -866,6 +889,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('admissionCommissionRate').value = '10';
             document.getElementById('admissionSettlementMode').value = '1';
             toggleCommissionTypeUI('percentage');
+            if (schoolAutoTermsNotice) schoolAutoTermsNotice.style.display = 'none';
             if (deleteAdmissionBtn) deleteAdmissionBtn.classList.add('hidden');
             calculateAdmissionFinancials();
             openModal('admissionModal');
@@ -880,7 +904,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('admissionId').value = adm.id;
         
         // Find matching school in select
-        const sch = schools.find(s => s.nameEn === adm.schoolName);
+        const sch = schools.find(s => s.nameEn === adm.schoolName || s.nameKo === adm.schoolName);
         if (sch && admissionSchoolId) admissionSchoolId.value = sch.id;
 
         const commType = adm.commissionType || 'percentage';
@@ -909,6 +933,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const ent = entities.find(e => e.name === adm.entityName);
         if (ent && document.getElementById('admissionEntityId')) {
             document.getElementById('admissionEntityId').value = ent.id;
+        }
+
+        if (sch && schoolAutoTermsNotice && schoolAutoTermsText) {
+            const settlementLabel = adm.settlementMode === '1' ? '1회 일괄 정산' : `${adm.settlementMode}회 분할 정산`;
+            const termsDesc = commType === 'fixed' 
+                ? `고정 금액 RM ${parseFloat(adm.commissionAmount).toLocaleString()} / ${settlementLabel}` 
+                : `학비의 ${adm.commissionRate}% / ${settlementLabel}`;
+            schoolAutoTermsText.textContent = `[${sch.nameEn}] 등록된 정산 조건: ${termsDesc}`;
+            schoolAutoTermsNotice.style.display = 'block';
+        } else if (schoolAutoTermsNotice) {
+            schoolAutoTermsNotice.style.display = 'none';
         }
 
         renderInstallmentsScheduleInputs(parseFloat(adm.commissionAmount) || 0, adm.installments);
