@@ -299,11 +299,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const sampleAdmissions = [
             {
                 studentName: "김민준 (Minjun Kim)",
-                grade: "Year 7 (중1)",
+                grade: "Year 7 (Grade 7)",
                 parentContact: "김성훈 / 010-3849-1120",
                 parentEmail: "minjun.parent@gmail.com",
                 schoolName: "Marlborough College Malaysia",
-                term: "2026-Term 1 (8월 입학)",
+                term: "2026-Term 1 (August Intake)",
                 admissionDate: todayStr,
                 tuitionFee: 46000,
                 commissionType: "percentage",
@@ -312,7 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 settlementMode: "2",
                 status: "partially_paid",
                 entityName: "GLOBAL EDU CONSULTING SDN. BHD.",
-                memo: "보딩스쿨 기숙사 신청 완료, Term 1 인보이스 입금 완료됨",
+                memo: "Boarding school application complete, Term 1 invoice paid",
                 installments: [
                     { term: "Term 1 (50%)", amount: 2300, dueDate: todayStr, status: "paid", invoiceNo: "INV-JHN-2026-001-T1" },
                     { term: "Term 2 (50%)", amount: 2300, dueDate: "2027-01-15", status: "invoiced", invoiceNo: "INV-JHN-2026-001-T2" }
@@ -320,11 +320,11 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             {
                 studentName: "이지우 (Jiwoo Lee)",
-                grade: "Grade 4 (초4)",
+                grade: "Grade 4 (Primary 4)",
                 parentContact: "이진아 / 010-9284-5510",
                 parentEmail: "jiwoo.mom@naver.com",
                 schoolName: "Raffles American School",
-                term: "2026-Term 1 (8월 입학)",
+                term: "2026-Term 1 (August Intake)",
                 admissionDate: todayStr,
                 tuitionFee: 38000,
                 commissionType: "percentage",
@@ -333,18 +333,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 settlementMode: "1",
                 status: "invoiced",
                 entityName: "GLOBAL EDU CONSULTING SDN. BHD.",
-                memo: "입학 시험 합격, 인보이스 학교 재무팀 발송 완료",
+                memo: "Admissions test passed, invoice sent to finance team",
                 installments: [
                     { term: "Full 100%", amount: 5700, dueDate: todayStr, status: "invoiced", invoiceNo: "INV-JHN-2026-002" }
                 ]
             },
             {
                 studentName: "박서윤 (Seoyun Park)",
-                grade: "Year 9 (중3)",
+                grade: "Year 9 (Grade 9)",
                 parentContact: "박준영 / 010-4491-0029",
                 parentEmail: "seoyun.family@daum.net",
                 schoolName: "Stellar International School",
-                term: "2026-Term 1 (8월 입학)",
+                term: "2026-Term 1 (August Intake)",
                 admissionDate: todayStr,
                 tuitionFee: 28000,
                 commissionType: "fixed",
@@ -353,7 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 settlementMode: "1",
                 status: "paid",
                 entityName: "GLOBAL EDU CONSULTING SDN. BHD.",
-                memo: "고정 커미션 RM 3,500 전액 입금 완료 확인",
+                memo: "Fixed commission RM 3,500 received in full",
                 installments: [
                     { term: "Full 100%", amount: 3500, dueDate: todayStr, status: "paid", invoiceNo: "INV-JHN-2026-003" }
                 ]
@@ -369,8 +369,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     schoolName: adm.schoolName,
                     studentName: adm.studentName,
                     termName: "Term 1 (50%)",
+                    grade: adm.grade,
                     commissionType: adm.commissionType,
                     commissionRate: adm.commissionRate,
+                    tuitionFee: adm.tuitionFee,
                     entityName: adm.entityName,
                     issueDate: todayStr,
                     dueDate: todayStr,
@@ -383,8 +385,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     schoolName: adm.schoolName,
                     studentName: adm.studentName,
                     termName: "Term 2 (50%)",
+                    grade: adm.grade,
                     commissionType: adm.commissionType,
                     commissionRate: adm.commissionRate,
+                    tuitionFee: adm.tuitionFee,
                     entityName: adm.entityName,
                     issueDate: todayStr,
                     dueDate: "2027-01-15",
@@ -399,9 +403,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     termName: "Term 1 (50%)",
                     paymentDate: todayStr,
                     amount: 2300,
-                    bank: "Maybank 법인 계좌",
+                    bank: "Maybank Corporate Account",
                     refNo: "MB-202608-4910",
-                    memo: "Term 1 수수료 수령 확인"
+                    memo: "Term 1 Commission Remittance"
                 });
             } else if (adm.status === 'invoiced') {
                 db.ref('commission_invoices').push({
@@ -410,8 +414,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     schoolName: adm.schoolName,
                     studentName: adm.studentName,
                     termName: "Full 100%",
+                    grade: adm.grade,
                     commissionType: adm.commissionType,
                     commissionRate: adm.commissionRate,
+                    tuitionFee: adm.tuitionFee,
                     entityName: adm.entityName,
                     issueDate: todayStr,
                     dueDate: todayStr,
@@ -425,8 +431,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     schoolName: adm.schoolName,
                     studentName: adm.studentName,
                     termName: "Full 100%",
+                    grade: adm.grade,
                     commissionType: adm.commissionType,
                     commissionRate: adm.commissionRate,
+                    tuitionFee: adm.tuitionFee,
                     entityName: adm.entityName,
                     issueDate: todayStr,
                     dueDate: todayStr,
@@ -441,9 +449,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     termName: "Full 100%",
                     paymentDate: todayStr,
                     amount: 3500,
-                    bank: "Maybank 법인 계좌",
+                    bank: "Maybank Corporate Account",
                     refNo: "TT-9842145",
-                    memo: "고정 커미션 RM 3,500 입금 확인"
+                    memo: "Fixed Commission RM 3,500 Settled"
                 });
             }
         });
@@ -545,7 +553,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const optionsHtml = entities.map(e => `<option value="${e.id}" ${e.isDefault ? 'selected' : ''}>${e.name} (${e.regNo || ''})</option>`).join('');
         if (admissionEntityId) admissionEntityId.innerHTML = optionsHtml;
-        if (invoiceModalEntitySelect) invoiceModalEntitySelect.innerHTML = optionsHtml;
+        if (invoiceModalEntitySelect) {
+            invoiceModalEntitySelect.innerHTML = optionsHtml;
+            invoiceModalEntitySelect.addEventListener('change', () => {
+                if (currentViewingInvoice) {
+                    const selEnt = entities.find(e => e.id === invoiceModalEntitySelect.value);
+                    if (selEnt) {
+                        currentViewingInvoice.entityName = selEnt.name;
+                        currentViewingInvoice.entityId = selEnt.id;
+                        const adm = admissions.find(a => a.id === currentViewingInvoice.admissionId);
+                        renderInvoiceSheet(currentViewingInvoice, selEnt, adm);
+                    }
+                }
+            });
+        }
     }
 
     // ----------------------------------------------------
@@ -969,7 +990,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ----------------------------------------------------
-    // 11. SUB-TAB 2 & MODAL 2: Official Invoice Management & Print Engine
+    // 11. SUB-TAB 2 & MODAL 2: 100% English Invoice & Email Generator Engine
     // ----------------------------------------------------
     const invoiceTableBody = document.getElementById('invoiceTableBody');
     const invoiceSearchInput = document.getElementById('invoiceSearchInput');
@@ -978,7 +999,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const invoiceModalEntitySelect = document.getElementById('invoiceModalEntitySelect');
     const printInvoiceBtn = document.getElementById('printInvoiceBtn');
     const copyInvoiceEmailBtn = document.getElementById('copyInvoiceEmailBtn');
+    const openMailClientBtn = document.getElementById('openMailClientBtn');
     const markInvoicePaidBtn = document.getElementById('markInvoicePaidBtn');
+    const emailRecipientInput = document.getElementById('emailRecipientInput');
+    const emailSubjectInput = document.getElementById('emailSubjectInput');
+    const emailBodyTextarea = document.getElementById('emailBodyTextarea');
 
     let currentViewingInvoice = null;
 
@@ -1034,7 +1059,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>
                         <div class="table-action-btns">
                             <button type="button" class="btn btn-primary btn-view-invoice" data-id="${inv.id}" style="padding: 5px 9px; font-size: 11px;">
-                                <i class="fa-solid fa-eye"></i> 열람/인쇄
+                                <i class="fa-solid fa-file-pdf"></i> 열람/PDF
                             </button>
                             ${inv.status !== 'paid' ? `
                                 <button type="button" class="btn btn-secondary btn-pay-invoice" data-id="${inv.id}" style="padding: 5px 9px; font-size: 11px; color: #2E7D32; border-color: #2E7D32;">
@@ -1075,7 +1100,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const defaultEntity = entities.find(e => e.isDefault) || entities[0] || {
             name: "GLOBAL EDU CONSULTING SDN. BHD.",
             regNo: "202401048291 (1567890-V)",
-            address: "Suite 12-05, Menara Teega, Puteri Harbour, 79000 Iskandar Puteri, Johor",
+            address: "Suite 12-05, Menara Teega, Puteri Harbour, 79000 Iskandar Puteri, Johor, Malaysia",
             contact: "finance@globaledu.com.my",
             bankName: "Malayan Banking Berhad (Maybank)",
             accountNo: "5012 8899 4321",
@@ -1116,6 +1141,7 @@ document.addEventListener('DOMContentLoaded', () => {
         openModal('invoiceModal');
     }
 
+    // 100% ENGLISH INVOICE SHEET RENDERER
     function renderInvoiceSheet(inv, entity, admission) {
         if (!invoiceSheetContainer) return;
 
@@ -1132,51 +1158,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const sch = schools.find(s => s.nameEn === inv.schoolName) || {};
         const isFixed = inv.commissionType === 'fixed';
-        const rateLabel = isFixed ? 'Fixed Fee' : `${inv.commissionRate || 10}%`;
+        const rateLabel = isFixed ? 'Fixed Flat Fee' : `${inv.commissionRate || 10}% on Tuition`;
 
         invoiceSheetContainer.innerHTML = `
-            <div style="padding: 10px 5px;">
+            <div style="padding: 10px 5px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #111;">
                 <!-- Letterhead Header -->
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1a1a1a; padding-bottom: 18px; margin-bottom: 20px;">
                     <div>
-                        <h2 style="font-size: 22px; font-weight: 800; color: #1a1a1a; margin: 0; letter-spacing: -0.01em;">${ent.name}</h2>
-                        <div style="font-size: 11px; color: #666; margin-top: 3px;">Company Reg. No: <strong>${ent.regNo || '-'}</strong></div>
-                        <div style="font-size: 11px; color: #666; margin-top: 2px; max-width: 380px; line-height: 1.4;">${ent.address || '-'}</div>
-                        <div style="font-size: 11px; color: #666; margin-top: 2px;">Email: ${ent.contact || '-'}</div>
+                        <h2 style="font-size: 21px; font-weight: 800; color: #1a1a1a; margin: 0; letter-spacing: -0.01em;">${ent.name}</h2>
+                        <div style="font-size: 11px; color: #555; margin-top: 4px;">Company Reg. No: <strong>${ent.regNo || '-'}</strong></div>
+                        <div style="font-size: 11px; color: #555; margin-top: 2px; max-width: 400px; line-height: 1.4;">${ent.address || '-'}</div>
+                        <div style="font-size: 11px; color: #555; margin-top: 2px;">Email: ${ent.contact || '-'}</div>
                     </div>
                     <div style="text-align: right;">
                         <h1 style="font-size: 26px; font-weight: 800; color: var(--accent-color); margin: 0; letter-spacing: 0.05em;">INVOICE</h1>
                         <div style="font-size: 13px; font-weight: 700; color: #1a1a1a; margin-top: 5px;"># ${inv.invoiceNo}</div>
-                        <div style="font-size: 11px; color: #666; margin-top: 3px;">Date: <strong>${formatDate(inv.issueDate)}</strong></div>
-                        <div style="font-size: 11px; color: #C62828; margin-top: 2px;">Due Date: <strong>${formatDate(inv.dueDate)}</strong></div>
+                        <div style="font-size: 11px; color: #555; margin-top: 3px;">Date of Issue: <strong>${formatDate(inv.issueDate)}</strong></div>
+                        <div style="font-size: 11px; color: #C62828; margin-top: 2px;">Payment Due: <strong>${formatDate(inv.dueDate)}</strong></div>
                     </div>
                 </div>
 
-                <!-- Bill To & Placement Details -->
+                <!-- Bill To & Placement Details (100% English) -->
                 <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; margin-bottom: 25px; font-size: 12px;">
                     <div style="background: #FAF9F6; padding: 14px 16px; border-radius: 6px; border: 1px solid var(--border-color);">
-                        <strong style="color: var(--accent-color); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">BILL TO (국제학교 수신처)</strong>
+                        <strong style="color: var(--accent-color); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">BILL TO</strong>
                         <div style="font-size: 14px; font-weight: 700; color: #1a1a1a;">${inv.schoolName}</div>
-                        <div style="color: #666; margin-top: 3px;">Attn: ${sch.contactPerson || 'Admissions & Accounts Dept'}</div>
-                        <div style="color: #666;">Email: ${sch.email || '-'}</div>
-                        <div style="color: #666;">Location: ${sch.location || 'Johor, Malaysia'}</div>
+                        <div style="color: #555; margin-top: 3px;">Attn: ${sch.contactPerson || 'Admissions & Finance Department'}</div>
+                        <div style="color: #555;">Email: ${sch.email || '-'}</div>
+                        <div style="color: #555;">Location: ${sch.location || 'Johor, Malaysia'}</div>
                     </div>
                     <div style="background: #FAF9F6; padding: 14px 16px; border-radius: 6px; border: 1px solid var(--border-color);">
                         <strong style="color: var(--accent-color); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">STUDENT PLACEMENT DETAILS</strong>
                         <div style="font-size: 13px; font-weight: 700; color: #1a1a1a;">Student: ${inv.studentName}</div>
-                        <div style="color: #666; margin-top: 3px;">Year / Grade: ${inv.grade || (admission ? admission.grade : '-')}</div>
-                        <div style="color: #666;">Intake Term: ${inv.termName || (admission ? admission.term : '2026 Academic Year')}</div>
-                        <div style="color: #666;">Tuition Base: ${inv.tuitionFee ? formatMYR(inv.tuitionFee) : 'Fixed Flat Agreement'}</div>
+                        <div style="color: #555; margin-top: 3px;">Year / Grade: ${inv.grade || (admission ? admission.grade : '-')}</div>
+                        <div style="color: #555;">Intake Term: ${inv.termName || (admission ? admission.term : 'Academic Year Intake')}</div>
+                        <div style="color: #555;">Tuition Base: ${inv.tuitionFee ? formatMYR(inv.tuitionFee) : 'Fixed Agreement'}</div>
                     </div>
                 </div>
 
-                <!-- Line Items Table -->
+                <!-- Line Items Table (100% English) -->
                 <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 13px;">
                     <thead>
                         <tr style="background: #1a1a1a; color: #ffffff;">
-                            <th style="padding: 10px 12px; text-align: left; font-weight: 600;">Description (서비스 항목)</th>
-                            <th style="padding: 10px 12px; text-align: right; font-weight: 600;">Tuition Fee</th>
-                            <th style="padding: 10px 12px; text-align: right; font-weight: 600;">Rate / Terms</th>
+                            <th style="padding: 10px 12px; text-align: left; font-weight: 600;">Description</th>
+                            <th style="padding: 10px 12px; text-align: right; font-weight: 600;">Tuition Base</th>
+                            <th style="padding: 10px 12px; text-align: right; font-weight: 600;">Commission Terms</th>
                             <th style="padding: 10px 12px; text-align: right; font-weight: 600;">Amount (MYR)</th>
                         </tr>
                     </thead>
@@ -1197,28 +1223,28 @@ document.addEventListener('DOMContentLoaded', () => {
                             <td style="padding: 10px 12px; text-align: right; font-weight: 600;">${formatMYR(inv.amount)}</td>
                         </tr>
                         <tr>
-                            <td colspan="3" style="padding: 6px 12px; text-align: right; font-weight: 600; color: #666;">SST / Service Tax (0%):</td>
+                            <td colspan="3" style="padding: 6px 12px; text-align: right; font-weight: 600; color: #666;">SST / Service Tax (0% Exempt):</td>
                             <td style="padding: 6px 12px; text-align: right; font-weight: 600;">RM 0.00</td>
                         </tr>
                         <tr style="border-top: 2px solid #1a1a1a; font-size: 15px;">
-                            <td colspan="3" style="padding: 12px; text-align: right; font-weight: 800; color: #1a1a1a;">TOTAL DUE (총 청구금액):</td>
+                            <td colspan="3" style="padding: 12px; text-align: right; font-weight: 800; color: #1a1a1a;">TOTAL DUE:</td>
                             <td style="padding: 12px; text-align: right; font-weight: 800; color: #2E7D32; font-size: 16px;">${formatMYR(inv.amount)}</td>
                         </tr>
                     </tfoot>
                 </table>
 
-                <!-- Bank Remittance Instructions -->
+                <!-- Bank Remittance Instructions (100% English) -->
                 <div style="background: #F4F2EE; border: 1px solid var(--border-color); border-radius: 6px; padding: 16px 20px; margin-bottom: 20px; font-size: 12px;">
                     <div style="font-weight: 700; color: var(--accent-color); font-size: 12px; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                        <i class="fa-solid fa-building-columns"></i> REMITTANCE / BANK ACCOUNT DETAILS (수취 계좌 안내)
+                        <i class="fa-solid fa-building-columns"></i> REMITTANCE & BANK ACCOUNT DETAILS
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; line-height: 1.5;">
                         <div>
+                            <div>Beneficiary / Account Name: <strong>${ent.accountName || ent.name}</strong></div>
                             <div>Bank Name: <strong>${ent.bankName || 'Maybank'}</strong></div>
-                            <div>Account Name: <strong>${ent.accountName || ent.name}</strong></div>
                         </div>
                         <div>
-                            <div>Account No: <strong style="font-family: monospace; font-size: 13px; color: #1a1a1a;">${ent.accountNo || '-'}</strong></div>
+                            <div>Account Number: <strong style="font-family: monospace; font-size: 13px; color: #1a1a1a;">${ent.accountNo || '-'}</strong></div>
                             <div>SWIFT / BIC Code: <strong style="font-family: monospace;">${ent.swiftCode || '-'}</strong></div>
                         </div>
                     </div>
@@ -1227,19 +1253,71 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
 
-                <!-- Signatory Footer -->
+                <!-- Signatory Footer (100% English) -->
                 <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; padding-top: 15px;">
                     <div style="font-size: 11px; color: #888; line-height: 1.4;">
-                        Thank you for your partnership.<br>
+                        Thank you for your valued partnership.<br>
                         JohorN Edu Consulting & Settlement Care Services
                     </div>
-                    <div style="text-align: center; border-top: 1px solid #aaa; padding-top: 8px; width: 180px;">
+                    <div style="text-align: center; border-top: 1px solid #aaa; padding-top: 8px; width: 200px;">
                         <div style="font-size: 12px; font-weight: 700; color: #1a1a1a;">${ent.director || 'Authorized Signatory'}</div>
                         <div style="font-size: 10px; color: #777;">${ent.name}</div>
                     </div>
                 </div>
             </div>
         `;
+
+        // Update Email Composer Box
+        updateEmailComposer(inv, ent, sch, admission);
+    }
+
+    // AUTOMATIC EMAIL GENERATOR FUNCTION
+    function updateEmailComposer(inv, ent, sch, admission) {
+        const recipient = sch.email || 'admissions@school.edu.my';
+        const subject = `[INVOICE: ${inv.invoiceNo}] Commission Invoice for Student Placement - ${inv.studentName} (${inv.schoolName})`;
+        
+        const body = `Dear ${sch.contactPerson || 'Admissions & Finance Team'},
+
+Greetings from ${ent.name}.
+
+Please find attached our official commission invoice for the student admission & placement detailed below:
+
+[PLACEMENT DETAILS]
+• Invoice Number: ${inv.invoiceNo}
+• Student Name: ${inv.studentName}
+• Target School: ${inv.schoolName}
+• Grade / Year Group: ${inv.grade || (admission ? admission.grade : '-')}
+• Intake Term: ${inv.termName || 'Term Placement'}
+• Commission Amount Due: ${formatMYR(inv.amount)}
+• Payment Due Date: ${formatDate(inv.dueDate)}
+
+[REMITTANCE BANK DETAILS]
+• Beneficiary Name: ${ent.accountName || ent.name}
+• Bank Name: ${ent.bankName || 'Maybank'}
+• Account Number: ${ent.accountNo || '-'}
+• SWIFT / BIC Code: ${ent.swiftCode || '-'}
+• Payment Reference: ${inv.invoiceNo}
+
+The official PDF invoice is attached to this email for your accounting and remittance records.
+Kindly acknowledge receipt and notify us once the payment has been processed.
+
+Thank you very much for your valued partnership.
+
+Best regards,
+
+${ent.director || 'Finance & Accounts Division'}
+${ent.name}
+Company Reg. No: ${ent.regNo || '-'}
+Address: ${ent.address || '-'}
+Email / Contact: ${ent.contact || '-'}`.trim();
+
+        if (emailRecipientInput) emailRecipientInput.value = recipient;
+        if (emailSubjectInput) emailSubjectInput.value = subject;
+        if (emailBodyTextarea) emailBodyTextarea.value = body;
+
+        if (openMailClientBtn) {
+            openMailClientBtn.href = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        }
     }
 
     if (printInvoiceBtn) {
@@ -1250,42 +1328,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (copyInvoiceEmailBtn) {
         copyInvoiceEmailBtn.addEventListener('click', () => {
-            if (!currentViewingInvoice) return;
-            const inv = currentViewingInvoice;
-            const ent = entities.find(e => e.name === inv.entityName) || entities[0] || {};
-            const text = `
-[INVOICE: ${inv.invoiceNo}] Student Commission Fee Billing
+            const body = emailBodyTextarea ? emailBodyTextarea.value : '';
+            if (!body) return;
 
-Dear ${inv.schoolName} Finance / Admissions Team,
-
-Greetings from ${ent.name || 'JohorN Edu Consulting'}.
-
-Please find the commission invoice details for student placement below:
-
-- Invoice No: ${inv.invoiceNo}
-- Student Name: ${inv.studentName}
-- Target School: ${inv.schoolName}
-- Intake / Term: ${inv.termName || 'Term Placement'}
-- Commission Due: ${formatMYR(inv.amount)}
-- Due Date: ${formatDate(inv.dueDate)}
-
-[Remittance Bank Details]
-- Bank Name: ${ent.bankName || 'Maybank'}
-- Account Name: ${ent.accountName || ent.name}
-- Account No: ${ent.accountNo || ''}
-- SWIFT Code: ${ent.swiftCode || ''}
-- Payment Reference: ${inv.invoiceNo}
-
-Please let us know once the remittance is processed. Thank you!
-
-Best regards,
-${ent.name || 'JohorN'}
-            `.trim();
-
-            navigator.clipboard.writeText(text).then(() => {
-                alert('인보이스 이메일 발송용 텍스트가 클립보드에 복사되었습니다.');
+            navigator.clipboard.writeText(body).then(() => {
+                alert('학교 정산 담당자 발송용 영문 이메일 본문 전체가 클립보드에 복사되었습니다!\n\n인보이스 PDF 파일을 첨부하여 이메일을 발송하세요.');
             }).catch(() => {
-                prompt('아래 텍스트를 복사하세요:', text);
+                prompt('아래 텍스트를 복사하세요:', body);
             });
         });
     }
@@ -1356,12 +1405,37 @@ ${ent.name || 'JohorN'}
                 <td style="font-family: monospace; font-size: 11px;">${p.refNo || '-'}</td>
                 <td style="font-size: 12px; color: var(--text-secondary);">${p.memo || '-'}</td>
                 <td>
-                    <button type="button" class="btn btn-secondary btn-del-payment" data-id="${p.id}" style="padding: 5px 8px; font-size: 11px; color: #C62828; border-color: #C62828;">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
+                    <div class="table-action-btns">
+                        <button type="button" class="btn btn-primary btn-view-payment-inv" data-invoice-no="${p.invoiceNo || ''}" data-admission-id="${p.admissionId || ''}" style="padding: 5px 9px; font-size: 11px; display: flex; align-items: center; gap: 4px;" title="발행되었던 인보이스 PDF 열람">
+                            <i class="fa-solid fa-file-pdf"></i> 인보이스
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-del-payment" data-id="${p.id}" style="padding: 5px 8px; font-size: 11px; color: #C62828; border-color: #C62828;" title="입금 내역 삭제">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
         `).join('');
+
+        // Bind Payment Row Invoice View
+        document.querySelectorAll('.btn-view-payment-inv').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const invNo = btn.getAttribute('data-invoice-no');
+                const admId = btn.getAttribute('data-admission-id');
+
+                let matchedInv = null;
+                if (invNo) matchedInv = invoices.find(i => i.invoiceNo === invNo);
+                if (!matchedInv && admId) matchedInv = invoices.find(i => i.admissionId === admId);
+
+                if (matchedInv) {
+                    openInvoiceModalById(matchedInv.id);
+                } else if (admId) {
+                    openInvoiceForAdmission(admId);
+                } else {
+                    alert('연결된 인보이스 정보를 찾을 수 없습니다.');
+                }
+            });
+        });
 
         document.querySelectorAll('.btn-del-payment').forEach(btn => {
             btn.addEventListener('click', () => {
