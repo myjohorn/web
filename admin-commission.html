@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JohorN 조호엔 | 국제학교 커미션 관리 콘솔</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Style -->
+    <link rel="stylesheet" href="style.css?v=20260809_02">
+</head>
+<body>
+
+    <!-- Header / Navigation -->
+    <header>
+        <div class="container header-container">
+            <div class="logo">
+                <a href="index.html">JohorN <span style="font-size: 13px; font-weight: 500; letter-spacing: 0.1em; color: var(--accent-color); margin-left: 6px;">COMMISSION ADMIN</span></a>
+            </div>
+            <button class="nav-toggle" id="navToggle" aria-label="메뉴">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="admin.html" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-list-check" style="margin-right: 4px;"></i> 예약/상담 관리</a></li>
+                <li><a href="admin-car.html" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-car" style="margin-right: 4px;"></i> 위임 렌트카 관리</a></li>
+                <li><a href="admin-commission.html" class="nav-link active" style="color: var(--accent-color); font-weight: 600;"><i class="fa-solid fa-graduation-cap" style="margin-right: 4px;"></i> 국제학교 커미션</a></li>
+                <li><a href="index.html" class="nav-link">메인 페이지로 이동</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <main style="padding-top: 100px;">
+        <section id="admin">
+            <div class="container">
+                <!-- Admin Login Section -->
+                <div class="admin-login-wrapper" id="adminLogin">
+                    <span class="section-tag">Authentication</span>
+                    <h2 style="font-size: 28px; margin-bottom: 25px;">국제학교 커미션 관리자 로그인</h2>
+                    <div class="form-group">
+                        <input type="password" id="adminPassword" class="form-control" placeholder="관리자 비밀번호를 입력하세요." style="text-align: center;">
+                    </div>
+                    <button id="adminLoginBtn" class="btn btn-primary" style="width: 100%;">로그인</button>
+                </div>
+
+                <!-- Admin Dashboard (Hidden initially) -->
+                <div class="admin-dashboard" id="adminDashboard" style="display: none;">
+                    <!-- Admin Navigation Menu Bar -->
+                    <div class="admin-page-nav" style="display: flex; gap: 12px; margin-bottom: 30px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; flex-wrap: wrap;">
+                        <a href="admin.html" class="btn btn-secondary" style="padding: 10px 22px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; text-decoration: none; border-color: var(--accent-color); color: var(--accent-color); background: rgba(197, 168, 128, 0.05);">
+                            <i class="fa-solid fa-list-check"></i> 예약 / 상담 내역 관리
+                        </a>
+                        <a href="admin-car.html" class="btn btn-secondary" style="padding: 10px 22px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; text-decoration: none; border-color: var(--accent-color); color: var(--accent-color); background: rgba(197, 168, 128, 0.05);">
+                            <i class="fa-solid fa-car"></i> 위임 렌트카 통합 관리
+                        </a>
+                        <a href="admin-commission.html" class="btn btn-primary" style="padding: 10px 22px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; text-decoration: none;">
+                            <i class="fa-solid fa-graduation-cap"></i> 국제학교 커미션 관리
+                        </a>
+                    </div>
+
+                    <!-- Header Title & Overview -->
+                    <div class="admin-header-actions" style="margin-bottom: 25px;">
+                        <div>
+                            <span class="section-tag">International School Commission Console</span>
+                            <h2 style="font-size: 26px; font-weight: 600; color: var(--text-primary);">국제학교 학생 입학 및 커미션 정산 관리</h2>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <button type="button" id="refreshCommDataBtn" class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-arrows-rotate"></i> 새로고침
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Summary Stat Cards -->
+                    <div class="stat-card-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                        <!-- Card 1: Total Placements -->
+                        <div class="stat-card" style="background: var(--white); padding: 22px 25px; border-radius: 6px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">누적 입학 수속</span>
+                                <i class="fa-solid fa-user-graduate" style="color: #0288D1; font-size: 18px;"></i>
+                            </div>
+                            <div id="statTotalAdmissions" style="font-size: 24px; font-weight: 700; color: #0288D1;">0명</div>
+                            <div style="font-size: 11px; color: #8C8782; margin-top: 5px;" id="statAdmissionsSub">진행중 0명 / 완료 0명</div>
+                        </div>
+
+                        <!-- Card 2: Total Invoiced -->
+                        <div class="stat-card" style="background: var(--white); padding: 22px 25px; border-radius: 6px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">인보이스 발행 총액</span>
+                                <i class="fa-solid fa-file-invoice-dollar" style="color: #E65100; font-size: 18px;"></i>
+                            </div>
+                            <div id="statTotalInvoiced" style="font-size: 24px; font-weight: 700; color: #E65100;">RM 0</div>
+                            <div style="font-size: 11px; color: #8C8782; margin-top: 5px;" id="statInvoicedSub">총 0건 발행</div>
+                        </div>
+
+                        <!-- Card 3: Total Commission Paid -->
+                        <div class="stat-card" style="background: var(--white); padding: 22px 25px; border-radius: 6px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">입금 완료 커미션</span>
+                                <i class="fa-solid fa-circle-check" style="color: #2E7D32; font-size: 18px;"></i>
+                            </div>
+                            <div id="statTotalPaid" style="font-size: 24px; font-weight: 700; color: #2E7D32;">RM 0</div>
+                            <div style="font-size: 11px; color: #8C8782; margin-top: 5px;" id="statPaidSub">수금 완료 확정 수익</div>
+                        </div>
+
+                        <!-- Card 4: Outstanding / Pending Balance -->
+                        <div class="stat-card" style="background: var(--white); padding: 22px 25px; border-radius: 6px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">미수금 / 입금 대기</span>
+                                <i class="fa-solid fa-clock-rotate-left" style="color: #C62828; font-size: 18px;"></i>
+                            </div>
+                            <div id="statPendingCommission" style="font-size: 24px; font-weight: 700; color: #C62828;">RM 0</div>
+                            <div style="font-size: 11px; color: #8C8782; margin-top: 5px;" id="statPendingSub">정산 예정 잔액</div>
+                        </div>
+                    </div>
+
+                    <!-- Sub-Tab Navigation Bar -->
+                    <div class="comm-tab-nav">
+                        <button type="button" class="comm-tab-btn active" data-tab="admissions" id="subTabBtnAdmissions">
+                            <i class="fa-solid fa-user-graduate"></i> 학생 입학 & 커미션 관리
+                        </button>
+                        <button type="button" class="comm-tab-btn" data-tab="invoices" id="subTabBtnInvoices">
+                            <i class="fa-solid fa-file-invoice"></i> 인보이스 발행 및 관리
+                        </button>
+                        <button type="button" class="comm-tab-btn" data-tab="payments" id="subTabBtnPayments">
+                            <i class="fa-solid fa-money-bill-transfer"></i> 입금 및 정산 내역
+                        </button>
+                        <button type="button" class="comm-tab-btn" data-tab="schools" id="subTabBtnSchools">
+                            <i class="fa-solid fa-school"></i> 협력 국제학교 관리
+                        </button>
+                        <button type="button" class="comm-tab-btn" data-tab="entities" id="subTabBtnEntities">
+                            <i class="fa-solid fa-building-columns"></i> 발행 법인 프로필 설정
+                        </button>
+                    </div>
+
+                    <!-- SUB-TAB 1: Student Admissions & Commission -->
+                    <div id="tabContentAdmissions" class="comm-tab-content">
+                        <!-- Filters & Action Bar -->
+                        <div class="admin-panel" style="background: var(--white); padding: 18px 20px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap;">
+                                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1;">
+                                    <!-- Search Input -->
+                                    <div style="position: relative; min-width: 200px; flex: 1;">
+                                        <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #8C8782; font-size: 13px;"></i>
+                                        <input type="text" id="admissionSearchInput" class="form-control" placeholder="학생명 / 학부모 연락처 / 학교명 검색" style="padding-left: 34px; font-size: 13px; padding-top: 8px; padding-bottom: 8px;">
+                                    </div>
+                                    <!-- School Filter -->
+                                    <select id="admissionSchoolFilter" class="form-control" style="font-size: 13px; width: auto; min-width: 170px; padding: 8px 12px;">
+                                        <option value="all">전체 국제학교</option>
+                                    </select>
+                                    <!-- Status Filter -->
+                                    <select id="admissionStatusFilter" class="form-control" style="font-size: 13px; width: auto; min-width: 130px; padding: 8px 12px;">
+                                        <option value="all">전체 진행 상태</option>
+                                        <option value="applied">상담 / 수속중</option>
+                                        <option value="enrolled">입학 확정</option>
+                                        <option value="invoiced">인보이스 발행</option>
+                                        <option value="partially_paid">부분 입금</option>
+                                        <option value="paid">입금 완료 (완납)</option>
+                                        <option value="cancelled">취소 / 환불</option>
+                                    </select>
+                                </div>
+                                <button type="button" id="openAddAdmissionBtn" class="btn btn-primary" style="padding: 9px 20px; font-size: 13px; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+                                    <i class="fa-solid fa-plus"></i> 신규 학생 입학 등록
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Admissions Table -->
+                        <div class="admin-table-wrapper">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>학생 / 학부모</th>
+                                        <th>대상 학교 / 학년</th>
+                                        <th>입학 학기 / 일자</th>
+                                        <th>등록 학비 (MYR)</th>
+                                        <th>커미션 요율 / 조건</th>
+                                        <th>정산 방식 / 수금 진척</th>
+                                        <th>예상 커미션 / 수금액</th>
+                                        <th>진행 상태</th>
+                                        <th>인보이스 / 정산 액션</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admissionTableBody">
+                                    <!-- JS dynamically renders admission rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- SUB-TAB 2: Invoice Management -->
+                    <div id="tabContentInvoices" class="comm-tab-content hidden">
+                        <!-- Invoice Filter & Actions -->
+                        <div class="admin-panel" style="background: var(--white); padding: 18px 20px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap;">
+                                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1;">
+                                    <div style="position: relative; min-width: 220px; flex: 1;">
+                                        <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #8C8782; font-size: 13px;"></i>
+                                        <input type="text" id="invoiceSearchInput" class="form-control" placeholder="인보이스 번호 / 학교명 / 학생명 검색" style="padding-left: 34px; font-size: 13px; padding-top: 8px; padding-bottom: 8px;">
+                                    </div>
+                                    <select id="invoiceStatusFilter" class="form-control" style="font-size: 13px; width: auto; min-width: 140px; padding: 8px 12px;">
+                                        <option value="all">전체 인보이스</option>
+                                        <option value="issued">발행됨 (입금 대기)</option>
+                                        <option value="paid">입금 완료</option>
+                                        <option value="overdue">지급 기한 초과</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Invoices Table -->
+                        <div class="admin-table-wrapper">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>인보이스 번호</th>
+                                        <th>청구 대상 학교</th>
+                                        <th>대상 학생 / 회차</th>
+                                        <th>발행 법인</th>
+                                        <th>발행일 / 지급 기한</th>
+                                        <th>청구 금액 (MYR)</th>
+                                        <th>결제 상태</th>
+                                        <th>관리 / 인쇄</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="invoiceTableBody">
+                                    <!-- JS dynamically renders invoices -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- SUB-TAB 3: Payment & Settlement History -->
+                    <div id="tabContentPayments" class="comm-tab-content hidden">
+                        <!-- Payments Summary Bar -->
+                        <div class="admin-panel" style="background: var(--white); padding: 18px 20px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap;">
+                                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1;">
+                                    <input type="month" id="paymentMonthFilter" class="form-control" style="font-size: 13px; width: auto; padding: 8px 12px;">
+                                    <select id="paymentSchoolFilter" class="form-control" style="font-size: 13px; width: auto; min-width: 170px; padding: 8px 12px;">
+                                        <option value="all">전체 학교</option>
+                                    </select>
+                                </div>
+                                <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">
+                                    조회 기간 총 수금액: <span id="filteredPaymentTotal" style="color: #2E7D32; font-size: 15px; font-weight: 700;">RM 0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payments Table -->
+                        <div class="admin-table-wrapper">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>입금 일자</th>
+                                        <th>국제학교</th>
+                                        <th>학생명 / 회차</th>
+                                        <th>인보이스 번호</th>
+                                        <th>실제 수령액 (MYR)</th>
+                                        <th>수취 계좌 / 수단</th>
+                                        <th>거래 번호 (Ref ID)</th>
+                                        <th>메모</th>
+                                        <th>관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="paymentTableBody">
+                                    <!-- JS dynamically renders payment records -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- SUB-TAB 4: Partner International Schools -->
+                    <div id="tabContentSchools" class="comm-tab-content hidden">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <h3 style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 0;">조호바루 협력 국제학교 목록</h3>
+                                <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">학교별 표준 커미션 요율, 정산 주기 및 입학처/재무팀 연락처를 관리합니다.</p>
+                            </div>
+                            <button type="button" id="openAddSchoolBtn" class="btn btn-primary" style="padding: 9px 20px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-plus"></i> 협력 국제학교 추가
+                            </button>
+                        </div>
+                        <div id="schoolsListGrid" class="school-grid">
+                            <!-- JS populates school cards here -->
+                        </div>
+                    </div>
+
+                    <!-- SUB-TAB 5: Corporate Issuer Profile Settings -->
+                    <div id="tabContentEntities" class="comm-tab-content hidden">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <h3 style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 0;">인보이스 발행 법인 프로필</h3>
+                                <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">커미션 수익 수령을 위한 법인명(Entity), 사업자등록번호(SSM), 은행 수취 계좌를 설정합니다.</p>
+                            </div>
+                            <button type="button" id="openAddEntityBtn" class="btn btn-primary" style="padding: 9px 20px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-plus"></i> 신규 발행 법인 추가
+                            </button>
+                        </div>
+                        <div id="entitiesListGrid" class="entity-grid">
+                            <!-- JS populates entity cards here -->
+                        </div>
+                    </div>
+
+                </div> <!-- End of #adminDashboard -->
+            </div>
+        </section>
+    </main>
+
+    <!-- ====================================================
+         MODAL 1: Admission & Commission Registration / Edit
+         ==================================================== -->
+    <div class="admin-modal" id="admissionModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: var(--white); width: 95%; max-width: 680px; border-radius: 8px; padding: 28px; box-shadow: 0 12px 35px rgba(0,0,0,0.25); max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <h3 id="admissionModalTitle" style="font-size: 18px; font-weight: 700; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-user-graduate" style="color: var(--accent-color);"></i> 학생 입학 및 커미션 등록
+                </h3>
+                <button type="button" class="close-modal-btn" data-modal="admissionModal" style="background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-secondary);">&times;</button>
+            </div>
+            <form id="admissionForm" onsubmit="return false;">
+                <input type="hidden" id="admissionId" value="">
+
+                <!-- Section 1: School & Admission Info -->
+                <div style="margin-bottom: 18px;">
+                    <h4 style="font-size: 13px; font-weight: 700; color: var(--accent-color); margin-bottom: 10px;">1. 학교 및 입학 정보</h4>
+                    <div class="form-row" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 15px; margin-bottom: 12px;">
+                        <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">대상 국제학교 <span style="color: #C62828;">*</span></label>
+                            <select id="admissionSchoolId" class="form-control" required style="font-size: 13px; padding: 10px;">
+                                <!-- JS fills schools -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">입학 학기 / Intake Term <span style="color: #C62828;">*</span></label>
+                            <input type="text" id="admissionTerm" class="form-control" placeholder="예: 2026-Term 1 / 8월 입학" required style="font-size: 13px; padding: 10px;">
+                        </div>
+                    </div>
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">입학 확정일자 <span style="color: #C62828;">*</span></label>
+                            <input type="date" id="admissionDate" class="form-control" required style="font-size: 13px; padding: 10px;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">진행 상태</label>
+                            <select id="admissionStatus" class="form-control" style="font-size: 13px; padding: 10px;">
+                                <option value="applied">상담 / 수속 접수</option>
+                                <option value="enrolled">입학 확정 (Enrolled)</option>
+                                <option value="invoiced">인보이스 발행 (Invoiced)</option>
+                                <option value="partially_paid">부분 입금 (Partially Paid)</option>
+                                <option value="paid">입금 완료 (Paid / Completed)</option>
+                                <option value="cancelled">취소 / 환불</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Student & Parent Details -->
+                <div style="border-top: 1px dashed var(--border-color); padding-top: 15px; margin-bottom: 18px;">
+                    <h4 style="font-size: 13px; font-weight: 700; color: var(--accent-color); margin-bottom: 10px;">2. 학생 및 학부모 정보</h4>
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 12px;">
+                        <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">학생 이름 (영문/한글) <span style="color: #C62828;">*</span></label>
+                            <input type="text" id="admissionStudentName" class="form-control" placeholder="예: 김민준 (Minjun Kim)" required style="font-size: 13px; padding: 10px;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">입학 학년 / Year Group</label>
+                            <input type="text" id="admissionGrade" class="form-control" placeholder="예: Year 7 (중1) / Grade 4" style="font-size: 13px; padding: 10px;">
+                        </div>
+                    </div>
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">학부모 성함 및 연락처</label>
+                            <input type="text" id="admissionParentContact" class="form-control" placeholder="예: 김부모 / 010-1234-5678" style="font-size: 13px; padding: 10px;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">학부모 이메일 / 카카오톡</label>
+                            <input type="text" id="admissionParentEmail" class="form-control" placeholder="예: parent@naver.com (kakaoID)" style="font-size: 13px; padding: 10px;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Financial & Commission Terms -->
+                <div style="border-top: 1px dashed var(--border-color); padding-top: 15px; margin-bottom: 18px;">
+                    <h4 style="font-size: 13px; font-weight: 700; color: var(--accent-color); margin-bottom: 10px;">3. 학비 및 커미션 조건</h4>
+                    <div class="form-row" style="display: grid; grid-template-columns: 1.2fr 1fr 1.2fr; gap: 12px; margin-bottom: 12px;">
+                        <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">납부 학비 총액 (MYR) <span style="color: #C62828;">*</span></label>
+                            <input type="number" id="admissionTuitionFee" class="form-control" placeholder="예: 45000" min="0" required style="font-size: 13px; padding: 10px;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">커미션 요율 (%) <span style="color: #C62828;">*</span></label>
+                            <input type="number" id="admissionCommissionRate" class="form-control" placeholder="10" min="0" max="100" step="0.5" required style="font-size: 13px; padding: 10px;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">총 예상 커미션액 (MYR)</label>
+                            <input type="number" id="admissionCommissionAmount" class="form-control" placeholder="0" readonly style="font-size: 13px; padding: 10px; background: #F4F2EE; font-weight: 700; color: #2E7D32;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Settlement Mode & Multi-Installment Split Schedule -->
+                <div style="border-top: 1px dashed var(--border-color); padding-top: 15px; margin-bottom: 18px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h4 style="font-size: 13px; font-weight: 700; color: var(--accent-color); margin: 0;">4. 정산 방식 (1회 일시불 vs 다회차 분할)</h4>
+                        <span style="font-size: 11px; color: var(--text-secondary);">학교 계약 조건에 맞게 선택</span>
+                    </div>
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 12px;">
+                        <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">정산 분할 방식</label>
+                            <select id="admissionSettlementMode" class="form-control" style="font-size: 13px; padding: 10px;">
+                                <option value="1">1회 일시불 정산 (100%)</option>
+                                <option value="2">2회 분할 정산 (Term 1: 50% / Term 2: 50%)</option>
+                                <option value="3">3회 분할 정산 (Term 1: 34% / Term 2: 33% / Term 3: 33%)</option>
+                                <option value="4">4회 분할 정산 (25% x 4회)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">기본 인보이스 발행 법인</label>
+                            <select id="admissionEntityId" class="form-control" style="font-size: 13px; padding: 10px;">
+                                <!-- JS fills corporate entities -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Installments Schedule Container -->
+                    <div id="installmentsScheduleContainer" style="background: #FAF9F6; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; margin-top: 10px;">
+                        <div style="font-size: 12px; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">회차별 청구 및 정산 세부 일정:</div>
+                        <div id="installmentsList">
+                            <!-- JS generates installment rows -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 5: Notes -->
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">비고 및 특이사항 메모</label>
+                    <textarea id="admissionMemo" class="form-control" rows="2" placeholder="학교 장학금 적용 여부, 비자 수속 메모 등" style="font-size: 13px; padding: 10px; resize: none;"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" id="deleteAdmissionBtn" class="btn btn-secondary hidden" style="padding: 10px 18px; font-size: 13px; border-color: #C62828; color: #C62828; margin-right: auto;">
+                        <i class="fa-solid fa-trash"></i> 삭제
+                    </button>
+                    <button type="button" class="btn btn-secondary close-modal-btn" data-modal="admissionModal" style="padding: 10px 18px; font-size: 13px;">취소</button>
+                    <button type="button" id="saveAdmissionBtn" class="btn btn-primary" style="padding: 10px 22px; font-size: 13px;">저장하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ====================================================
+         MODAL 2: Official Commission Invoice Generator & Viewer
+         ==================================================== -->
+    <div class="admin-modal" id="invoiceModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: var(--white); width: 95%; max-width: 780px; border-radius: 8px; padding: 28px; box-shadow: 0 15px 40px rgba(0,0,0,0.3); max-height: 92vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;" class="invoice-modal-header">
+                <div>
+                    <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: var(--accent-color); text-transform: uppercase;">Official Billing Document</span>
+                    <h3 id="invoiceModalTitle" style="font-size: 20px; font-weight: 700; margin: 2px 0 0 0; color: var(--text-primary);">국제학교 커미션 청구서 (INVOICE)</h3>
+                </div>
+                <button type="button" class="close-modal-btn" data-modal="invoiceModal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary);">&times;</button>
+            </div>
+
+            <!-- Issuer Entity Selector for this invoice -->
+            <div class="invoice-entity-selector-bar" style="background: #F4F2EE; padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <label style="font-size: 12px; font-weight: 700; color: var(--text-primary); white-space: nowrap;"><i class="fa-solid fa-building"></i> 발행 법인 선택:</label>
+                    <select id="invoiceModalEntitySelect" class="form-control" style="font-size: 12px; padding: 6px 10px; min-width: 220px;">
+                        <!-- JS renders entities -->
+                    </select>
+                </div>
+                <div style="font-size: 11px; color: var(--text-secondary);">
+                    * 선택한 법인의 공식 명칭 및 수취 계좌 정보가 인보이스에 기재됩니다.
+                </div>
+            </div>
+
+            <!-- Printable Official Invoice Sheet Container -->
+            <div id="invoiceSheetContainer" class="invoice-sheet">
+                <!-- JS dynamically renders official letterhead, bill to, items, bank remittance details -->
+            </div>
+
+            <!-- Invoice Modal Footer Actions -->
+            <div class="invoice-modal-footer" style="display: flex; gap: 10px; justify-content: space-between; align-items: center; margin-top: 25px; border-top: 1px solid var(--border-color); padding-top: 18px; flex-wrap: wrap;">
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" id="copyInvoiceEmailBtn" class="btn btn-secondary" style="padding: 10px 16px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-copy"></i> 이메일 본문 복사
+                    </button>
+                    <button type="button" id="printInvoiceBtn" class="btn btn-primary" style="padding: 10px 18px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-print"></i> 인쇄 / PDF 저장
+                    </button>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" id="markInvoicePaidBtn" class="btn btn-secondary" style="padding: 10px 16px; font-size: 13px; border-color: #2E7D32; color: #2E7D32; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-circle-check"></i> 입금 완료 처리
+                    </button>
+                    <button type="button" class="btn btn-secondary close-modal-btn" data-modal="invoiceModal" style="padding: 10px 18px; font-size: 13px;">닫기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================
+         MODAL 3: Payment Receipt & Settlement Confirmation
+         ==================================================== -->
+    <div class="admin-modal" id="paymentModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: var(--white); width: 92%; max-width: 520px; border-radius: 8px; padding: 26px; box-shadow: 0 12px 35px rgba(0,0,0,0.25); max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <h3 style="font-size: 18px; font-weight: 700; margin: 0; color: #2E7D32; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-circle-check"></i> 커미션 입금 확인 및 영수 처리
+                </h3>
+                <button type="button" class="close-modal-btn" data-modal="paymentModal" style="background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-secondary);">&times;</button>
+            </div>
+            <form id="paymentForm" onsubmit="return false;">
+                <input type="hidden" id="paymentAdmissionId" value="">
+                <input type="hidden" id="paymentInvoiceId" value="">
+                <input type="hidden" id="paymentInstallmentIndex" value="0">
+
+                <div id="paymentTargetSummaryBox" style="background: #FAF9F6; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px 14px; margin-bottom: 15px; font-size: 13px;">
+                    <!-- JS injects student & school summary -->
+                </div>
+
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">실제 입금일자 <span style="color: #C62828;">*</span></label>
+                        <input type="date" id="paymentDateInput" class="form-control" required style="font-size: 13px; padding: 10px;">
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">입금 수령액 (MYR) <span style="color: #C62828;">*</span></label>
+                        <input type="number" id="paymentAmountInput" class="form-control" required min="0" step="0.01" style="font-size: 13px; padding: 10px; font-weight: 700; color: #2E7D32;">
+                    </div>
+                </div>
+
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">수령 은행 / 계좌 <span style="color: #C62828;">*</span></label>
+                        <input type="text" id="paymentBankInput" class="form-control" placeholder="예: Maybank 법인 계좌" required style="font-size: 13px; padding: 10px;">
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">송금 참조번호 (Ref No.)</label>
+                        <input type="text" id="paymentRefInput" class="form-control" placeholder="예: TT-9842145" style="font-size: 13px; padding: 10px;">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">입금 확인 메모</label>
+                    <input type="text" id="paymentMemoInput" class="form-control" placeholder="송금 수수료 차감 여부 또는 환율 메모" style="font-size: 13px; padding: 10px;">
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary close-modal-btn" data-modal="paymentModal" style="padding: 10px 18px; font-size: 13px;">취소</button>
+                    <button type="button" id="confirmPaymentSaveBtn" class="btn btn-primary" style="padding: 10px 22px; font-size: 13px; background: #2E7D32; border-color: #2E7D32;">
+                        <i class="fa-solid fa-check"></i> 입금 완료 처리
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ====================================================
+         MODAL 4: Partner School Registration / Edit
+         ==================================================== -->
+    <div class="admin-modal" id="schoolModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: var(--white); width: 92%; max-width: 600px; border-radius: 8px; padding: 28px; box-shadow: 0 12px 35px rgba(0,0,0,0.25); max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <h3 id="schoolModalTitle" style="font-size: 18px; font-weight: 700; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-school" style="color: var(--accent-color);"></i> 협력 국제학교 등록 / 수정
+                </h3>
+                <button type="button" class="close-modal-btn" data-modal="schoolModal" style="background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-secondary);">&times;</button>
+            </div>
+            <form id="schoolForm" onsubmit="return false;">
+                <input type="hidden" id="schoolId" value="">
+
+                <div class="form-row" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">학교명 (영문) <span style="color: #C62828;">*</span></label>
+                        <input type="text" id="schoolNameEn" class="form-control" placeholder="예: Marlborough College Malaysia" required style="font-size: 13px; padding: 10px;">
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">학교명 (한글)</label>
+                        <input type="text" id="schoolNameKo" class="form-control" placeholder="예: 말보로 컬리지 말레이시아" style="font-size: 13px; padding: 10px;">
+                    </div>
+                </div>
+
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">기본 커미션 요율 (%) <span style="color: #C62828;">*</span></label>
+                        <input type="number" id="schoolDefaultRate" class="form-control" placeholder="10" min="0" max="100" step="0.5" required style="font-size: 13px; padding: 10px;">
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">기본 정산 방식</label>
+                        <select id="schoolDefaultSettlement" class="form-control" style="font-size: 13px; padding: 10px;">
+                            <option value="1">1회 일시불 정산</option>
+                            <option value="2">2회 분할 정산</option>
+                            <option value="3">3회 분할 정산 (Term별)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">입학처 / 재무팀 담당자명</label>
+                        <input type="text" id="schoolContactPerson" class="form-control" placeholder="예: Admissions / Finance Dept" style="font-size: 13px; padding: 10px;">
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">인보이스 수신 이메일 <span style="color: #C62828;">*</span></label>
+                        <input type="email" id="schoolEmail" class="form-control" placeholder="예: finance@marlborough.edu.my" required style="font-size: 13px; padding: 10px;">
+                    </div>
+                </div>
+
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">학교 대표 연락처</label>
+                        <input type="text" id="schoolPhone" class="form-control" placeholder="예: +60 7 560 2200" style="font-size: 13px; padding: 10px;">
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">캠퍼스 위치 / 도시</label>
+                        <input type="text" id="schoolLocation" class="form-control" placeholder="예: Iskandar Puteri, Johor" style="font-size: 13px; padding: 10px;">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">특이사항 및 메모</label>
+                    <textarea id="schoolMemo" class="form-control" rows="2" placeholder="정산 기한 조건 (예: 학기 시작 후 30일 이내) 등" style="font-size: 13px; padding: 10px; resize: none;"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" id="deleteSchoolBtn" class="btn btn-secondary hidden" style="padding: 10px 18px; font-size: 13px; border-color: #C62828; color: #C62828; margin-right: auto;">
+                        <i class="fa-solid fa-trash"></i> 삭제
+                    </button>
+                    <button type="button" class="btn btn-secondary close-modal-btn" data-modal="schoolModal" style="padding: 10px 18px; font-size: 13px;">취소</button>
+                    <button type="button" id="saveSchoolBtn" class="btn btn-primary" style="padding: 10px 22px; font-size: 13px;">저장하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ====================================================
+         MODAL 5: Corporate Issuer Entity Registration / Edit
+         ==================================================== -->
+    <div class="admin-modal" id="entityModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: var(--white); width: 92%; max-width: 620px; border-radius: 8px; padding: 28px; box-shadow: 0 12px 35px rgba(0,0,0,0.25); max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <h3 id="entityModalTitle" style="font-size: 18px; font-weight: 700; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-building-columns" style="color: var(--accent-color);"></i> 발행 법인 프로필 등록 / 수정
+                </h3>
+                <button type="button" class="close-modal-btn" data-modal="entityModal" style="background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-secondary);">&times;</button>
+            </div>
+            <form id="entityForm" onsubmit="return false;">
+                <input type="hidden" id="entityId" value="">
+
+                <!-- Legal Corporate Info -->
+                <div class="form-row" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">법인명 / Company Name <span style="color: #C62828;">*</span></label>
+                        <input type="text" id="entityName" class="form-control" placeholder="예: GLOBAL EDU CONSULTING SDN. BHD." required style="font-size: 13px; padding: 10px; font-weight: 600;">
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">사업자등록번호 (SSM / Reg No.) <span style="color: #C62828;">*</span></label>
+                        <input type="text" id="entityRegNo" class="form-control" placeholder="예: 202401012345 (1234567-X)" required style="font-size: 13px; padding: 10px;">
+                    </div>
+                </div>
+
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">대표자 성명 (Director / Signatory)</label>
+                        <input type="text" id="entityDirector" class="form-control" placeholder="대표자 영문 성명" style="font-size: 13px; padding: 10px;">
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">공식 이메일 및 전화번호</label>
+                        <input type="text" id="entityContact" class="form-control" placeholder="예: billing@globaledu.com / +60 12-345-6789" style="font-size: 13px; padding: 10px;">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">법인 등록 주소 (Registered Office Address) <span style="color: #C62828;">*</span></label>
+                    <input type="text" id="entityAddress" class="form-control" placeholder="예: Suite 12-05, Menara Puteri, Puteri Harbour, 79000 Iskandar Puteri, Johor, Malaysia" required style="font-size: 13px; padding: 10px;">
+                </div>
+
+                <!-- Bank Remittance Details -->
+                <div style="border-top: 1px dashed var(--border-color); padding-top: 15px; margin-bottom: 15px;">
+                    <h4 style="font-size: 13px; font-weight: 700; color: #2E7D32; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-money-check-dollar"></i> 수취 은행 계좌 정보 (Remittance Details)
+                    </h4>
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 15px; margin-bottom: 12px;">
+                        <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">은행명 (Bank Name) <span style="color: #C62828;">*</span></label>
+                            <input type="text" id="entityBankName" class="form-control" placeholder="예: Malayan Banking Berhad (Maybank)" required style="font-size: 13px; padding: 10px;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">계좌번호 (Account No.) <span style="color: #C62828;">*</span></label>
+                            <input type="text" id="entityAccountNo" class="form-control" placeholder="예: 5012 3456 7890" required style="font-size: 13px; padding: 10px; font-weight: 600;">
+                        </div>
+                    </div>
+                    <div class="form-row" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">예금주명 (Account Name) <span style="color: #C62828;">*</span></label>
+                            <input type="text" id="entityAccountName" class="form-control" placeholder="예: GLOBAL EDU CONSULTING SDN BHD" required style="font-size: 13px; padding: 10px;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">SWIFT / BIC Code</label>
+                            <input type="text" id="entitySwiftCode" class="form-control" placeholder="예: MBBEMYKL" style="font-size: 13px; padding: 10px;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="entityIsDefault" style="width: 16px; height: 16px;">
+                        <span style="font-weight: 600;">기본 인보이스 발행 법인으로 설정</span>
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" id="deleteEntityBtn" class="btn btn-secondary hidden" style="padding: 10px 18px; font-size: 13px; border-color: #C62828; color: #C62828; margin-right: auto;">
+                        <i class="fa-solid fa-trash"></i> 삭제
+                    </button>
+                    <button type="button" class="btn btn-secondary close-modal-btn" data-modal="entityModal" style="padding: 10px 18px; font-size: 13px;">취소</button>
+                    <button type="button" id="saveEntityBtn" class="btn btn-primary" style="padding: 10px 22px; font-size: 13px;">저장하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-grid">
+            <div>
+                <a href="index.html" class="footer-logo">JohorN</a>
+                <p class="footer-desc">조호바루 현지 정착 및 교육 전문가들이 제공하는 가장 촘촘하고 믿을 수 있는 케어 서비스.</p>
+            </div>
+            <div class="footer-contact">
+                <h4>CONTACT</h4>
+                <p><i class="fa-solid fa-location-dot" style="margin-right: 8px;"></i> Teega Residence, Puteri Harbour, Malaysia</p>
+                <p><i class="fa-solid fa-envelope" style="margin-right: 8px;"></i> <a href="mailto:myjohorn@gmail.com">myjohorn@gmail.com</a></p>
+                <p><i class="fa-solid fa-comment" style="margin-right: 8px;"></i> <a href="https://pf.kakao.com/_vPVLb/chat" target="_blank">조호엔 카카오 채널 실시간 상담</a></p>
+            </div>
+        </div>
+        <div class="container footer-bottom">
+            <p>&copy; 2026 JohorN. All Rights Reserved. Custom domain setup: johorn.kr</p>
+            <p>Designed with Clean & Aesthetics</p>
+        </div>
+    </footer>
+
+    <!-- Firebase Compatibility SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+    <!-- Admin Commission Management JS -->
+    <script src="admin-commission.js?v=20260809_02"></script>
+</body>
+</html>

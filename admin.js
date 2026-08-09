@@ -209,13 +209,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    if (tabBtnBooking) tabBtnBooking.addEventListener('click', () => switchAdminTab('booking'));
-    if (tabBtnCar) tabBtnCar.addEventListener('click', () => switchAdminTab('car'));
-    if (headerNavBooking) headerNavBooking.addEventListener('click', (e) => { e.preventDefault(); switchAdminTab('booking'); });
-    if (headerNavCar) headerNavCar.addEventListener('click', (e) => { e.preventDefault(); switchAdminTab('car'); });
-
     if (window.location.hash === '#car') {
-        switchAdminTab('car');
+        window.location.replace('admin-car.html');
+    } else if (window.location.hash === '#commission') {
+        window.location.replace('admin-commission.html');
     }
 
     // ----------------------------------------------------

@@ -25,8 +25,9 @@
                 <span></span><span></span><span></span>
             </button>
             <ul class="nav-links" id="navLinks">
-                <li><a href="admin.html#booking" id="headerNavBooking" class="nav-link active" style="font-weight: 600;"><i class="fa-solid fa-list-check" style="margin-right: 4px;"></i> 예약/상담 관리</a></li>
-                <li><a href="admin.html#car" id="headerNavCar" class="nav-link" style="color: var(--accent-color); font-weight: 600;"><i class="fa-solid fa-car" style="margin-right: 4px;"></i> 위임 렌트카 관리</a></li>
+                <li><a href="admin.html" id="headerNavBooking" class="nav-link active" style="font-weight: 600;"><i class="fa-solid fa-list-check" style="margin-right: 4px;"></i> 예약/상담 관리</a></li>
+                <li><a href="admin-car.html" id="headerNavCar" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-car" style="margin-right: 4px;"></i> 위임 렌트카 관리</a></li>
+                <li><a href="admin-commission.html" id="headerNavCommission" class="nav-link" style="color: var(--accent-color); font-weight: 600;"><i class="fa-solid fa-graduation-cap" style="margin-right: 4px;"></i> 국제학교 커미션</a></li>
                 <li><a href="index.html" class="nav-link">메인 페이지로 이동</a></li>
             </ul>
         </div>
@@ -48,13 +49,16 @@
                 <!-- Admin Dashboard (Hidden initially) -->
                 <div class="admin-dashboard" id="adminDashboard" style="display: none;">
                     <!-- Admin Navigation Menu Bar -->
-                    <div class="admin-page-nav" style="display: flex; gap: 12px; margin-bottom: 30px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
-                        <button type="button" id="tabBtnBooking" class="btn btn-primary" style="padding: 10px 22px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <div class="admin-page-nav" style="display: flex; gap: 12px; margin-bottom: 30px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; flex-wrap: wrap;">
+                        <a href="admin.html" id="tabBtnBooking" class="btn btn-primary" style="padding: 10px 22px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; text-decoration: none;">
                             <i class="fa-solid fa-list-check"></i> 예약 / 상담 내역 관리
-                        </button>
-                        <button type="button" id="tabBtnCar" class="btn btn-secondary" style="padding: 10px 22px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; border-color: var(--accent-color); color: var(--accent-color); background: rgba(197, 168, 128, 0.05);">
+                        </a>
+                        <a href="admin-car.html" id="tabBtnCar" class="btn btn-secondary" style="padding: 10px 22px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; border-color: var(--accent-color); color: var(--accent-color); background: rgba(197, 168, 128, 0.05); text-decoration: none;">
                             <i class="fa-solid fa-car"></i> 위임 렌트카 통합 관리
-                        </button>
+                        </a>
+                        <a href="admin-commission.html" id="tabBtnCommission" class="btn btn-secondary" style="padding: 10px 22px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; border-color: var(--accent-color); color: var(--accent-color); background: rgba(197, 168, 128, 0.05); text-decoration: none;">
+                            <i class="fa-solid fa-graduation-cap"></i> 국제학교 커미션 관리
+                        </a>
                     </div>
 
                     <!-- TAB 1: Reservation & Consultation Section -->
