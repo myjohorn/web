@@ -54,6 +54,16 @@ if (fs.existsSync(apkPath)) {
     console.log(`📂 복사된 APK 파일: ${releaseApkPath}`);
     console.log(`📦 파일 크기: ${(stats.size / (1024 * 1024)).toFixed(2)} MB`);
     console.log('========================================\n');
+
+    console.log('--- Step 4: Uploading APK to Google Drive ---');
+    try {
+        const uploadToDrive = require('./upload-drive');
+        uploadToDrive().catch(err => {
+            console.log('[알림] 구글 드라이브 업로드 중 오류가 발생했으나 로컬 APK 빌드는 완료되었습니다.');
+        });
+    } catch (err) {
+        console.log('[알림] upload-drive 스크립트를 건너뜁니다.');
+    }
 } else {
     console.log('\n[알림] Gradle 빌드는 완료되었으나 APK 경로를 확인해주세요:', apkPath);
 }
