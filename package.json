@@ -8,6 +8,7 @@
     "cap:sync": "npm run build:app && npx cap sync android",
     "cap:open": "npx cap open android",
     "build:apk": "node scripts/build-apk.js",
+    "build:aab": "node scripts/build-aab.js",
     "share": "node scripts/share-qr.js"
   },
   "repository": {

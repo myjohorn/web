@@ -20,4 +20,7 @@ android/.gradle/
 android/app/build/
 android/build/
 android/local.properties
+*.jks
+*.keystore
 *.apk
+*.aab

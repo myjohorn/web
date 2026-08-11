@@ -1,4 +1,4 @@
-// Script to build JohorN Admin Android APK
+// Script to build signed Google Play App Bundle (AAB) for JohorN
 const { spawnSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -32,7 +32,7 @@ if (fs.existsSync(logoPath)) {
     });
 }
 
-console.log('\n--- Step 3: Building Android APK with Gradle ---');
+console.log('\n--- Step 3: Building Signed Release AAB (App Bundle) ---');
 const env = {
     ...process.env,
     JAVA_HOME: fs.existsSync(jdkPath) ? jdkPath : process.env.JAVA_HOME,
@@ -40,7 +40,7 @@ const env = {
 };
 
 const gradlewCmd = process.platform === 'win32' ? '.\\gradlew.bat' : './gradlew';
-const gradleBuild = spawnSync(gradlewCmd, ['assembleDebug'], {
+const gradleBuild = spawnSync(gradlewCmd, ['bundleRelease'], {
     cwd: androidDir,
     env: env,
     stdio: 'inherit',
@@ -48,31 +48,21 @@ const gradleBuild = spawnSync(gradlewCmd, ['assembleDebug'], {
 });
 
 if (gradleBuild.status !== 0) {
-    console.error('Gradle assembleDebug failed.');
+    console.error('Gradle bundleRelease failed.');
     process.exit(1);
 }
 
-const apkPath = path.join(androidDir, 'app', 'build', 'outputs', 'apk', 'debug', 'app-debug.apk');
-const releaseApkPath = path.join(rootDir, 'JohorN-Admin-v1.0.apk');
+const aabPath = path.join(androidDir, 'app', 'build', 'outputs', 'bundle', 'release', 'app-release.aab');
+const releaseAabPath = path.join(rootDir, 'JohorN-release.aab');
 
-if (fs.existsSync(apkPath)) {
-    fs.copyFileSync(apkPath, releaseApkPath);
-    const stats = fs.statSync(releaseApkPath);
-    console.log('\n========================================');
-    console.log('🎉 JohorN Admin 안드로이드 APK 빌드 완료!');
-    console.log(`📂 복사된 APK 파일: ${releaseApkPath}`);
+if (fs.existsSync(aabPath)) {
+    fs.copyFileSync(aabPath, releaseAabPath);
+    const stats = fs.statSync(releaseAabPath);
+    console.log('\n======================================================');
+    console.log('🎉 구글 플레이스토어 업로드용 AAB (App Bundle) 빌드 완료!');
+    console.log(`📂 생성된 AAB 파일: ${releaseAabPath}`);
     console.log(`📦 파일 크기: ${(stats.size / (1024 * 1024)).toFixed(2)} MB`);
-    console.log('========================================\n');
-
-    console.log('--- Step 4: Uploading APK to Google Drive ---');
-    try {
-        const uploadToDrive = require('./upload-drive');
-        uploadToDrive().catch(err => {
-            console.log('[알림] 구글 드라이브 업로드 중 오류가 발생했으나 로컬 APK 빌드는 완료되었습니다.');
-        });
-    } catch (err) {
-        console.log('[알림] upload-drive 스크립트를 건너뜁니다.');
-    }
+    console.log('======================================================\n');
 } else {
-    console.log('\n[알림] Gradle 빌드는 완료되었으나 APK 경로를 확인해주세요:', apkPath);
+    console.log('\n[알림] Gradle 빌드는 완료되었으나 AAB 경로를 확인해주세요:', aabPath);
 }

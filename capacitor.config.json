@@ -1,6 +1,6 @@
 {
   "appId": "kr.johorn.admin",
-  "appName": "JohorN Admin",
+  "appName": "JohorN",
   "webDir": "www",
   "server": {
     "url": "https://johorn.kr/admin.html",

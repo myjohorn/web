@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">JohorN Admin</string>
-    <string name="title_activity_main">JohorN Admin</string>
+    <string name="app_name">JohorN</string>
+    <string name="title_activity_main">JohorN</string>
     <string name="package_name">kr.johorn.admin</string>
     <string name="custom_url_scheme">kr.johorn.admin</string>
 </resources>
