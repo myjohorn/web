@@ -871,6 +871,96 @@ document.addEventListener('DOMContentLoaded', () => {
     // Listen to hash changes and initial page load
     window.addEventListener('hashchange', handleFaqRouting);
     handleFaqRouting();
+
+    // ==========================================================================
+    // Ambient UI & Interactive Motion Effects (Added 2026-08-13)
+    // ==========================================================================
+
+    // 1. Scroll-Reactive Header Hiding/Revealing
+    let lastScrollTop = 0;
+    const scrollThreshold = 10;
+    const headerEl = document.querySelector('header');
+    const navLinksEl = document.getElementById('navLinks');
+
+    window.addEventListener('scroll', () => {
+        if (!headerEl) return;
+
+        let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+        // Prevent bounce effect errors on mobile devices
+        if (scrollTop < 0) {
+            scrollTop = 0;
+        }
+
+        // If mobile nav list is currently open, do not hide header
+        const isMobileMenuOpen = navLinksEl && navLinksEl.classList.contains('active');
+
+        if (Math.abs(scrollTop - lastScrollTop) <= scrollThreshold) {
+            return;
+        }
+
+        if (scrollTop > lastScrollTop && scrollTop > 100 && !isMobileMenuOpen) {
+            // Scrolling down -> hide header
+            headerEl.classList.add('header-hidden');
+        } else {
+            // Scrolling up -> show header
+            headerEl.classList.remove('header-hidden');
+        }
+
+        lastScrollTop = scrollTop;
+    });
+
+    // 2. Custom Interactive Cursor with Linear Interpolation (lerp)
+    const cursor = document.getElementById('customCursor');
+    const follower = document.getElementById('customCursorFollower');
+
+    if (cursor && follower && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+        let mouseX = 0;
+        let mouseY = 0;
+        let followerX = 0;
+        let followerY = 0;
+        const lerpSpeed = 0.15;
+
+        // Follower animation loop
+        const animateCursorFollower = () => {
+            followerX += (mouseX - followerX) * lerpSpeed;
+            followerY += (mouseY - followerY) * lerpSpeed;
+
+            follower.style.left = `${followerX}px`;
+            follower.style.top = `${followerY}px`;
+
+            requestAnimationFrame(animateCursorFollower);
+        };
+
+        // Start follower interpolation loop
+        animateCursorFollower();
+
+        // Sync cursor positioning on mousemove
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+
+            cursor.style.left = `${mouseX}px`;
+            cursor.style.top = `${mouseY}px`;
+        });
+
+        // Use Event Delegation to dynamically attach hover effects
+        document.addEventListener('mouseover', (e) => {
+            const target = e.target.closest('a, button, .service-card, .play-trigger-btn, input, select, textarea, .nav-toggle, [role="button"], .day.available, .day.partially-booked');
+            if (target) {
+                cursor.classList.add('hovering');
+                follower.classList.add('hovering');
+            }
+        });
+
+        document.addEventListener('mouseout', (e) => {
+            const target = e.target.closest('a, button, .service-card, .play-trigger-btn, input, select, textarea, .nav-toggle, [role="button"], .day.available, .day.partially-booked');
+            if (target) {
+                cursor.classList.remove('hovering');
+                follower.classList.remove('hovering');
+            }
+        });
+    }
 });
 
 
