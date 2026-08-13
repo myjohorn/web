@@ -1,4 +1,4 @@
-# JohorN (조호엔) & Teega Residence - GitHub Pages 배포 및 도메인 연동 가이드  
+# JohorN (조호엔) & Teega Residence - GitHub Pages 배포 및 도메인 연동 가이드
 
 본 웹사이트는 서버 백엔드 없이 작동하는 고품격 정적 웹 애플리케이션(SPA)입니다. GitHub Pages를 활용하여 무료로 호스팅할 수 있으며, 소유하고 계신 커스텀 도메인 `johorn.kr`을 즉시 연결하여 상용 웹사이트로 사용할 수 있도록 준비되어 있습니다.
 
