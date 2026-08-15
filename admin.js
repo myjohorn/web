@@ -234,6 +234,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (gcalApiKey) gcalApiKey.value = val.apiKey || '';
                 if (gcalCalendarId) gcalCalendarId.value = val.calendarId || 'primary';
                 
+                if (val.clientId) {
+                    initializeGisClient(val.clientId);
+                }
+                
                 updateGcalUI(isGcalConnected());
                 if (isGcalConnected()) {
                     loadGcalEventsForCurrentMonth();
@@ -989,13 +993,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function initializeGisClient() {
-        const client_id = localStorage.getItem('gcal_client_id');
+    function initializeGisClient(customClientId, onReady) {
+        const client_id = customClientId || localStorage.getItem('gcal_client_id');
         if (!client_id) return;
         
         if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
             console.log("Google GIS client not loaded yet, retrying in 200ms...");
-            setTimeout(initializeGisClient, 200);
+            setTimeout(() => initializeGisClient(client_id, onReady), 200);
             return;
         }
         
@@ -1017,15 +1021,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     await loadGcalEventsForCurrentMonth();
                 },
             });
+            if (typeof onReady === 'function') {
+                onReady(tokenClient);
+            }
         } catch (e) {
             console.error("GIS client load error:", e);
+            alert('OAuth GIS Client 초기화 중 오류가 발생했습니다:\n' + (e.message || JSON.stringify(e)));
         }
     }
 
     // OAuth Connect button handlers
     if (gcalConnectBtn) {
         gcalConnectBtn.addEventListener('click', () => {
-            const clientIdVal = gcalClientId.value.trim();
+            let clientIdVal = gcalClientId.value.trim();
             const apiKeyVal = gcalApiKey.value.trim();
             const calendarIdVal = gcalCalendarId.value.trim() || 'primary';
 
@@ -1033,6 +1041,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('OAuth Client ID와 API Key를 모두 입력해야 연동을 시작할 수 있습니다.');
                 return;
             }
+
+            // Save credentials immediately to localStorage
+            localStorage.setItem('gcal_client_id', clientIdVal);
+            localStorage.setItem('gcal_api_key', apiKeyVal);
+            localStorage.setItem('gcal_calendar_id', calendarIdVal);
 
             // Save credentials to Firebase to share across devices
             const syncObj = {
@@ -1042,15 +1055,12 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             db.ref('settings/gcal').set(syncObj);
 
-            // Trigger Google login popup
-            if (!tokenClient) {
-                initializeGisClient();
-            }
-            if (tokenClient) {
-                tokenClient.requestAccessToken({ prompt: 'consent' });
-            } else {
-                alert('OAuth GIS Client 초기화에 실패했습니다. Client ID 입력을 확인해 주세요.');
-            }
+            // Initialize GIS client and request access token
+            initializeGisClient(clientIdVal, (client) => {
+                if (client) {
+                    client.requestAccessToken({ prompt: 'consent' });
+                }
+            });
         });
     }
 
