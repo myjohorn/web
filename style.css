@@ -1040,13 +1040,11 @@ footer {
         top: 100%;
         left: 0;
         right: 0;
-        background-color: rgba(250, 248, 245, 0.98);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
+        background-color: #faf8f5;
         border-bottom: 1px solid var(--border-color);
-        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
-        padding: 24px 30px;
-        gap: 16px;
+        box-shadow: 0 16px 36px rgba(28, 26, 23, 0.12);
+        padding: 20px 24px;
+        gap: 12px;
         z-index: 1000;
     }
     
@@ -1060,8 +1058,15 @@ footer {
     
     .nav-links a {
         display: block;
-        padding: 8px 0;
+        padding: 10px 14px;
         font-size: 15px;
+        border-radius: 6px;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+        background-color: rgba(197, 168, 128, 0.12);
     }
     
     .nav-toggle {
