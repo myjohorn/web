@@ -20,9 +20,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const navToggle = document.getElementById('navToggle');
     const navLinksContainer = document.getElementById('navLinks');
     if (navToggle && navLinksContainer) {
-        navToggle.addEventListener('click', () => {
+        navToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
             navLinksContainer.classList.toggle('active');
             navToggle.classList.toggle('open');
+        });
+
+        // Close dropdown when tapping anywhere outside
+        document.addEventListener('click', (e) => {
+            if (!navLinksContainer.contains(e.target) && !navToggle.contains(e.target)) {
+                navLinksContainer.classList.remove('active');
+                navToggle.classList.remove('open');
+            }
+        });
+
+        // Close dropdown when clicking any navigation link
+        navLinksContainer.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinksContainer.classList.remove('active');
+                navToggle.classList.remove('open');
+            });
         });
     }
 

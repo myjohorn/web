@@ -126,20 +126,34 @@ header.scrolled {
     background: none;
     border: none;
     cursor: pointer;
-    padding: 5px;
+    padding: 8px 6px;
+    z-index: 101;
 }
 
 .nav-toggle span {
     display: block;
-    width: 25px;
+    width: 24px;
     height: 2px;
     background-color: var(--text-primary);
     margin-bottom: 5px;
-    transition: var(--transition);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    transform-origin: center;
 }
 
 .nav-toggle span:last-child {
     margin-bottom: 0;
+}
+
+.nav-toggle.open span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+.nav-toggle.open span:nth-child(2) {
+    opacity: 0;
+}
+
+.nav-toggle.open span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
 }
 
 /* Hero Section */
@@ -1023,19 +1037,31 @@ footer {
         display: none;
         flex-direction: column;
         position: absolute;
-        top: 80px;
+        top: 100%;
         left: 0;
         right: 0;
-        background-color: rgba(250, 248, 245, 0.96);
+        background-color: rgba(250, 248, 245, 0.98);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
         border-bottom: 1px solid var(--border-color);
-        padding: 30px 40px;
-        gap: 20px;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+        padding: 24px 30px;
+        gap: 16px;
+        z-index: 1000;
     }
     
     .nav-links.active {
         display: flex;
+    }
+    
+    .nav-links li {
+        width: 100%;
+    }
+    
+    .nav-links a {
+        display: block;
+        padding: 8px 0;
+        font-size: 15px;
     }
     
     .nav-toggle {
