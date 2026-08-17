@@ -209,11 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Listen for Admissions
         db.ref('commission_admissions').on('value', (snapshot) => {
             const val = snapshot.val();
-            if (!val) {
-                seedInitialAdmissions();
-                return;
-            }
-            admissions = Object.keys(val).map(k => ({ id: k, ...val[k] }));
+            admissions = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
             updateDashboardMetrics();
             renderAdmissions();
         });
