@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Listen for Partner Schools
         db.ref('commission_schools').on('value', (snapshot) => {
             const val = snapshot.val();
-            schools = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
+            schools = val ? Object.keys(val).filter(k => !k.startsWith('_')).map(k => ({ id: k, ...val[k] })) : [];
             updateSchoolDropdowns();
             renderSchools();
             renderAdmissions();
@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Listen for Corporate Entities
         db.ref('commission_entities').on('value', (snapshot) => {
             const val = snapshot.val();
-            entities = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
+            entities = val ? Object.keys(val).filter(k => !k.startsWith('_')).map(k => ({ id: k, ...val[k] })) : [];
             updateEntityDropdowns();
             renderEntities();
             renderInvoices();
@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Listen for Admissions
         db.ref('commission_admissions').on('value', (snapshot) => {
             const val = snapshot.val();
-            admissions = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
+            admissions = val ? Object.keys(val).filter(k => !k.startsWith('_')).map(k => ({ id: k, ...val[k] })) : [];
             updateDashboardMetrics();
             renderAdmissions();
         });
@@ -217,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Listen for Invoices
         db.ref('commission_invoices').on('value', (snapshot) => {
             const val = snapshot.val();
-            invoices = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
+            invoices = val ? Object.keys(val).filter(k => !k.startsWith('_')).map(k => ({ id: k, ...val[k] })) : [];
             updateDashboardMetrics();
             renderInvoices();
         });
@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Listen for Payments
         db.ref('commission_payments').on('value', (snapshot) => {
             const val = snapshot.val();
-            payments = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
+            payments = val ? Object.keys(val).filter(k => !k.startsWith('_')).map(k => ({ id: k, ...val[k] })) : [];
             updateDashboardMetrics();
             renderPayments();
         });
