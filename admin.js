@@ -236,9 +236,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. Initialization & Database Listeners
     // ----------------------------------------------------
     function initializeDashboard() {
-        // Initialize Mock Data to Firebase if empty
-        initializeMockData();
-
         // 1. Sync GCal settings from Firebase Realtime Database
         db.ref('settings/gcal').on('value', (snapshot) => {
             const val = snapshot.val();
@@ -293,35 +290,6 @@ document.addEventListener('DOMContentLoaded', () => {
         initializePasswordSettings();
     }
 
-    function initializeMockData() {
-        db.ref('requests').once('value', (snapshot) => {
-            if (!snapshot.exists()) {
-                const mockData = {
-                    "mock_1": {
-                        type: 'consulting',
-                        name: '김민준',
-                        contact: '010-1234-5678',
-                        notes: '[희망분야]: 이주정착 서비스\n[희망학교]: 래플스, 말보로\n[예정시기]: 2026년 9월\n\n[상세내용]:\n초등학교 3학년, 5학년 자녀 학기 맞춰 입학 대행 및 답사 조율 상담 원합니다.',
-                        status: 'pending',
-                        dateCreated: getLocalDateString(new Date()),
-                        checkin: null,
-                        checkout: null
-                    },
-                    "mock_2": {
-                        type: 'stay',
-                        name: '이서연',
-                        contact: 'Kakao: seoyeon_johor',
-                        notes: '[투숙인원]: 성인 2명, 아동 1명\n[요청사항]: 답사 일정에 맞춰 3베드룸 렌트 신청합니다.',
-                        status: 'approved',
-                        dateCreated: getLocalDateString(new Date()),
-                        checkin: getLocalDateString(new Date()),
-                        checkout: getLocalDateString(new Date())
-                    }
-                };
-                db.ref('requests').set(mockData);
-            }
-        });
-    }
 
     function initializePasswordSettings() {
         const togglePasswordSettings = document.getElementById('togglePasswordSettings');
