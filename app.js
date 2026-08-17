@@ -909,58 +909,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         lastScrollTop = scrollTop;
     });
-
-    // 2. Custom Interactive Cursor with Linear Interpolation (lerp)
-    const cursor = document.getElementById('customCursor');
-    const follower = document.getElementById('customCursorFollower');
-
-    if (cursor && follower && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-        let mouseX = 0;
-        let mouseY = 0;
-        let followerX = 0;
-        let followerY = 0;
-        const lerpSpeed = 0.15;
-
-        // Follower animation loop
-        const animateCursorFollower = () => {
-            followerX += (mouseX - followerX) * lerpSpeed;
-            followerY += (mouseY - followerY) * lerpSpeed;
-
-            follower.style.left = `${followerX}px`;
-            follower.style.top = `${followerY}px`;
-
-            requestAnimationFrame(animateCursorFollower);
-        };
-
-        // Start follower interpolation loop
-        animateCursorFollower();
-
-        // Sync cursor positioning on mousemove
-        document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-
-            cursor.style.left = `${mouseX}px`;
-            cursor.style.top = `${mouseY}px`;
-        });
-
-        // Use Event Delegation to dynamically attach hover effects
-        document.addEventListener('mouseover', (e) => {
-            const target = e.target.closest('a, button, .service-card, .play-trigger-btn, input, select, textarea, .nav-toggle, [role="button"], .day.available, .day.partially-booked');
-            if (target) {
-                cursor.classList.add('hovering');
-                follower.classList.add('hovering');
-            }
-        });
-
-        document.addEventListener('mouseout', (e) => {
-            const target = e.target.closest('a, button, .service-card, .play-trigger-btn, input, select, textarea, .nav-toggle, [role="button"], .day.available, .day.partially-booked');
-            if (target) {
-                cursor.classList.remove('hovering');
-                follower.classList.remove('hovering');
-            }
-        });
-    }
 });
+
 
 
