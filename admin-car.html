@@ -222,6 +222,7 @@
                                         <th>상세 내역 / 임차인 / 항목</th>
                                         <th>금액</th>
                                         <th>공제 여부</th>
+                                        <th>영수증</th>
                                         <th>관리</th>
                                     </tr>
                                 </thead>
@@ -462,9 +463,26 @@
                         </label>
                     </div>
                 </div>
-                <div class="form-group" style="margin-bottom: 20px;">
+                <div class="form-group" style="margin-bottom: 15px;">
                     <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">상세 내역 및 메모</label>
                     <textarea id="expenseDescription" class="form-control" rows="2" placeholder="정비 내역 또는 카센터 영수증 메모" style="font-size: 13px; padding: 10px; resize: none;"></textarea>
+                </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px;">
+                        <i class="fa-solid fa-receipt" style="color: var(--accent-color); margin-right: 4px;"></i> 영수증 / 정비 증빙 첨부
+                    </label>
+                    <div style="border: 1.5px dashed var(--border-color); border-radius: 6px; padding: 14px 16px; background: rgba(250, 248, 245, 0.7);">
+                        <input type="file" id="expenseReceiptFile" accept="image/*,application/pdf" capture="environment" style="display: none;">
+                        <input type="hidden" id="expenseReceiptData" value="">
+                        <input type="hidden" id="expenseReceiptName" value="">
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                            <button type="button" id="expenseReceiptUploadBtn" class="btn btn-secondary" style="padding: 7px 14px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; background: white;">
+                                <i class="fa-solid fa-camera"></i> 영수증 사진 촬영 / 파일 선택
+                            </button>
+                            <span style="font-size: 11px; color: var(--text-secondary);">JPG, PNG, PDF (선명도 유지 자동 압축)</span>
+                        </div>
+                        <div id="expenseReceiptPreview" style="margin-top: 8px;"></div>
+                    </div>
                 </div>
                 <div style="display: flex; gap: 10px; justify-content: flex-end;">
                     <button type="button" id="deleteExpenseBtn" class="btn btn-secondary hidden" style="padding: 10px 18px; font-size: 13px; color: #E24C4C; border-color: #E24C4C; margin-right: auto;"><i class="fa-solid fa-trash"></i> 삭제</button>
@@ -502,6 +520,46 @@
         </div>
     </div>
 
+    <!-- Modal 5: Receipt Image Viewer Modal -->
+    <div class="admin-modal" id="receiptViewerModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 1100; align-items: center; justify-content: center;">
+        <div style="background: var(--white); width: 95%; max-width: 620px; border-radius: 8px; padding: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.3); max-height: 92vh; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                <div>
+                    <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.05em; color: var(--accent-color); text-transform: uppercase;">Expense Receipt</span>
+                    <h3 id="receiptViewerTitle" style="font-size: 17px; font-weight: 700; margin: 2px 0 0 0; color: var(--text-primary);"><i class="fa-solid fa-receipt" style="color: var(--accent-color);"></i> 영수증 원본 열람</h3>
+                </div>
+                <button type="button" class="close-modal-btn" data-modal="receiptViewerModal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary);">&times;</button>
+            </div>
+            <div id="receiptViewerMeta" style="background: #F8F9FA; padding: 10px 14px; border-radius: 6px; font-size: 12px; margin-bottom: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; border: 1px solid var(--border-color);">
+                <!-- JS populates metadata -->
+            </div>
+            <div id="receiptViewerImageContainer" style="flex: 1; overflow: auto; text-align: center; background: #1A1A1A; border-radius: 6px; padding: 10px; display: flex; align-items: center; justify-content: center; min-height: 260px; max-height: 52vh;">
+                <!-- JS populates image or pdf preview -->
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                <a id="receiptDownloadBtn" href="#" download="receipt.jpg" target="_blank" class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+                    <i class="fa-solid fa-download"></i> 원본 다운로드 / 새 창
+                </a>
+                <button type="button" class="btn btn-primary close-modal-btn" data-modal="receiptViewerModal" style="padding: 8px 18px; font-size: 12px;">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 6: Car Documents & Photo Viewer Modal -->
+    <div class="admin-modal" id="carDocViewerModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1100; align-items: center; justify-content: center;">
+        <div style="background: var(--white); width: 95%; max-width: 850px; border-radius: 6px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <h3 id="docViewerTitle" style="font-size: 18px; font-weight: 600; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-folder-open" style="color: var(--accent-color);"></i> 위탁 차량 관련 서류 및 사진 열람
+                </h3>
+                <button type="button" class="close-modal-btn" data-modal="carDocViewerModal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary);">&times;</button>
+            </div>
+            <div id="docViewerContent" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px;">
+                <!-- JS populates document and image cards here -->
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer>
         <div class="container footer-grid">
@@ -526,7 +584,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <!-- Admin Car JS -->
-    <script src="admin-car.js?v=20260817_01"></script>
+    <script src="admin-car.js?v=20260820_01"></script>
     <script src="mobile-bridge.js"></script>
 
     <!-- Vercel Speed Insights & Analytics -->

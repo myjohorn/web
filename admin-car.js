@@ -289,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function readAndCompressImage(file, callback) {
+    function readAndCompressImage(file, callback, customMaxDim, customQuality) {
         const reader = new FileReader();
         reader.onload = (e) => {
             if (file.type.startsWith('image/')) {
@@ -298,7 +298,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const canvas = document.createElement('canvas');
                     let width = img.width;
                     let height = img.height;
-                    const maxDim = 900;
+                    const maxDim = customMaxDim || 1000;
+                    const quality = customQuality || 0.8;
                     if (width > maxDim || height > maxDim) {
                         if (width > height) {
                             height = Math.round((height * maxDim) / width);
@@ -312,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
-                    const compressedData = canvas.toDataURL('image/jpeg', 0.75);
+                    const compressedData = canvas.toDataURL('image/jpeg', quality);
                     callback(compressedData, file.name);
                 };
                 img.src = e.target.result;
@@ -739,6 +740,181 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // ----------------------------------------------------
+    // Receipt File Attachment & Preview Logic
+    // ----------------------------------------------------
+    function bindExpenseReceiptInput() {
+        const uploadBtn = document.getElementById('expenseReceiptUploadBtn');
+        const fileInput = document.getElementById('expenseReceiptFile');
+        if (uploadBtn && fileInput) {
+            uploadBtn.addEventListener('click', () => {
+                fileInput.click();
+            });
+        }
+        if (fileInput) {
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                readAndCompressImage(file, (dataUrl, fileName) => {
+                    populateExpenseReceiptField(dataUrl, fileName);
+                }, 1200, 0.82);
+            });
+        }
+    }
+
+    function resetExpenseReceiptField() {
+        const fileInput = document.getElementById('expenseReceiptFile');
+        const dataInput = document.getElementById('expenseReceiptData');
+        const nameInput = document.getElementById('expenseReceiptName');
+        const previewBox = document.getElementById('expenseReceiptPreview');
+        if (fileInput) fileInput.value = '';
+        if (dataInput) dataInput.value = '';
+        if (nameInput) nameInput.value = '';
+        if (previewBox) previewBox.innerHTML = '';
+    }
+
+    function populateExpenseReceiptField(receiptImage, receiptName) {
+        resetExpenseReceiptField();
+        if (!receiptImage) return;
+        const dataInput = document.getElementById('expenseReceiptData');
+        const nameInput = document.getElementById('expenseReceiptName');
+        const previewBox = document.getElementById('expenseReceiptPreview');
+        if (dataInput) dataInput.value = receiptImage;
+        if (nameInput) nameInput.value = receiptName || 'receipt.jpg';
+        if (previewBox) {
+            const isImg = receiptImage.startsWith('data:image/') || receiptImage.startsWith('http');
+            previewBox.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: space-between; background: white; padding: 8px 12px; border-radius: 4px; border: 1px solid var(--border-color); margin-top: 8px;">
+                    <div style="display: flex; align-items: center; gap: 10px; cursor: pointer;" id="previewReceiptClickThumb">
+                        ${isImg ? `<img src="${receiptImage}" alt="영수증 미리보기" style="width: 42px; height: 42px; object-fit: cover; border-radius: 4px; border: 1px solid #E2E8F0;">` : `<i class="fa-solid fa-file-pdf" style="font-size: 30px; color: #C62828;"></i>`}
+                        <div>
+                            <div style="font-size: 12px; font-weight: 600; color: #2E7D32;">✓ 영수증 첨부됨</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${receiptName || '영수증 파일'} (클릭시 크게보기)</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        <button type="button" id="btnPreviewReceiptEnlarge" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">
+                            <i class="fa-solid fa-expand"></i> 보기
+                        </button>
+                        <button type="button" id="btnClearReceiptDoc" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px; color: #E24C4C; border-color: #E24C4C;">
+                            <i class="fa-solid fa-trash"></i> 삭제
+                        </button>
+                    </div>
+                </div>
+            `;
+            const clearBtn = document.getElementById('btnClearReceiptDoc');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => {
+                    resetExpenseReceiptField();
+                });
+            }
+            const thumbBtn = document.getElementById('previewReceiptClickThumb');
+            const viewBtn = document.getElementById('btnPreviewReceiptEnlarge');
+            const showPreview = () => {
+                showDirectReceiptViewer({
+                    image: receiptImage,
+                    name: receiptName,
+                    title: '영수증 미리보기'
+                });
+            };
+            if (thumbBtn) thumbBtn.addEventListener('click', showPreview);
+            if (viewBtn) viewBtn.addEventListener('click', showPreview);
+        }
+    }
+
+    function showDirectReceiptViewer(data) {
+        const modal = document.getElementById('receiptViewerModal');
+        const title = document.getElementById('receiptViewerTitle');
+        const metaBox = document.getElementById('receiptViewerMeta');
+        const imgContainer = document.getElementById('receiptViewerImageContainer');
+        const downloadBtn = document.getElementById('receiptDownloadBtn');
+        if (!modal) return;
+
+        if (title) title.innerHTML = `<i class="fa-solid fa-receipt" style="color: var(--accent-color);"></i> ${data.title || '영수증 원본 열람'}`;
+
+        if (metaBox) {
+            if (data.carPlate || data.date || data.amount) {
+                metaBox.style.display = 'grid';
+                metaBox.innerHTML = `
+                    <div><strong>발생 일자:</strong> ${data.date || '-'}</div>
+                    <div><strong>대상 차량:</strong> ${data.carPlate || '-'} ${data.carModel ? `(${data.carModel})` : ''}</div>
+                    <div><strong>비용 구분:</strong> ${data.category || '-'}</div>
+                    <div><strong>지출 금액:</strong> <span style="font-weight: 700; color: #C62828;">${data.amount || '-'}</span></div>
+                    ${data.description ? `<div style="grid-column: 1 / -1;"><strong>상세 메모:</strong> ${data.description}</div>` : ''}
+                `;
+            } else {
+                metaBox.style.display = 'none';
+            }
+        }
+
+        if (imgContainer) {
+            const isPdf = data.image && (data.image.startsWith('data:application/pdf') || (data.name && data.name.endsWith('.pdf')));
+            if (isPdf) {
+                imgContainer.innerHTML = `
+                    <div style="color: white; padding: 40px; text-align: center;">
+                        <i class="fa-solid fa-file-pdf" style="font-size: 54px; color: #FF8A80; margin-bottom: 15px;"></i>
+                        <p style="font-size: 14px; margin: 0 0 10px 0;">PDF 영수증 문서입니다.</p>
+                        <a href="${data.image}" target="_blank" download="${data.name || 'receipt.pdf'}" class="btn btn-secondary" style="font-size: 12px; padding: 8px 16px; background: rgba(255,255,255,0.1); color: white; border-color: rgba(255,255,255,0.3);">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> 새 창에서 열기 / 다운로드
+                        </a>
+                    </div>
+                `;
+            } else if (data.image) {
+                imgContainer.innerHTML = `
+                    <a href="${data.image}" target="_blank" title="클릭하여 새 창에서 원본 열기">
+                        <img src="${data.image}" alt="영수증 원본" style="max-width: 100%; max-height: 50vh; object-fit: contain; border-radius: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: zoom-in;">
+                    </a>
+                `;
+            } else {
+                imgContainer.innerHTML = `<div style="color: #999; padding: 30px;">영수증 이미지가 없습니다.</div>`;
+            }
+        }
+
+        if (downloadBtn) {
+            if (data.image) {
+                downloadBtn.href = data.image;
+                downloadBtn.download = data.name || `receipt_${data.date || 'file'}.jpg`;
+                downloadBtn.style.display = 'inline-flex';
+            } else {
+                downloadBtn.style.display = 'none';
+            }
+        }
+
+        openModal('receiptViewerModal');
+    }
+
+    function openReceiptViewerModal(expenseId) {
+        const exp = delegatedExpenses.find(e => e.id === expenseId);
+        if (!exp || !exp.receiptImage) {
+            alert('등록된 영수증 이미지가 없습니다.');
+            return;
+        }
+        const car = delegatedCars.find(c => c.id === exp.carId);
+        const categoryNames = {
+            repair: '수리/정비',
+            accident: '사고처리',
+            insurance: '보험료',
+            oil: '소모품/오일',
+            wash: '세차',
+            other: '기타지출'
+        };
+        const categoryLabel = categoryNames[exp.category] || exp.category;
+
+        showDirectReceiptViewer({
+            title: `[${car ? car.plateNumber : '차량'}] 영수증 - ${categoryLabel}`,
+            image: exp.receiptImage,
+            name: exp.receiptName || `receipt_${exp.expenseDate}_${car ? car.plateNumber : ''}.jpg`,
+            date: exp.expenseDate,
+            carPlate: car ? car.plateNumber : '삭제된 차량',
+            carModel: car ? car.model : '',
+            category: categoryLabel,
+            amount: `${exp.amount.toLocaleString()} (차주 공제: ${exp.deductibleFromOwner ? 'O' : 'X'})`,
+            description: exp.description || ''
+        });
+    }
+
+    bindExpenseReceiptInput();
+
     const openExpenseModalBtn = document.getElementById('openExpenseModalBtn');
     const expenseModalTitle = document.getElementById('expenseModalTitle');
     const deleteExpenseBtn = document.getElementById('deleteExpenseBtn');
@@ -751,6 +927,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             document.getElementById('expenseId').value = '';
             document.getElementById('expenseForm').reset();
+            resetExpenseReceiptField();
             document.getElementById('expenseDate').value = getLocalDateString(new Date());
             if (expenseModalTitle) expenseModalTitle.innerHTML = '<i class="fa-solid fa-circle-minus"></i> 정비 및 지출 비용 등록';
             if (deleteExpenseBtn) deleteExpenseBtn.classList.add('hidden');
@@ -768,6 +945,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const amount = parseFloat(document.getElementById('expenseAmount').value) || 0;
             const deductibleFromOwner = document.getElementById('expenseDeductible').checked;
             const description = document.getElementById('expenseDescription').value.trim();
+            const receiptImage = document.getElementById('expenseReceiptData').value || null;
+            const receiptName = document.getElementById('expenseReceiptName').value || null;
 
             if (!carId || !expenseDate || amount <= 0) {
                 alert('차량 선택, 발생 일자 및 지출 금액을 정확히 입력해 주세요.');
@@ -781,6 +960,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 amount,
                 deductibleFromOwner,
                 description,
+                receiptImage,
+                receiptName,
                 updatedAt: new Date().toISOString()
             };
 
@@ -843,6 +1024,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     amount: r.amount,
                     deductibleStr: '해당 없음',
                     statusBadge: r.paymentStatus === 'completed' ? '<span class="status-badge status-approved">결제완료</span>' : '<span class="status-badge status-pending">입금대기</span>',
+                    receiptImage: null,
+                    receiptName: null,
                     rawDate: r.startDate
                 });
             });
@@ -874,6 +1057,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     amount: e.amount,
                     deductibleStr: e.deductibleFromOwner ? '<span style="color: #C62828; font-weight: 600;">차주 공제 [O]</span>' : '<span style="color: #8C8782;">회사 부담 [X]</span>',
                     statusBadge: '<span class="status-badge status-rejected" style="background: #FFEBEE; color: #C62828;">지출 발생</span>',
+                    receiptImage: e.receiptImage || null,
+                    receiptName: e.receiptName || null,
                     rawDate: e.expenseDate
                 });
             });
@@ -885,7 +1070,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (items.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                    <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-secondary);">
                         조회된 장부 내역이 없습니다.
                     </td>
                 </tr>
@@ -899,6 +1084,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const amountColor = isRev ? '#2E7D32' : '#C62828';
             const amountPrefix = isRev ? '+' : '-';
 
+            const receiptCol = item.receiptImage ? `
+                <button type="button" class="btn btn-secondary view-receipt-btn" data-id="${item.id}" style="padding: 4px 8px; font-size: 11px; color: #1565C0; border-color: #90CAF9; background: #E3F2FD; display: inline-flex; align-items: center; gap: 4px; border-radius: 4px; cursor: pointer;">
+                    <i class="fa-solid fa-receipt"></i> 영수증 보기
+                </button>
+            ` : `<span style="color: #BBB7B2; font-size: 11px;">-</span>`;
+
             return `
                 <tr>
                     <td data-label="날짜" style="font-weight: 500;">${item.date}</td>
@@ -907,6 +1098,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td data-label="상세 내역" style="text-align: left;">${item.details}</td>
                     <td data-label="금액" style="font-weight: 700; color: ${amountColor};">${amountPrefix} ${item.amount.toLocaleString()}</td>
                     <td data-label="공제 여부">${item.deductibleStr}</td>
+                    <td data-label="영수증">${receiptCol}</td>
                     <td data-label="관리">
                         <button type="button" class="btn btn-secondary edit-ledger-btn" data-type="${item.type}" data-id="${item.id}" style="padding: 4px 8px; font-size: 11px; margin-right: 4px;">수정</button>
                         <button type="button" class="btn btn-secondary delete-ledger-btn" data-type="${item.type}" data-id="${item.id}" style="padding: 4px 8px; font-size: 11px; color: #E24C4C; border-color: #E24C4C;">
@@ -916,6 +1108,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 </tr>
             `;
         }).join('');
+
+        // View receipt listeners
+        tbody.querySelectorAll('.view-receipt-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const expenseId = btn.getAttribute('data-id');
+                openReceiptViewerModal(expenseId);
+            });
+        });
 
         // Edit item listeners
         tbody.querySelectorAll('.edit-ledger-btn').forEach(btn => {
@@ -950,6 +1150,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.getElementById('expenseAmount').value = exp.amount || 0;
                         document.getElementById('expenseDeductible').checked = exp.deductibleFromOwner !== false;
                         document.getElementById('expenseDescription').value = exp.description || '';
+
+                        populateExpenseReceiptField(exp.receiptImage, exp.receiptName);
 
                         if (expenseModalTitle) expenseModalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 정비 및 지출 비용 정보 수정';
                         if (deleteExpenseBtn) deleteExpenseBtn.classList.remove('hidden');
@@ -1133,7 +1335,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${exps.length > 0 ? exps.map(e => `
                             <tr style="border-bottom: 1px solid #EEE;">
                                 <td style="padding: 6px;">${e.expenseDate}</td>
-                                <td style="padding: 6px;">${e.description || e.category}</td>
+                                <td style="padding: 6px;">
+                                    ${e.description || e.category}
+                                    ${e.receiptImage ? `
+                                        <button type="button" class="stmt-view-receipt-btn" data-id="${e.id}" style="border: 1px solid #90CAF9; background: #E3F2FD; color: #1565C0; font-size: 11px; padding: 2px 6px; border-radius: 4px; cursor: pointer; margin-left: 6px; display: inline-flex; align-items: center; gap: 3px;">
+                                            <i class="fa-solid fa-receipt"></i> 영수증
+                                        </button>
+                                    ` : ''}
+                                </td>
                                 <td style="padding: 6px; text-align: right;">${e.amount.toLocaleString()}</td>
                             </tr>
                         `).join('') : '<tr><td colspan="3" style="text-align: center; padding: 10px; color: #888;">당월 차주 공제 비용 내역 없음</td></tr>'}
@@ -1164,6 +1373,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
             `;
+
+            stmtContentSheet.querySelectorAll('.stmt-view-receipt-btn').forEach(btn => {
+                btn.addEventListener('click', (ev) => {
+                    ev.stopPropagation();
+                    const expId = btn.getAttribute('data-id');
+                    openReceiptViewerModal(expId);
+                });
+            });
         }
 
         if (confirmStmtBtn) {
