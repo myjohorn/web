@@ -164,6 +164,27 @@ document.addEventListener('DOMContentLoaded', () => {
         db.ref('delegated_car_expenses').on('value', (snapshot) => {
             const val = snapshot.val();
             delegatedExpenses = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
+
+            // One-time migration: move inline receiptImage to separate path
+            if (val) {
+                Object.keys(val).forEach(k => {
+                    const exp = val[k];
+                    if (exp.receiptImage && typeof exp.receiptImage === 'string' && exp.receiptImage.startsWith('data:')) {
+                        console.log(`Migrating receipt for expense ${k}...`);
+                        db.ref(`delegated_car_expense_receipts/${k}`).set({
+                            receiptImage: exp.receiptImage,
+                            receiptName: exp.receiptName || null
+                        }).then(() => {
+                            db.ref(`delegated_car_expenses/${k}`).update({
+                                hasReceipt: true,
+                                receiptImage: null,
+                                receiptName: null
+                            });
+                        });
+                    }
+                });
+            }
+
             updateDashboardMetrics();
             renderLedger();
             renderSettlements();
@@ -885,7 +906,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function openReceiptViewerModal(expenseId) {
         const exp = delegatedExpenses.find(e => e.id === expenseId);
-        if (!exp || !exp.receiptImage) {
+        if (!exp) {
+            alert('비용 내역을 찾을 수 없습니다.');
+            return;
+        }
+        // Check both legacy inline and new hasReceipt flag
+        if (!exp.hasReceipt && !exp.receiptImage) {
             alert('등록된 영수증 이미지가 없습니다.');
             return;
         }
@@ -900,16 +926,65 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         const categoryLabel = categoryNames[exp.category] || exp.category;
 
-        showDirectReceiptViewer({
+        const metaInfo = {
             title: `[${car ? car.plateNumber : '차량'}] 영수증 - ${categoryLabel}`,
-            image: exp.receiptImage,
-            name: exp.receiptName || `receipt_${exp.expenseDate}_${car ? car.plateNumber : ''}.jpg`,
             date: exp.expenseDate,
             carPlate: car ? car.plateNumber : '삭제된 차량',
             carModel: car ? car.model : '',
             category: categoryLabel,
             amount: `${exp.amount.toLocaleString()} (차주 공제: ${exp.deductibleFromOwner ? 'O' : 'X'})`,
             description: exp.description || ''
+        };
+
+        // Legacy: if receiptImage is still inline in the expense object
+        if (exp.receiptImage) {
+            showDirectReceiptViewer({
+                ...metaInfo,
+                image: exp.receiptImage,
+                name: exp.receiptName || `receipt_${exp.expenseDate}_${car ? car.plateNumber : ''}.jpg`
+            });
+            return;
+        }
+
+        // On-demand fetch from separate path
+        showDirectReceiptViewer({
+            ...metaInfo,
+            image: null,
+            name: exp.receiptName || 'receipt.jpg'
+        });
+        const imgContainer = document.getElementById('receiptViewerImageContainer');
+        if (imgContainer) imgContainer.innerHTML = '<div style="color: #CCC; padding: 30px; font-size: 13px;"><i class="fa-solid fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>영수증 이미지 로딩 중...</div>';
+
+        db.ref(`delegated_car_expense_receipts/${expenseId}`).once('value').then(snap => {
+            const data = snap.val();
+            if (data && data.receiptImage) {
+                const isImg = data.receiptImage.startsWith('data:image/');
+                if (imgContainer) {
+                    imgContainer.innerHTML = isImg ? `
+                        <a href="${data.receiptImage}" target="_blank" title="클릭하여 새 창에서 원본 열기">
+                            <img src="${data.receiptImage}" alt="영수증 원본" style="max-width: 100%; max-height: 50vh; object-fit: contain; border-radius: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: zoom-in;">
+                        </a>
+                    ` : `
+                        <div style="color: white; padding: 40px; text-align: center;">
+                            <i class="fa-solid fa-file-pdf" style="font-size: 54px; color: #FF8A80; margin-bottom: 15px;"></i>
+                            <p style="font-size: 14px; margin: 0 0 10px 0;">PDF 영수증 문서입니다.</p>
+                            <a href="${data.receiptImage}" target="_blank" download="${data.receiptName || 'receipt.pdf'}" class="btn btn-secondary" style="font-size: 12px; padding: 8px 16px; background: rgba(255,255,255,0.1); color: white; border-color: rgba(255,255,255,0.3);">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> 새 창에서 열기 / 다운로드
+                            </a>
+                        </div>
+                    `;
+                }
+                const downloadBtn = document.getElementById('receiptDownloadBtn');
+                if (downloadBtn) {
+                    downloadBtn.href = data.receiptImage;
+                    downloadBtn.download = data.receiptName || `receipt_${exp.expenseDate}.jpg`;
+                    downloadBtn.style.display = 'inline-flex';
+                }
+            } else {
+                if (imgContainer) imgContainer.innerHTML = '<div style="color: #999; padding: 30px;">영수증 이미지를 찾을 수 없습니다.</div>';
+            }
+        }).catch(() => {
+            if (imgContainer) imgContainer.innerHTML = '<div style="color: #F88; padding: 30px;">영수증 로딩에 실패했습니다.</div>';
         });
     }
 
@@ -960,18 +1035,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 amount,
                 deductibleFromOwner,
                 description,
-                receiptImage,
-                receiptName,
+                hasReceipt: !!receiptImage,
+                receiptName: receiptName || null,
                 updatedAt: new Date().toISOString()
+            };
+
+            const saveReceipt = (expenseKey) => {
+                if (receiptImage) {
+                    db.ref(`delegated_car_expense_receipts/${expenseKey}`).set({
+                        receiptImage,
+                        receiptName: receiptName || null
+                    });
+                } else {
+                    db.ref(`delegated_car_expense_receipts/${expenseKey}`).remove();
+                }
             };
 
             if (id) {
                 db.ref(`delegated_car_expenses/${id}`).update(expObj).then(() => {
+                    saveReceipt(id);
                     closeModal('expenseModal');
                 });
             } else {
                 expObj.createdAt = new Date().toISOString();
-                db.ref('delegated_car_expenses').push(expObj).then(() => {
+                const newRef = db.ref('delegated_car_expenses').push();
+                newRef.set(expObj).then(() => {
+                    saveReceipt(newRef.key);
                     closeModal('expenseModal');
                 });
             }
@@ -983,6 +1072,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const id = document.getElementById('expenseId').value;
             if (id && confirm('이 비용 내역을 삭제하시겠습니까?')) {
                 db.ref(`delegated_car_expenses/${id}`).remove().then(() => {
+                    db.ref(`delegated_car_expense_receipts/${id}`).remove();
                     closeModal('expenseModal');
                 });
             }
@@ -1024,8 +1114,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     amount: r.amount,
                     deductibleStr: '해당 없음',
                     statusBadge: r.paymentStatus === 'completed' ? '<span class="status-badge status-approved">결제완료</span>' : '<span class="status-badge status-pending">입금대기</span>',
-                    receiptImage: null,
-                    receiptName: null,
+                    hasReceipt: false,
                     rawDate: r.startDate
                 });
             });
@@ -1057,8 +1146,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     amount: e.amount,
                     deductibleStr: e.deductibleFromOwner ? '<span style="color: #C62828; font-weight: 600;">차주 공제 [O]</span>' : '<span style="color: #8C8782;">회사 부담 [X]</span>',
                     statusBadge: '<span class="status-badge status-rejected" style="background: #FFEBEE; color: #C62828;">지출 발생</span>',
-                    receiptImage: e.receiptImage || null,
-                    receiptName: e.receiptName || null,
+                    hasReceipt: !!(e.hasReceipt || e.receiptImage),
                     rawDate: e.expenseDate
                 });
             });
@@ -1084,7 +1172,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const amountColor = isRev ? '#2E7D32' : '#C62828';
             const amountPrefix = isRev ? '+' : '-';
 
-            const receiptCol = item.receiptImage ? `
+            const receiptCol = item.hasReceipt ? `
                 <button type="button" class="btn btn-secondary view-receipt-btn" data-id="${item.id}" style="padding: 4px 8px; font-size: 11px; color: #1565C0; border-color: #90CAF9; background: #E3F2FD; display: inline-flex; align-items: center; gap: 4px; border-radius: 4px; cursor: pointer;">
                     <i class="fa-solid fa-receipt"></i> 영수증 보기
                 </button>
@@ -1151,7 +1239,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.getElementById('expenseDeductible').checked = exp.deductibleFromOwner !== false;
                         document.getElementById('expenseDescription').value = exp.description || '';
 
-                        populateExpenseReceiptField(exp.receiptImage, exp.receiptName);
+                        // Legacy inline receipt or new separate path
+                        if (exp.receiptImage) {
+                            populateExpenseReceiptField(exp.receiptImage, exp.receiptName);
+                        } else if (exp.hasReceipt) {
+                            db.ref(`delegated_car_expense_receipts/${exp.id}`).once('value').then(snap => {
+                                const data = snap.val();
+                                if (data && data.receiptImage) {
+                                    populateExpenseReceiptField(data.receiptImage, data.receiptName || exp.receiptName);
+                                }
+                            });
+                        } else {
+                            resetExpenseReceiptField();
+                        }
 
                         if (expenseModalTitle) expenseModalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 정비 및 지출 비용 정보 수정';
                         if (deleteExpenseBtn) deleteExpenseBtn.classList.remove('hidden');
@@ -1337,7 +1437,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <td style="padding: 6px;">${e.expenseDate}</td>
                                 <td style="padding: 6px;">
                                     ${e.description || e.category}
-                                    ${e.receiptImage ? `
+                                    ${(e.hasReceipt || e.receiptImage) ? `
                                         <button type="button" class="stmt-view-receipt-btn" data-id="${e.id}" style="border: 1px solid #90CAF9; background: #E3F2FD; color: #1565C0; font-size: 11px; padding: 2px 6px; border-radius: 4px; cursor: pointer; margin-left: 6px; display: inline-flex; align-items: center; gap: 3px;">
                                             <i class="fa-solid fa-receipt"></i> 영수증
                                         </button>
