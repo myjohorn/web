@@ -26,7 +26,7 @@
             </button>
             <ul class="nav-links" id="navLinks">
                 <li><a href="admin.html" id="headerNavBooking" class="nav-link active" style="font-weight: 600;"><i class="fa-solid fa-list-check" style="margin-right: 4px;"></i> 예약/상담 관리</a></li>
-                <li><a href="admin-car.html" id="headerNavCar" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-car" style="margin-right: 4px;"></i> 위임 렌트카 관리</a></li>
+                <li><a href="admin-car.html" id="headerNavCar" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-car" style="margin-right: 4px;"></i> 렌트카 관리</a></li>
                 <li><a href="admin-commission.html" id="headerNavCommission" class="nav-link" style="color: var(--accent-color); font-weight: 600;"><i class="fa-solid fa-graduation-cap" style="margin-right: 4px;"></i> 국제학교 커미션</a></li>
                 <li><a href="index.html" class="nav-link">메인 페이지로 이동</a></li>
             </ul>
@@ -263,7 +263,7 @@
                         <div class="admin-header-actions">
                             <div>
                                 <span class="section-tag">Consignment Car Management</span>
-                                <h2>위임 렌트카 매출/비용 및 수익 배분 관리</h2>
+                                <h2>렌트카 매출/비용 및 수익 배분 관리</h2>
                             </div>
                         </div>
 
@@ -273,56 +273,56 @@
                             <div class="stat-card" style="background: var(--white); padding: 22px 25px; border-radius: 6px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                                     <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">당월 렌트 총 수입</span>
-                                    <i class="fa-solid fa-coins" style="color: #2E7D32; font-size: 18px;"></i>
+                                    <i class="fa-solid fa-arrow-trend-up" style="color: #2E7D32; font-size: 18px;"></i>
                                 </div>
                                 <div id="statGrossRevenue" style="font-size: 24px; font-weight: 700; color: #2E7D32;">0</div>
-                                <div style="font-size: 11px; color: #8C8782; margin-top: 5px;">고객 결제 렌트비 총액</div>
+                                <div style="font-size: 11px; color: #8C8782; margin-top: 5px;">선택 월 총 발생 대여 수입</div>
                             </div>
 
-                            <!-- Card 2: Company Revenue (Fee Profit) -->
-                            <div class="stat-card" style="background: var(--white); padding: 22px 25px; border-radius: 6px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                    <span style="font-size: 12px; font-weight: 600; color: var(--accent-color); text-transform: uppercase; letter-spacing: 0.05em;">당월 회사 매출</span>
-                                    <i class="fa-solid fa-chart-line" style="color: var(--accent-color); font-size: 18px;"></i>
-                                </div>
-                                <div id="statFeeProfit" style="font-size: 24px; font-weight: 700; color: var(--accent-color);">0</div>
-                                <div style="font-size: 11px; color: #8C8782; margin-top: 5px;">위탁 관리 수수료 수익</div>
-                            </div>
-
-                            <!-- Card 3: Expenses -->
+                            <!-- Card 2: Operating Expenses -->
                             <div class="stat-card" style="background: var(--white); padding: 22px 25px; border-radius: 6px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                                     <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">당월 공제 비용</span>
                                     <i class="fa-solid fa-screwdriver-wrench" style="color: #C62828; font-size: 18px;"></i>
                                 </div>
                                 <div id="statTotalExpenses" style="font-size: 24px; font-weight: 700; color: #C62828;">0</div>
-                                <div style="font-size: 11px; color: #8C8782; margin-top: 5px;">정비, 수리 및 차주 공제비</div>
+                                <div style="font-size: 11px; color: #8C8782; margin-top: 5px;">정비, 수리 및 사고 처리비</div>
                             </div>
 
-                            <!-- Card 4: Owner Dividend -->
+                            <!-- Card 3: Net Owner Dividend & Fee Profit -->
                             <div class="stat-card" style="background: var(--white); padding: 22px 25px; border-radius: 6px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                    <span style="font-size: 12px; font-weight: 600; color: #1565C0; text-transform: uppercase; letter-spacing: 0.05em;">당월 차주 배당금</span>
-                                    <i class="fa-solid fa-hand-holding-dollar" style="color: #1565C0; font-size: 18px;"></i>
+                                    <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">차주 배당 / 관리수수료</span>
+                                    <i class="fa-solid fa-scale-balanced" style="color: #1565C0; font-size: 18px;"></i>
                                 </div>
-                                <div id="statNetPayout" style="font-size: 24px; font-weight: 700; color: #1565C0;">0</div>
-                                <div style="font-size: 11px; color: #8C8782; margin-top: 5px;">차주 최종 정산 지급액</div>
+                                <div id="statNetPayout" style="font-size: 20px; font-weight: 700; color: var(--text-primary);">0</div>
+                                <div id="statFeeProfit" style="font-size: 12px; color: var(--accent-color); font-weight: 600; margin-top: 4px;">수수료 수익: 0</div>
+                            </div>
+
+                            <!-- Card 4: Total Registered Consigned Cars -->
+                            <div class="stat-card" style="background: var(--white); padding: 22px 25px; border-radius: 6px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">등록 위탁 차량</span>
+                                    <i class="fa-solid fa-car" style="color: var(--accent-color); font-size: 18px;"></i>
+                                </div>
+                                <div id="statTotalCars" style="font-size: 26px; font-weight: 700; color: var(--text-primary);">0 대</div>
+                                <div style="font-size: 11px; color: #8C8782; margin-top: 5px;">현재 위탁 운행 중인 차량</div>
                             </div>
                         </div>
 
                         <!-- Sub-Tab Navigation -->
                         <div class="car-tab-nav" style="display: flex; gap: 6px; margin-bottom: 25px; border-bottom: 1px solid var(--border-color);">
                             <button class="car-tab-btn active" data-tab="cars" style="padding: 12px 16px; font-size: 14px; font-weight: 600; border: none; background: none; cursor: pointer; border-bottom: 3px solid var(--accent-color); color: var(--text-primary);">
-                                <i class="fa-solid fa-car" style="margin-right: 4px;"></i><span class="tab-text-full"> 위탁 차량 목록</span><span class="tab-text-short"> 차량</span>
+                                <i class="fa-solid fa-car" style="margin-right: 4px;"></i><span class="tab-text-full"> 차량 관리</span><span class="tab-text-short"> 차량</span>
                             </button>
                             <button class="car-tab-btn" data-tab="calendar" style="padding: 12px 16px; font-size: 14px; font-weight: 600; border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent; color: var(--text-secondary);">
-                                <i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i><span class="tab-text-full"> 차량별 예약 캘린더</span><span class="tab-text-short"> 캘린더</span>
+                                <i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i><span class="tab-text-full"> 예약 관리</span><span class="tab-text-short"> 예약</span>
                             </button>
                             <button class="car-tab-btn" data-tab="ledger" style="padding: 12px 16px; font-size: 14px; font-weight: 600; border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent; color: var(--text-secondary);">
-                                <i class="fa-solid fa-book" style="margin-right: 4px;"></i><span class="tab-text-full"> 매출 / 비용 장부</span><span class="tab-text-short"> 장부</span>
+                                <i class="fa-solid fa-book" style="margin-right: 4px;"></i><span class="tab-text-full"> 장부 관리</span><span class="tab-text-short"> 장부</span>
                             </button>
                             <button class="car-tab-btn" data-tab="settlements" style="padding: 12px 16px; font-size: 14px; font-weight: 600; border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent; color: var(--text-secondary);">
-                                <i class="fa-solid fa-calculator" style="margin-right: 4px;"></i><span class="tab-text-full"> 차주 수익 배분 & 정산</span><span class="tab-text-short"> 정산</span>
+                                <i class="fa-solid fa-calculator" style="margin-right: 4px;"></i><span class="tab-text-full"> 정산 관리</span><span class="tab-text-short"> 정산</span>
                             </button>
                         </div>
 
@@ -809,7 +809,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--accent-color); padding-bottom: 15px;">
                 <div>
                     <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: var(--accent-color); text-transform: uppercase;">JohorN Consignment Care</span>
-                    <h3 id="stmtModalTitle" style="font-size: 20px; font-weight: 700; margin: 2px 0 0 0; color: var(--text-primary);">위임 렌트카 정산 명세서</h3>
+                    <h3 id="stmtModalTitle" style="font-size: 20px; font-weight: 700; margin: 2px 0 0 0; color: var(--text-primary);">렌트카 정산 명세서</h3>
                 </div>
                 <button type="button" class="close-modal-btn" data-modal="settlementModal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary);">&times;</button>
             </div>

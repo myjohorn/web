@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JohorN 조호엔 | 위임 렌트카 관리 콘솔</title>
+    <title>JohorN 조호엔 | 렌트카 관리 콘솔</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,7 +26,7 @@
             </button>
             <ul class="nav-links" id="navLinks">
                 <li><a href="admin.html" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-list-check" style="margin-right: 4px;"></i> 예약/상담 관리</a></li>
-                <li><a href="admin-car.html" class="nav-link active" style="color: var(--accent-color); font-weight: 600;"><i class="fa-solid fa-car" style="margin-right: 4px;"></i> 위임 렌트카 관리</a></li>
+                <li><a href="admin-car.html" class="nav-link active" style="color: var(--accent-color); font-weight: 600;"><i class="fa-solid fa-car" style="margin-right: 4px;"></i> 렌트카 관리</a></li>
                 <li><a href="admin-commission.html" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-graduation-cap" style="margin-right: 4px;"></i> 국제학교 커미션</a></li>
                 <li><a href="index.html" class="nav-link">메인 페이지로 이동</a></li>
             </ul>
@@ -39,7 +39,7 @@
                 <!-- Admin Login Section -->
                 <div class="admin-login-wrapper" id="adminLogin">
                     <span class="section-tag">Authentication</span>
-                    <h2 style="font-size: 28px; margin-bottom: 25px;">위임 렌트카 관리자 로그인</h2>
+                    <h2 style="font-size: 28px; margin-bottom: 25px;">렌트카 관리자 로그인</h2>
                     <div class="form-group">
                         <input type="password" id="adminPassword" class="form-control" placeholder="관리자 비밀번호를 입력하세요." style="text-align: center;">
                     </div>
@@ -54,7 +54,7 @@
                     <div class="admin-header-actions">
                         <div>
                             <span class="section-tag">Consignment Car Management</span>
-                            <h2>위임 렌트카 매출/비용 및 수익 배분 관리</h2>
+                            <h2>렌트카 매출/비용 및 수익 배분 관리</h2>
                         </div>
                     </div>
 
@@ -100,16 +100,16 @@
                     <!-- Sub-Tab Navigation -->
                     <div class="car-tab-nav" style="display: flex; gap: 6px; margin-bottom: 25px; border-bottom: 1px solid var(--border-color);">
                         <button class="car-tab-btn active" data-tab="cars" style="padding: 12px 16px; font-size: 14px; font-weight: 600; border: none; background: none; cursor: pointer; border-bottom: 3px solid var(--accent-color); color: var(--text-primary);">
-                            <i class="fa-solid fa-car" style="margin-right: 4px;"></i><span class="tab-text-full"> 위탁 차량 목록</span><span class="tab-text-short"> 차량</span>
+                            <i class="fa-solid fa-car" style="margin-right: 4px;"></i><span class="tab-text-full"> 차량 관리</span><span class="tab-text-short"> 차량</span>
                         </button>
                         <button class="car-tab-btn" data-tab="calendar" style="padding: 12px 16px; font-size: 14px; font-weight: 600; border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent; color: var(--text-secondary);">
-                            <i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i><span class="tab-text-full"> 차량별 예약 캘린더</span><span class="tab-text-short"> 캘린더</span>
+                            <i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i><span class="tab-text-full"> 예약 관리</span><span class="tab-text-short"> 예약</span>
                         </button>
                         <button class="car-tab-btn" data-tab="ledger" style="padding: 12px 16px; font-size: 14px; font-weight: 600; border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent; color: var(--text-secondary);">
-                            <i class="fa-solid fa-book" style="margin-right: 4px;"></i><span class="tab-text-full"> 매출 / 비용 장부</span><span class="tab-text-short"> 장부</span>
+                            <i class="fa-solid fa-book" style="margin-right: 4px;"></i><span class="tab-text-full"> 장부 관리</span><span class="tab-text-short"> 장부</span>
                         </button>
                         <button class="car-tab-btn" data-tab="settlements" style="padding: 12px 16px; font-size: 14px; font-weight: 600; border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent; color: var(--text-secondary);">
-                            <i class="fa-solid fa-calculator" style="margin-right: 4px;"></i><span class="tab-text-full"> 차주 수익 배분 & 정산</span><span class="tab-text-short"> 정산</span>
+                            <i class="fa-solid fa-calculator" style="margin-right: 4px;"></i><span class="tab-text-full"> 정산 관리</span><span class="tab-text-short"> 정산</span>
                         </button>
                     </div>
 
@@ -499,7 +499,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--accent-color); padding-bottom: 15px;">
                 <div>
                     <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: var(--accent-color); text-transform: uppercase;">JohorN Consignment Care</span>
-                    <h3 id="stmtModalTitle" style="font-size: 20px; font-weight: 700; margin: 2px 0 0 0; color: var(--text-primary);">위임 렌트카 정산 명세서</h3>
+                    <h3 id="stmtModalTitle" style="font-size: 20px; font-weight: 700; margin: 2px 0 0 0; color: var(--text-primary);">렌트카 정산 명세서</h3>
                 </div>
                 <button type="button" class="close-modal-btn" data-modal="settlementModal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary);">&times;</button>
             </div>
