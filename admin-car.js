@@ -1312,13 +1312,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (monthFilter && !r.startDate.startsWith(monthFilter)) return;
 
                 const car = delegatedCars.find(c => c.id === r.carId);
+                const displayRenter = (userRole === 'owner') ? maskRenterName(r.renterName) : (r.renterName || '예약자');
                 items.push({
                     type: 'revenue',
                     id: r.id,
                     date: r.startDate,
                     carPlate: car ? car.plateNumber : '삭제된 차량',
                     carModel: car ? car.model : '',
-                    details: `${r.renterName} (${r.startDate} ~ ${r.endDate})`,
+                    details: `${displayRenter} (${r.startDate} ~ ${r.endDate})`,
                     amount: r.amount,
                     deductibleStr: '해당 없음',
                     statusBadge: r.paymentStatus === 'completed' ? '<span class="status-badge status-approved">결제완료</span>' : '<span class="status-badge status-pending">입금대기</span>',
@@ -1629,7 +1630,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${revs.length > 0 ? revs.map(r => `
                             <tr style="border-bottom: 1px solid #EEE;">
                                 <td style="padding: 6px;">${r.startDate} ~ ${r.endDate}</td>
-                                <td style="padding: 6px;">${r.renterName}</td>
+                                <td style="padding: 6px;">${(userRole === 'owner') ? maskRenterName(r.renterName) : (r.renterName || '-')}</td>
                                 <td style="padding: 6px; text-align: right;">${r.amount.toLocaleString()}</td>
                             </tr>
                         `).join('') : '<tr><td colspan="3" style="text-align: center; padding: 10px; color: #888;">당월 렌트 매출 내역 없음</td></tr>'}
@@ -1846,6 +1847,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return getLocalDateString(target);
     }
 
+    // Helper: mask renter name for privacy in owner portal (keep first char, replace rest with *)
+    function maskRenterName(name) {
+        if (!name) return '예약자';
+        const str = String(name).trim();
+        if (str.length <= 1) return str + '**';
+        return str.charAt(0) + '*'.repeat(str.length - 1);
+    }
+
     // ----------------------------------------------------
     // 9. Vehicle Reservation Calendar Logic (`#tabCalendar`)
     // ----------------------------------------------------
@@ -1985,9 +1994,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     ? `[예약 일정] ${rev.startDate} ~ ${rev.endDate}` 
                     : `${carModelName} (${car ? car.plateNumber : ''}): ${rev.renterName} (${rev.startDate} ~ ${rev.endDate}) - ${rev.amount.toLocaleString()}`;
 
+                const displayRenterName = (userRole === 'owner') ? maskRenterName(rev.renterName) : (rev.renterName || '예약자');
+
                 bookingsHtml += `
                     <div class="cal-booking-pill" data-rev-id="${rev.id}" title="${pillTitle}" style="background: ${bgColor}; color: white; padding: 3px 5px; border-radius: 4px; font-size: 11px; margin-top: 3px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: ${pillCursor}; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                        <span class="pill-car-name">[${carModelName}] </span>${rev.renterName}${statusBadge}
+                        <span class="pill-car-name">[${carModelName}] </span>${displayRenterName}${statusBadge}
                     </div>
                 `;
             });
@@ -2117,7 +2128,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 '<span class="status-badge status-pending" style="background: #FFF3E0; color: #E65100;">입금 대기</span>';
 
             const renterDisplayName = (userRole === 'owner') 
-                ? (rev.renterName || '예약자') 
+                ? maskRenterName(rev.renterName) 
                 : `${rev.renterName || '예약자'} ${rev.renterContact ? `(${rev.renterContact})` : ''}`;
 
             const actionBtn = (userRole === 'owner') ? '' : `
