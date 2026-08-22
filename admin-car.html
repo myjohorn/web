@@ -334,20 +334,26 @@
 
     <!-- Modal 1: Car Registration / Edit Modal -->
     <div class="admin-modal" id="carModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-        <div style="background: var(--white); width: 90%; max-width: 550px; border-radius: 6px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
+        <div style="background: var(--white); width: 95%; max-width: 680px; border-radius: 8px; padding: 25px 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-                <h3 id="carModalTitle" style="font-size: 18px; font-weight: 600; margin: 0; color: var(--text-primary);">위탁 차량 등록</h3>
+                <h3 id="carModalTitle" style="font-size: 18px; font-weight: 600; margin: 0; color: var(--text-primary);"><i class="fa-solid fa-car" style="color: var(--accent-color);"></i> 신규 위탁 차량 등록</h3>
                 <button type="button" class="close-modal-btn" data-modal="carModal" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-secondary);">&times;</button>
             </div>
             <form id="carForm" onsubmit="return false;">
                 <input type="hidden" id="carId" value="">
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">차량 모델명 <span style="color: var(--accent-color);">*</span></label>
-                    <input type="text" id="carModel" class="form-control" placeholder="예: Perodua Bezza 1.3 / 현대 아반떼" required style="font-size: 13px; padding: 10px;">
-                </div>
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">차량 번호판 <span style="color: var(--accent-color);">*</span></label>
-                    <input type="text" id="carPlateNumber" class="form-control" placeholder="예: JWA 8888" required style="font-size: 13px; padding: 10px;">
+
+                <h4 style="font-size: 14px; font-weight: 700; color: var(--accent-color); margin: 0 0 12px 0; border-bottom: 1px dashed var(--border-color); padding-bottom: 6px;">
+                    <i class="fa-solid fa-circle-info"></i> 기본 차량 및 차주 정보
+                </h4>
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">차량 모델명 <span style="color: var(--accent-color);">*</span></label>
+                        <input type="text" id="carModel" class="form-control" placeholder="예: Proton X70 / 현대 아반떼" required style="font-size: 13px; padding: 10px;">
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">차량 번호판 <span style="color: var(--accent-color);">*</span></label>
+                        <input type="text" id="carPlateNumber" class="form-control" placeholder="예: JVV 2540" required style="font-size: 13px; padding: 10px;">
+                    </div>
                 </div>
                 <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                     <div class="form-group">
@@ -355,7 +361,7 @@
                         <input type="text" id="carOwnerName" class="form-control" placeholder="차주 이름" required style="font-size: 13px; padding: 10px;">
                     </div>
                     <div class="form-group">
-                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">차주 연락처</label>
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">차주 연락처 (로그인 PW)</label>
                         <input type="text" id="carOwnerContact" class="form-control" placeholder="연락처 / 카카오톡" style="font-size: 13px; padding: 10px;">
                     </div>
                 </div>
@@ -404,6 +410,83 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Section: Vehicle Documents & Certificates -->
+                <h4 style="font-size: 14px; font-weight: 700; color: #1565C0; margin: 20px 0 12px 0; border-bottom: 1px dashed var(--border-color); padding-bottom: 6px;">
+                    <i class="fa-solid fa-file-contract"></i> 차량 필수 서류 및 증명서 등록
+                </h4>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">보험 유효 기간</label>
+                    <input type="text" id="carInsurancePeriod" class="form-control" placeholder="예: 2026-01-01 ~ 2026-12-31" style="font-size: 13px; padding: 10px;">
+                </div>
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group" style="background: #F8FAFC; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;"><i class="fa-solid fa-shield-halved" style="color: #1565C0;"></i> 보험 증서 사본</label>
+                        <input type="file" id="carInsuranceCertFile" class="form-control" accept="image/*,.pdf" style="font-size: 11px; padding: 6px;">
+                        <input type="hidden" id="carInsuranceCertData" value="">
+                        <div id="carInsuranceCertPreview" style="font-size: 11px;"></div>
+                    </div>
+                    <div class="form-group" style="background: #F8FAFC; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;"><i class="fa-solid fa-id-card" style="color: #2E7D32;"></i> 로드택스(Road Tax) 스티커</label>
+                        <input type="file" id="carRoadTaxStickerFile" class="form-control" accept="image/*,.pdf" style="font-size: 11px; padding: 6px;">
+                        <input type="hidden" id="carRoadTaxStickerData" value="">
+                        <div id="carRoadTaxStickerPreview" style="font-size: 11px;"></div>
+                    </div>
+                </div>
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group" style="background: #F8FAFC; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;"><i class="fa-solid fa-file-lines"></i> 차량 등록증 (앞면)</label>
+                        <input type="file" id="carRegCertFrontFile" class="form-control" accept="image/*,.pdf" style="font-size: 11px; padding: 6px;">
+                        <input type="hidden" id="carRegCertFrontData" value="">
+                        <div id="carRegCertFrontPreview" style="font-size: 11px;"></div>
+                    </div>
+                    <div class="form-group" style="background: #F8FAFC; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;"><i class="fa-solid fa-file-lines"></i> 차량 등록증 (뒷면)</label>
+                        <input type="file" id="carRegCertBackFile" class="form-control" accept="image/*,.pdf" style="font-size: 11px; padding: 6px;">
+                        <input type="hidden" id="carRegCertBackData" value="">
+                        <div id="carRegCertBackPreview" style="font-size: 11px;"></div>
+                    </div>
+                </div>
+                <div class="form-group" style="background: #F8FAFC; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 15px;">
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;"><i class="fa-solid fa-passport" style="color: #6A1B9A;"></i> 차주 여권 사본</label>
+                    <input type="file" id="carOwnerPassportFile" class="form-control" accept="image/*,.pdf" style="font-size: 11px; padding: 6px;">
+                    <input type="hidden" id="carOwnerPassportData" value="">
+                    <div id="carOwnerPassportPreview" style="font-size: 11px;"></div>
+                </div>
+
+                <!-- Section: Vehicle Inspection Photos (4 sides) -->
+                <h4 style="font-size: 14px; font-weight: 700; color: #2E7D32; margin: 20px 0 12px 0; border-bottom: 1px dashed var(--border-color); padding-bottom: 6px;">
+                    <i class="fa-solid fa-camera"></i> 차량 외관 4면 사진 등록
+                </h4>
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group" style="background: #F0FDF4; padding: 12px; border-radius: 6px; border: 1px solid #DCFCE7;">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">차량 전면 사진</label>
+                        <input type="file" id="carPhotoFrontFile" class="form-control" accept="image/*" style="font-size: 11px; padding: 6px;">
+                        <input type="hidden" id="carPhotoFrontData" value="">
+                        <div id="carPhotoFrontPreview" style="font-size: 11px;"></div>
+                    </div>
+                    <div class="form-group" style="background: #F0FDF4; padding: 12px; border-radius: 6px; border: 1px solid #DCFCE7;">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">차량 후면 사진</label>
+                        <input type="file" id="carPhotoBackFile" class="form-control" accept="image/*" style="font-size: 11px; padding: 6px;">
+                        <input type="hidden" id="carPhotoBackData" value="">
+                        <div id="carPhotoBackPreview" style="font-size: 11px;"></div>
+                    </div>
+                </div>
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group" style="background: #F0FDF4; padding: 12px; border-radius: 6px; border: 1px solid #DCFCE7;">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">차량 좌측면 사진</label>
+                        <input type="file" id="carPhotoLeftFile" class="form-control" accept="image/*" style="font-size: 11px; padding: 6px;">
+                        <input type="hidden" id="carPhotoLeftData" value="">
+                        <div id="carPhotoLeftPreview" style="font-size: 11px;"></div>
+                    </div>
+                    <div class="form-group" style="background: #F0FDF4; padding: 12px; border-radius: 6px; border: 1px solid #DCFCE7;">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">차량 우측면 사진</label>
+                        <input type="file" id="carPhotoRightFile" class="form-control" accept="image/*" style="font-size: 11px; padding: 6px;">
+                        <input type="hidden" id="carPhotoRightData" value="">
+                        <div id="carPhotoRightPreview" style="font-size: 11px;"></div>
+                    </div>
+                </div>
+
                 <div class="form-group" style="margin-bottom: 20px;">
                     <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">메모 및 특이사항</label>
                     <textarea id="carMemo" class="form-control" rows="2" placeholder="특이사항 메모 입력" style="font-size: 13px; padding: 10px; resize: none;"></textarea>
@@ -642,7 +725,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <!-- Admin Car JS -->
-    <script src="admin-car.js?v=20260822_18"></script>
+    <script src="admin-car.js?v=20260822_19"></script>
     <script src="mobile-bridge.js"></script>
 
     <!-- Vercel Speed Insights & Analytics -->
