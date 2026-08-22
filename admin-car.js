@@ -135,6 +135,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function applyRolePermissions() {
         const isOwner = userRole === 'owner';
+        const carsTabBtn = document.querySelector('.car-tab-btn[data-tab="cars"]');
+        const carsTabHeaderTitle = document.getElementById('carsTabHeaderTitle');
 
         if (isOwner) {
             // Owner mode UI
@@ -144,16 +146,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (dashboardMainTitle) dashboardMainTitle.textContent = `${ownerCarPlate} 차량 운행 및 정산 조회`;
             if (carCalGuideText) carCalGuideText.innerHTML = '<i class="fa-solid fa-circle-info"></i> 내 차량의 예약 현황을 달력과 목록으로 확인하실 수 있습니다.';
 
-            // Hide admin-only controls
+            // Hide admin-only controls (e.g. [+ 신규 위탁 차량 등록])
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
 
-            // Default tab: calendar
-            const carsTabBtn = document.querySelector('.car-tab-btn[data-tab="cars"]');
-            if (carsTabBtn) carsTabBtn.style.display = 'none';
-
-            // Activate calendar tab if currently on cars
-            const calTabBtn = document.querySelector('.car-tab-btn[data-tab="calendar"]');
-            if (calTabBtn) calTabBtn.click();
+            // Show cars tab button (Read-only vehicle info for owner)
+            if (carsTabBtn) {
+                carsTabBtn.style.display = '';
+                carsTabBtn.innerHTML = '<i class="fa-solid fa-car" style="margin-right: 4px;"></i> 차량 관리';
+            }
+            if (carsTabHeaderTitle) {
+                carsTabHeaderTitle.innerHTML = `<i class="fa-solid fa-car-side" style="color: var(--accent-color); margin-right: 8px;"></i> [${ownerCarPlate}] 내 차량 등록 정보`;
+            }
         } else {
             // Admin mode UI
             if (userBadgeText) userBadgeText.textContent = '마스터 관리자 모드';
@@ -165,8 +168,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show admin-only controls
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
 
-            const carsTabBtn = document.querySelector('.car-tab-btn[data-tab="cars"]');
-            if (carsTabBtn) carsTabBtn.style.display = '';
+            if (carsTabBtn) {
+                carsTabBtn.style.display = '';
+                carsTabBtn.innerHTML = '<i class="fa-solid fa-car" style="margin-right: 4px;"></i> 차량 관리';
+            }
+            if (carsTabHeaderTitle) {
+                carsTabHeaderTitle.innerHTML = '<i class="fa-solid fa-list" style="color: var(--accent-color); margin-right: 8px;"></i> 위탁 관리 차량 리스트';
+            }
         }
     }
 
