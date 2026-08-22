@@ -1800,15 +1800,47 @@ document.addEventListener('DOMContentLoaded', () => {
         const statFeeProfit = document.getElementById('statFeeProfit');
         const statTotalExpenses = document.getElementById('statTotalExpenses');
         const statNetPayout = document.getElementById('statNetPayout');
+        const statPayoutTitle = document.getElementById('statPayoutTitle');
+        const statExpensesSubText = document.getElementById('statExpensesSubText');
 
         if (statGrossRevenue) statGrossRevenue.textContent = grossRevenue.toLocaleString();
-        if (statFeeProfit) {
-            statFeeProfit.textContent = (userRole === 'owner') 
-                ? `공제 수수료: ${companyFeeProfit.toLocaleString()}` 
-                : `수수료 수익: ${companyFeeProfit.toLocaleString()}`;
+
+        if (userRole === 'owner') {
+            // Owner view: combine management fee with maintenance expenses into total deductible expenses
+            const combinedExpenses = totalExpenses + companyFeeProfit;
+            if (statTotalExpenses) statTotalExpenses.textContent = combinedExpenses.toLocaleString();
+            if (statExpensesSubText) {
+                statExpensesSubText.textContent = companyFeeProfit > 0 
+                    ? `관리수수료(${companyFeeProfit.toLocaleString()}원) + 정비공제 포함`
+                    : '정비, 수리 및 관리수수료 합계';
+            }
+
+            // Check settlement confirmation status for the owner's car in targetMonth
+            let isSettled = false;
+            if (ownerCarId) {
+                const settleId = `settle_${targetMonth.replace('-', '_')}_${ownerCarId}`;
+                const existingSettlement = delegatedSettlements.find(s => s.id === settleId);
+                isSettled = existingSettlement && existingSettlement.status === 'completed';
+            }
+
+            if (statPayoutTitle) {
+                statPayoutTitle.textContent = isSettled ? '당월 배당 (정산 완료)' : '당월 배당 (미정산액)';
+            }
+            if (statNetPayout) statNetPayout.textContent = totalOwnerPayouts.toLocaleString();
+            if (statFeeProfit) {
+                statFeeProfit.innerHTML = isSettled 
+                    ? '<span style="color: #2E7D32;"><i class="fa-solid fa-circle-check"></i> 정산 지급 완료</span>' 
+                    : '<span style="color: #E65100;"><i class="fa-solid fa-clock"></i> 정산 대기 (미정산액)</span>';
+            }
+        } else {
+            // Admin view
+            if (statTotalExpenses) statTotalExpenses.textContent = totalExpenses.toLocaleString();
+            if (statExpensesSubText) statExpensesSubText.textContent = '정비, 수리 및 사고 처리비';
+
+            if (statPayoutTitle) statPayoutTitle.textContent = '차주 배당 / 관리수수료';
+            if (statNetPayout) statNetPayout.textContent = totalOwnerPayouts.toLocaleString();
+            if (statFeeProfit) statFeeProfit.textContent = `수수료 수익: ${companyFeeProfit.toLocaleString()}`;
         }
-        if (statTotalExpenses) statTotalExpenses.textContent = totalExpenses.toLocaleString();
-        if (statNetPayout) statNetPayout.textContent = totalOwnerPayouts.toLocaleString();
     }
 
     // Helper: format Date object to YYYY-MM-DD
