@@ -938,6 +938,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            const revMonth = startDate.substring(0, 7);
+            const settleId = `settle_${revMonth.replace('-', '_')}_${carId}`;
+            const isMonthSettled = delegatedSettlements.some(s => s.id === settleId && s.status === 'completed');
+
             const revObj = {
                 carId,
                 renterName,
@@ -956,6 +960,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             } else {
                 revObj.createdAt = new Date().toISOString();
+                if (isMonthSettled) {
+                    const nextMonth = calculateNextMonth(revMonth);
+                    revObj.settledMonth = nextMonth;
+                    revObj.isSettled = false;
+                    revObj.isRollover = true;
+                    revObj.originalMonth = revMonth;
+                } else {
+                    revObj.settledMonth = revMonth;
+                    revObj.isSettled = false;
+                    revObj.isRollover = false;
+                }
+
                 db.ref('delegated_car_revenues').push(revObj).then(() => {
                     closeModal('revenueModal');
                 });
@@ -1241,6 +1257,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            const expMonth = expenseDate.substring(0, 7);
+            const settleId = `settle_${expMonth.replace('-', '_')}_${carId}`;
+            const isMonthSettled = delegatedSettlements.some(s => s.id === settleId && s.status === 'completed');
+
             const expObj = {
                 carId,
                 category,
@@ -1271,6 +1291,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             } else {
                 expObj.createdAt = new Date().toISOString();
+                if (isMonthSettled) {
+                    const nextMonth = calculateNextMonth(expMonth);
+                    expObj.settledMonth = nextMonth;
+                    expObj.isSettled = false;
+                    expObj.isRollover = true;
+                    expObj.originalExpenseMonth = expMonth;
+                    alert(`💡 안내:\n해당 차량의 ${expMonth}월 정산이 이미 완료(마감)되어, 본 비용은 익월(${nextMonth}월) 정산서에 자동으로 이월 반영됩니다.`);
+                } else {
+                    expObj.settledMonth = expMonth;
+                    expObj.isSettled = false;
+                    expObj.isRollover = false;
+                }
+
                 const newRef = db.ref('delegated_car_expenses').push();
                 newRef.set(expObj).then(() => {
                     saveReceipt(newRef.key);
@@ -1321,6 +1354,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const car = delegatedCars.find(c => c.id === r.carId);
                 const displayRenter = (userRole === 'owner') ? maskRenterName(r.renterName) : (r.renterName || '예약자');
+                
+                let settleBadge = '<div style="font-size: 11px; color: #8C8782; margin-top: 2px;">미정산 (대기)</div>';
+                if (r.isSettled) {
+                    settleBadge = `<div style="font-size: 11px; color: #2E7D32; font-weight: 600; margin-top: 2px;"><i class="fa-solid fa-check"></i> ${r.settledMonth || ''} 정산완료</div>`;
+                } else if (r.settledMonth && r.settledMonth !== r.startDate.substring(0, 7)) {
+                    settleBadge = `<div style="font-size: 11px; color: #E65100; font-weight: 600; margin-top: 2px;"><i class="fa-solid fa-arrow-right"></i> ${r.settledMonth} 이월예정</div>`;
+                }
+
                 items.push({
                     type: 'revenue',
                     id: r.id,
@@ -1329,7 +1370,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     carModel: car ? car.model : '',
                     details: `${displayRenter} (${r.startDate} ~ ${r.endDate})`,
                     amount: r.amount,
-                    deductibleStr: '해당 없음',
+                    deductibleStr: `<div>해당 없음</div>${settleBadge}`,
                     statusBadge: r.paymentStatus === 'completed' ? '<span class="status-badge status-approved">결제완료</span>' : '<span class="status-badge status-pending">입금대기</span>',
                     hasReceipt: false,
                     rawDate: r.startDate
@@ -1353,6 +1394,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
                 const categoryLabel = categoryNames[e.category] || e.category;
 
+                let settleBadge = '';
+                if (e.deductibleFromOwner) {
+                    if (e.isSettled) {
+                        settleBadge = `<div style="font-size: 11px; color: #2E7D32; font-weight: 600; margin-top: 2px;"><i class="fa-solid fa-check"></i> ${e.settledMonth || ''} 정산완료</div>`;
+                    } else if (e.settledMonth && e.settledMonth !== e.expenseDate.substring(0, 7)) {
+                        settleBadge = `<div style="font-size: 11px; color: #E65100; font-weight: 600; margin-top: 2px;"><i class="fa-solid fa-arrow-right"></i> ${e.settledMonth} 이월예정</div>`;
+                    } else {
+                        settleBadge = '<div style="font-size: 11px; color: #8C8782; margin-top: 2px;">미정산 (대기)</div>';
+                    }
+                }
+
+                const deductBase = e.deductibleFromOwner 
+                    ? '<span style="color: #C62828; font-weight: 600;">차주 공제 [O]</span>' 
+                    : '<span style="color: #8C8782;">회사 부담 [X]</span>';
+
                 items.push({
                     type: 'expense',
                     id: e.id,
@@ -1361,7 +1417,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     carModel: car ? car.model : '',
                     details: `[${categoryLabel}] ${e.description || ''}`,
                     amount: e.amount,
-                    deductibleStr: e.deductibleFromOwner ? '<span style="color: #C62828; font-weight: 600;">차주 공제 [O]</span>' : '<span style="color: #8C8782;">회사 부담 [X]</span>',
+                    deductibleStr: `<div>${deductBase}</div>${settleBadge}`,
                     statusBadge: '<span class="status-badge status-rejected" style="background: #FFEBEE; color: #C62828;">지출 발생</span>',
                     hasReceipt: !!(e.hasReceipt || e.receiptImage),
                     rawDate: e.expenseDate
@@ -1533,16 +1589,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         tbody.innerHTML = displayCars.map(car => {
-            // Calculate Gross Revenue R
-            const revs = delegatedRevenues.filter(r => r.carId === car.id && r.startDate.startsWith(targetMonth) && r.paymentStatus === 'completed');
+            // Calculate Gross Revenue R (assigned to targetMonth)
+            const revs = delegatedRevenues.filter(r => {
+                if (r.carId !== car.id || r.paymentStatus !== 'completed') return false;
+                return r.settledMonth ? (r.settledMonth === targetMonth) : (r.startDate && r.startDate.startsWith(targetMonth));
+            });
             const grossRevenue = revs.reduce((sum, r) => sum + r.amount, 0);
 
             // Management Fee F = GrossRevenue * (FeeRate / 100)
             const feeRate = car.feeRate || 20;
             const feeAmount = grossRevenue * (feeRate / 100);
 
-            // Deductible Expenses E
-            const exps = delegatedExpenses.filter(e => e.carId === car.id && e.expenseDate.startsWith(targetMonth) && e.deductibleFromOwner);
+            // Deductible Expenses E (assigned to targetMonth including rollovers)
+            const exps = delegatedExpenses.filter(e => {
+                if (e.carId !== car.id || !e.deductibleFromOwner) return false;
+                return e.settledMonth ? (e.settledMonth === targetMonth) : (e.expenseDate && e.expenseDate.startsWith(targetMonth));
+            });
             const totalExpenses = exps.reduce((sum, e) => sum + e.amount, 0);
 
             // Net Owner Payout P = GrossRevenue - FeeAmount - Expenses
@@ -1553,9 +1615,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const existingSettlement = delegatedSettlements.find(s => s.id === settleId);
             const isCompleted = existingSettlement && existingSettlement.status === 'completed';
 
-            const statusBadge = isCompleted ? 
-                '<span class="status-badge status-approved"><i class="fa-solid fa-check"></i> 정산 완료</span>' : 
-                '<span class="status-badge status-pending">미정산 (대기)</span>';
+            let statusBadge = '<span class="status-badge status-pending">미정산 (대기)</span>';
+            if (isCompleted) {
+                const settledDateFormatted = formatDateTime(existingSettlement.settledAt);
+                statusBadge = `
+                    <div>
+                        <span class="status-badge status-approved"><i class="fa-solid fa-check"></i> 정산 완료</span>
+                        ${settledDateFormatted ? `<div style="font-size: 11px; color: #2E7D32; margin-top: 3px; font-weight: 500;">(${settledDateFormatted})</div>` : ''}
+                    </div>
+                `;
+            }
 
             const payoutColor = netOwnerPayout >= 0 ? '#1565C0' : '#C62828';
 
@@ -1596,13 +1665,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const car = delegatedCars.find(c => c.id === carId);
         if (!car) return;
 
-        const revs = delegatedRevenues.filter(r => r.carId === car.id && r.startDate.startsWith(targetMonth) && r.paymentStatus === 'completed');
+        // Gross Revenue R assigned to targetMonth
+        const revs = delegatedRevenues.filter(r => {
+            if (r.carId !== car.id || r.paymentStatus !== 'completed') return false;
+            return r.settledMonth ? (r.settledMonth === targetMonth) : (r.startDate && r.startDate.startsWith(targetMonth));
+        });
         const grossRevenue = revs.reduce((sum, r) => sum + r.amount, 0);
 
         const feeRate = car.feeRate || 20;
         const feeAmount = grossRevenue * (feeRate / 100);
 
-        const exps = delegatedExpenses.filter(e => e.carId === car.id && e.expenseDate.startsWith(targetMonth) && e.deductibleFromOwner);
+        // Deductible Expenses E assigned to targetMonth (including rollovers)
+        const exps = delegatedExpenses.filter(e => {
+            if (e.carId !== car.id || !e.deductibleFromOwner) return false;
+            return e.settledMonth ? (e.settledMonth === targetMonth) : (e.expenseDate && e.expenseDate.startsWith(targetMonth));
+        });
         const totalExpenses = exps.reduce((sum, e) => sum + e.amount, 0);
 
         const netOwnerPayout = grossRevenue - feeAmount - totalExpenses;
@@ -1614,6 +1691,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const stmtContentSheet = document.getElementById('stmtContentSheet');
         const confirmStmtBtn = document.getElementById('confirmStmtBtn');
 
+        const settledStatusHtml = isCompleted 
+            ? `<span style="color: #2E7D32; font-weight: 700;"><i class="fa-solid fa-circle-check"></i> 정산 완료 (${formatDateTime(existingSettlement.settledAt)})</span>` 
+            : `<span style="color: #E65100; font-weight: 700;"><i class="fa-solid fa-clock"></i> 정산 대기 (미정산)</span>`;
+
         if (stmtContentSheet) {
             stmtContentSheet.innerHTML = `
                 <div style="background: rgba(197, 168, 128, 0.05); padding: 15px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 20px;">
@@ -1622,6 +1703,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div><strong>차량 번호 / 모델:</strong> ${car.plateNumber} (${car.model})</div>
                         <div><strong>차주 성함:</strong> ${car.ownerName} ${car.ownerContact ? `(${car.ownerContact})` : ''}</div>
                         <div><strong>정산 계좌:</strong> ${car.bankName || '-'} ${car.accountNumber || ''}</div>
+                        <div style="grid-column: 1 / -1; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 8px;"><strong>정산 상태:</strong> ${settledStatusHtml}</div>
                     </div>
                 </div>
 
@@ -1635,13 +1717,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         </tr>
                     </thead>
                     <tbody>
-                        ${revs.length > 0 ? revs.map(r => `
-                            <tr style="border-bottom: 1px solid #EEE;">
-                                <td style="padding: 6px;">${r.startDate} ~ ${r.endDate}</td>
-                                <td style="padding: 6px;">${(userRole === 'owner') ? maskRenterName(r.renterName) : (r.renterName || '-')}</td>
-                                <td style="padding: 6px; text-align: right;">${r.amount.toLocaleString()}</td>
-                            </tr>
-                        `).join('') : '<tr><td colspan="3" style="text-align: center; padding: 10px; color: #888;">당월 렌트 매출 내역 없음</td></tr>'}
+                        ${revs.length > 0 ? revs.map(r => {
+                            const isRevRollover = (r.originalMonth && r.originalMonth !== targetMonth) || (!r.settledMonth && !r.startDate.startsWith(targetMonth));
+                            const revRolloverBadge = isRevRollover ? `<span style="font-size: 11px; background: #E8F5E9; color: #2E7D32; border: 1px solid #C8E6C9; padding: 1px 5px; border-radius: 3px; font-weight: 600; margin-right: 5px;"><i class="fa-solid fa-arrow-right-arrow-left"></i> 이월 매출</span>` : '';
+                            return `
+                                <tr style="border-bottom: 1px solid #EEE;">
+                                    <td style="padding: 6px;">${revRolloverBadge}${r.startDate} ~ ${r.endDate}</td>
+                                    <td style="padding: 6px;">${(userRole === 'owner') ? maskRenterName(r.renterName) : (r.renterName || '-')}</td>
+                                    <td style="padding: 6px; text-align: right;">${r.amount.toLocaleString()}</td>
+                                </tr>
+                            `;
+                        }).join('') : '<tr><td colspan="3" style="text-align: center; padding: 10px; color: #888;">당월 렌트 매출 내역 없음</td></tr>'}
                         <tr style="font-weight: 700; background: #E8F5E9;">
                             <td colspan="2" style="padding: 8px;">렌트 총 매출 합계 ($R$)</td>
                             <td style="padding: 8px; text-align: right; color: #2E7D32;">${grossRevenue.toLocaleString()}</td>
@@ -1659,20 +1745,24 @@ document.addEventListener('DOMContentLoaded', () => {
                         </tr>
                     </thead>
                     <tbody>
-                        ${exps.length > 0 ? exps.map(e => `
-                            <tr style="border-bottom: 1px solid #EEE;">
-                                <td style="padding: 6px;">${e.expenseDate}</td>
-                                <td style="padding: 6px;">
-                                    ${e.description || e.category}
-                                    ${(e.hasReceipt || e.receiptImage) ? `
-                                        <button type="button" class="stmt-view-receipt-btn" data-id="${e.id}" style="border: 1px solid #90CAF9; background: #E3F2FD; color: #1565C0; font-size: 11px; padding: 2px 6px; border-radius: 4px; cursor: pointer; margin-left: 6px; display: inline-flex; align-items: center; gap: 3px;">
-                                            <i class="fa-solid fa-receipt"></i> 영수증
-                                        </button>
-                                    ` : ''}
-                                </td>
-                                <td style="padding: 6px; text-align: right;">${e.amount.toLocaleString()}</td>
-                            </tr>
-                        `).join('') : '<tr><td colspan="3" style="text-align: center; padding: 10px; color: #888;">당월 차주 공제 비용 내역 없음</td></tr>'}
+                        ${exps.length > 0 ? exps.map(e => {
+                            const isExpRollover = (e.originalExpenseMonth && e.originalExpenseMonth !== targetMonth) || (!e.settledMonth && !e.expenseDate.startsWith(targetMonth));
+                            const expRolloverBadge = isExpRollover ? `<span style="font-size: 11px; background: #FFF3E0; color: #E65100; border: 1px solid #FFE0B2; padding: 1px 5px; border-radius: 3px; font-weight: 600; margin-right: 5px;"><i class="fa-solid fa-arrow-right-arrow-left"></i> 이월 공제</span>` : '';
+                            return `
+                                <tr style="border-bottom: 1px solid #EEE;">
+                                    <td style="padding: 6px;">${e.expenseDate}</td>
+                                    <td style="padding: 6px;">
+                                        ${expRolloverBadge}${e.description || e.category}
+                                        ${(e.hasReceipt || e.receiptImage) ? `
+                                            <button type="button" class="stmt-view-receipt-btn" data-id="${e.id}" style="border: 1px solid #90CAF9; background: #E3F2FD; color: #1565C0; font-size: 11px; padding: 2px 6px; border-radius: 4px; cursor: pointer; margin-left: 6px; display: inline-flex; align-items: center; gap: 3px;">
+                                                <i class="fa-solid fa-receipt"></i> 영수증
+                                            </button>
+                                        ` : ''}
+                                    </td>
+                                    <td style="padding: 6px; text-align: right;">${e.amount.toLocaleString()}</td>
+                                </tr>
+                            `;
+                        }).join('') : '<tr><td colspan="3" style="text-align: center; padding: 10px; color: #888;">당월 차주 공제 비용 내역 없음</td></tr>'}
                         <tr style="font-weight: 700; background: #FFEBEE;">
                             <td colspan="2" style="padding: 8px;">공제 비용 합계 ($E$)</td>
                             <td style="padding: 8px; text-align: right; color: #C62828;">${totalExpenses.toLocaleString()}</td>
@@ -1721,7 +1811,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 confirmStmtBtn.disabled = false;
 
                 confirmStmtBtn.onclick = () => {
-                    if (confirm(`${car.ownerName} 차주님의 ${targetMonth}월 정산을 완료 처리하시겠습니까?`)) {
+                    if (confirm(`${car.ownerName} 차주님의 ${targetMonth}월 정산을 완료 처리하시겠습니까?\n\n포함된 매출 및 공제 비용이 ${targetMonth}월 정산 완료 상태로 전환됩니다.`)) {
+                        const nowIso = new Date().toISOString();
                         const settlementObj = {
                             id: settleId,
                             yearMonth: targetMonth,
@@ -1733,9 +1824,29 @@ document.addEventListener('DOMContentLoaded', () => {
                             totalExpenses,
                             netOwnerPayout,
                             status: 'completed',
-                            settledAt: new Date().toISOString()
+                            settledAt: nowIso
                         };
-                        db.ref(`delegated_car_settlements/${settleId}`).set(settlementObj).then(() => {
+
+                        const updates = {};
+                        updates[`delegated_car_settlements/${settleId}`] = settlementObj;
+
+                        revs.forEach(r => {
+                            if (r.id) {
+                                updates[`delegated_car_revenues/${r.id}/isSettled`] = true;
+                                updates[`delegated_car_revenues/${r.id}/settledMonth`] = targetMonth;
+                                updates[`delegated_car_revenues/${r.id}/settledAt`] = nowIso;
+                            }
+                        });
+
+                        exps.forEach(e => {
+                            if (e.id) {
+                                updates[`delegated_car_expenses/${e.id}/isSettled`] = true;
+                                updates[`delegated_car_expenses/${e.id}/settledMonth`] = targetMonth;
+                                updates[`delegated_car_expenses/${e.id}/settledAt`] = nowIso;
+                            }
+                        });
+
+                        db.ref().update(updates).then(() => {
                             closeModal('settlementModal');
                         });
                     }
@@ -1767,18 +1878,18 @@ document.addEventListener('DOMContentLoaded', () => {
             statTotalCars.textContent = (userRole === 'owner') ? '1 대 (위탁)' : `${delegatedCars.filter(c => c.status === 'active').length} 대`;
         }
 
-        // Calculate Month Gross Revenue
+        // Calculate Month Gross Revenue (assigned to targetMonth)
         const monthRevenues = delegatedRevenues.filter(r => {
-            const matchMonth = r.startDate && r.startDate.startsWith(targetMonth);
+            const matchMonth = r.settledMonth ? (r.settledMonth === targetMonth) : (r.startDate && r.startDate.startsWith(targetMonth));
             const matchStatus = r.paymentStatus === 'completed';
             const matchCar = (userRole === 'owner' && ownerCarId) ? r.carId === ownerCarId : true;
             return matchMonth && matchStatus && matchCar;
         });
         const grossRevenue = monthRevenues.reduce((sum, r) => sum + r.amount, 0);
 
-        // Calculate Month Expenses
+        // Calculate Month Expenses (assigned to targetMonth)
         const monthExpenses = delegatedExpenses.filter(e => {
-            const matchMonth = e.expenseDate && e.expenseDate.startsWith(targetMonth);
+            const matchMonth = e.settledMonth ? (e.settledMonth === targetMonth) : (e.expenseDate && e.expenseDate.startsWith(targetMonth));
             const matchDeductible = e.deductibleFromOwner;
             const matchCar = (userRole === 'owner' && ownerCarId) ? e.carId === ownerCarId : true;
             return matchMonth && matchDeductible && matchCar;
@@ -1808,20 +1919,24 @@ document.addEventListener('DOMContentLoaded', () => {
         let totalUnsettledPayout = 0;
         const allMonthsSet = new Set();
         delegatedRevenues.forEach(r => {
-            if (r.startDate && r.startDate.length >= 7) {
-                allMonthsSet.add(r.startDate.substring(0, 7));
-            }
+            const m = r.settledMonth || (r.startDate && r.startDate.substring(0, 7));
+            if (m && m.length >= 7) allMonthsSet.add(m);
         });
         delegatedExpenses.forEach(e => {
-            if (e.expenseDate && e.expenseDate.length >= 7) {
-                allMonthsSet.add(e.expenseDate.substring(0, 7));
-            }
+            const m = e.settledMonth || (e.expenseDate && e.expenseDate.substring(0, 7));
+            if (m && m.length >= 7) allMonthsSet.add(m);
         });
         if (targetMonth) allMonthsSet.add(targetMonth);
 
         allMonthsSet.forEach(m => {
-            const mRevs = delegatedRevenues.filter(r => r.startDate && r.startDate.startsWith(m) && r.paymentStatus === 'completed');
-            const mExps = delegatedExpenses.filter(e => e.expenseDate && e.expenseDate.startsWith(m) && e.deductibleFromOwner);
+            const mRevs = delegatedRevenues.filter(r => {
+                if (r.paymentStatus !== 'completed') return false;
+                return r.settledMonth ? (r.settledMonth === m) : (r.startDate && r.startDate.startsWith(m));
+            });
+            const mExps = delegatedExpenses.filter(e => {
+                if (!e.deductibleFromOwner) return false;
+                return e.settledMonth ? (e.settledMonth === m) : (e.expenseDate && e.expenseDate.startsWith(m));
+            });
 
             targetCars.forEach(car => {
                 const settleId = `settle_${m.replace('-', '_')}_${car.id}`;
@@ -1941,6 +2056,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const str = String(name).trim();
         if (str.length <= 1) return str + '**';
         return str.charAt(0) + '*'.repeat(str.length - 1);
+    }
+
+    // Helper: calculate next month YYYY-MM
+    function calculateNextMonth(yearMonthStr) {
+        if (!yearMonthStr) return '';
+        const parts = yearMonthStr.split('-');
+        let y = parseInt(parts[0], 10);
+        let m = parseInt(parts[1], 10);
+        m++;
+        if (m > 12) {
+            m = 1;
+            y++;
+        }
+        return `${y}-${String(m).padStart(2, '0')}`;
+    }
+
+    // Helper: format ISO timestamp to YYYY-MM-DD HH:mm
+    function formatDateTime(isoString) {
+        if (!isoString) return '';
+        const dt = new Date(isoString);
+        if (isNaN(dt.getTime())) return isoString;
+        const y = dt.getFullYear();
+        const m = String(dt.getMonth() + 1).padStart(2, '0');
+        const d = String(dt.getDate()).padStart(2, '0');
+        const hh = String(dt.getHours()).padStart(2, '0');
+        const mm = String(dt.getMinutes()).padStart(2, '0');
+        return `${y}-${m}-${d} ${hh}:${mm}`;
     }
 
     // ----------------------------------------------------
