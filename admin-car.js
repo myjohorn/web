@@ -1635,25 +1635,76 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         tbody.innerHTML = displayCars.map(car => {
-            // Calculate Gross Revenue R (assigned to targetMonth)
+            // Calculate Gross Revenue (assigned to targetMonth)
             const revs = delegatedRevenues.filter(r => r.paymentStatus === 'completed' && isItemAssignedToMonth(r, targetMonth, car.id));
             const grossRevenue = revs.reduce((sum, r) => sum + r.amount, 0);
 
-            // Management Fee F = GrossRevenue * (FeeRate / 100)
+            // Management Fee
             const feeRate = car.feeRate || 20;
             const feeAmount = grossRevenue * (feeRate / 100);
 
-            // Deductible Expenses E (assigned to targetMonth including rollovers)
+            // Deductible Expenses (assigned to targetMonth including rollovers)
             const exps = delegatedExpenses.filter(e => e.deductibleFromOwner && isItemAssignedToMonth(e, targetMonth, car.id));
             const totalExpenses = exps.reduce((sum, e) => sum + e.amount, 0);
 
-            // Net Owner Payout P = GrossRevenue - FeeAmount - Expenses
+            // Net Owner Payout
             const netOwnerPayout = grossRevenue - feeAmount - totalExpenses;
 
             // Settlement Key: settle_YYYY_MM_carId
             const settleId = `settle_${targetMonth.replace('-', '_')}_${car.id}`;
             const existingSettlement = delegatedSettlements.find(s => s.id === settleId);
             const isCompleted = existingSettlement && existingSettlement.status === 'completed';
+
+            // Calculate Rollover Expenses for this car (occurred after settlement completion date or pending rollover)
+            let carRolloverExpenses = 0;
+            delegatedExpenses.forEach(e => {
+                if (e.carId !== car.id || !e.deductibleFromOwner || e.isSettled) return;
+                const eDate = e.expenseDate;
+                if (!eDate) return;
+                const eMonth = eDate.substring(0, 7);
+
+                const sKey = `settle_${eMonth.replace('-', '_')}_${car.id}`;
+                const pSettle = delegatedSettlements.find(s => s.id === sKey);
+                if (pSettle && pSettle.status === 'completed' && pSettle.settledAt) {
+                    const cutoff = getLocalDateString(new Date(pSettle.settledAt));
+                    if (eDate > cutoff) {
+                        carRolloverExpenses += e.amount;
+                    }
+                } else if (e.isRollover) {
+                    carRolloverExpenses += e.amount;
+                }
+            });
+
+            // Calculate Cumulative Unsettled Total Payout for this car across all unsettled months
+            let carUnsettledTotalPayout = 0;
+            const allMonths = new Set();
+            delegatedRevenues.forEach(r => {
+                if (r.carId === car.id) {
+                    const m = r.settledMonth || (r.startDate && r.startDate.substring(0, 7));
+                    if (m && m.length >= 7) allMonths.add(m);
+                }
+            });
+            delegatedExpenses.forEach(e => {
+                if (e.carId === car.id) {
+                    const m = e.settledMonth || (e.expenseDate && e.expenseDate.substring(0, 7));
+                    if (m && m.length >= 7) allMonths.add(m);
+                }
+            });
+            if (targetMonth) allMonths.add(targetMonth);
+
+            allMonths.forEach(m => {
+                const sId = `settle_${m.replace('-', '_')}_${car.id}`;
+                const sObj = delegatedSettlements.find(s => s.id === sId);
+                const isMonthDone = sObj && sObj.status === 'completed';
+                if (!isMonthDone) {
+                    const mRevs = delegatedRevenues.filter(r => r.paymentStatus === 'completed' && isItemAssignedToMonth(r, m, car.id));
+                    const mGross = mRevs.reduce((sum, r) => sum + r.amount, 0);
+                    const mFee = mGross * (feeRate / 100);
+                    const mExps = delegatedExpenses.filter(e => e.deductibleFromOwner && isItemAssignedToMonth(e, m, car.id));
+                    const mExpSum = mExps.reduce((sum, e) => sum + e.amount, 0);
+                    carUnsettledTotalPayout += (mGross - mFee - mExpSum);
+                }
+            });
 
             let statusBadge = '<span class="status-badge status-pending">미정산 (대기)</span>';
             if (isCompleted) {
@@ -1672,10 +1723,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 <tr>
                     <td data-label="차량 정보"><strong>${car.plateNumber}</strong> <span style="font-size: 11px; color: var(--text-secondary);">(${car.model})</span></td>
                     <td data-label="차주명">${car.ownerName}</td>
-                    <td data-label="총 매출 ($R$)" style="font-weight: 600; color: #2E7D32;">${grossRevenue.toLocaleString()}</td>
-                    <td data-label="수수료 ($F$)" style="font-size: 12px;">${feeAmount.toLocaleString()} <span style="color: var(--accent-color); font-size: 11px;">(${feeRate}%)</span></td>
-                    <td data-label="공제 비용 ($E$)" style="font-weight: 600; color: #C62828;">${totalExpenses.toLocaleString()}</td>
-                    <td data-label="차주 배당금 ($P$)" style="font-size: 15px; font-weight: 700; color: ${payoutColor};">${netOwnerPayout.toLocaleString()}</td>
+                    <td data-label="총 렌트 매출" style="font-weight: 600; color: #2E7D32;">${grossRevenue.toLocaleString()}</td>
+                    <td data-label="관리 수수료" style="font-size: 12px;">${feeAmount.toLocaleString()} <span style="color: var(--accent-color); font-size: 11px;">(${feeRate}%)</span></td>
+                    <td data-label="공제 비용 (이월비용액)" style="font-weight: 600; color: #C62828;">
+                        ${totalExpenses.toLocaleString()} <span style="font-size: 11px; color: #E65100; font-weight: 600; margin-left: 2px;">(${carRolloverExpenses.toLocaleString()})</span>
+                    </td>
+                    <td data-label="당월 배당금 (미정산총액)" style="font-size: 15px; font-weight: 700; color: ${payoutColor};">
+                        ${netOwnerPayout.toLocaleString()} <span style="font-size: 11px; color: #E65100; font-weight: 600; margin-left: 2px;">(${carUnsettledTotalPayout.toLocaleString()})</span>
+                    </td>
                     <td data-label="정산 상태">${statusBadge}</td>
                     <td data-label="명세서/확정">
                         <div style="display: flex; gap: 6px; justify-content: flex-end;">
@@ -1705,14 +1760,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const car = delegatedCars.find(c => c.id === carId);
         if (!car) return;
 
-        // Gross Revenue R assigned to targetMonth
+        // Gross Revenue assigned to targetMonth
         const revs = delegatedRevenues.filter(r => r.paymentStatus === 'completed' && isItemAssignedToMonth(r, targetMonth, car.id));
         const grossRevenue = revs.reduce((sum, r) => sum + r.amount, 0);
 
         const feeRate = car.feeRate || 20;
         const feeAmount = grossRevenue * (feeRate / 100);
 
-        // Deductible Expenses E assigned to targetMonth (including rollovers)
+        // Deductible Expenses assigned to targetMonth (including rollovers)
         const exps = delegatedExpenses.filter(e => e.deductibleFromOwner && isItemAssignedToMonth(e, targetMonth, car.id));
         const totalExpenses = exps.reduce((sum, e) => sum + e.amount, 0);
 
@@ -1741,7 +1796,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
 
-                <h4 style="font-size: 14px; font-weight: 700; margin: 15px 0 8px 0; color: #2E7D32;">1. 렌트 매출 수입 내역 (Gross Rental Income)</h4>
+                <h4 style="font-size: 14px; font-weight: 700; margin: 15px 0 8px 0; color: #2E7D32;">1. 렌트 매출 수입 내역</h4>
                 <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px;">
                     <thead>
                         <tr style="background: #F5F5F5; border-bottom: 1px solid #DDD;">
@@ -1763,13 +1818,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             `;
                         }).join('') : '<tr><td colspan="3" style="text-align: center; padding: 10px; color: #888;">당월 렌트 매출 내역 없음</td></tr>'}
                         <tr style="font-weight: 700; background: #E8F5E9;">
-                            <td colspan="2" style="padding: 8px;">렌트 총 매출 합계 ($R$)</td>
+                            <td colspan="2" style="padding: 8px;">렌트 총 매출 합계</td>
                             <td style="padding: 8px; text-align: right; color: #2E7D32;">${grossRevenue.toLocaleString()}</td>
                         </tr>
                     </tbody>
                 </table>
 
-                <h4 style="font-size: 14px; font-weight: 700; margin: 15px 0 8px 0; color: #C62828;">2. 정비 및 공제 비용 내역 (Deductible Expenses)</h4>
+                <h4 style="font-size: 14px; font-weight: 700; margin: 15px 0 8px 0; color: #C62828;">2. 정비 및 공제 비용 내역</h4>
                 <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px;">
                     <thead>
                         <tr style="background: #F5F5F5; border-bottom: 1px solid #DDD;">
@@ -1798,7 +1853,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             `;
                         }).join('') : '<tr><td colspan="3" style="text-align: center; padding: 10px; color: #888;">당월 차주 공제 비용 내역 없음</td></tr>'}
                         <tr style="font-weight: 700; background: #FFEBEE;">
-                            <td colspan="2" style="padding: 8px;">공제 비용 합계 ($E$)</td>
+                            <td colspan="2" style="padding: 8px;">공제 비용 합계</td>
                             <td style="padding: 8px; text-align: right; color: #C62828;">${totalExpenses.toLocaleString()}</td>
                         </tr>
                     </tbody>
@@ -1807,19 +1862,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h4 style="font-size: 14px; font-weight: 700; margin: 15px 0 8px 0; color: #1565C0;">3. 정산 금액 요약 산출</h4>
                 <div style="background: #F8F9FA; padding: 15px; border-radius: 6px; border: 1px solid #E9ECEF;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                        <span>(+) 총 렌트 매출 ($R$):</span>
+                        <span>(+) 총 렌트 매출:</span>
                         <strong>${grossRevenue.toLocaleString()}</strong>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: var(--accent-color);">
-                        <span>(-) 위탁 관리 수수료 ($F$, ${feeRate}%):</span>
+                        <span>(-) 위탁 관리 수수료 (${feeRate}%):</span>
                         <strong>- ${feeAmount.toLocaleString()}</strong>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px; color: #C62828;">
-                        <span>(-) 차주 정비/공제 비용 ($E$):</span>
+                        <span>(-) 차주 정비/공제 비용:</span>
                         <strong>- ${totalExpenses.toLocaleString()}</strong>
                     </div>
                     <div style="display: flex; justify-content: space-between; border-top: 2px dashed #CBD5E1; padding-top: 10px; font-size: 16px; font-weight: 700; color: #1565C0;">
-                        <span>최종 차주 입금 배당금 ($P = R - F - E$):</span>
+                        <span>최종 차주 입금 배당금:</span>
                         <span>${netOwnerPayout.toLocaleString()}</span>
                     </div>
                 </div>
