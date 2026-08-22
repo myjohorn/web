@@ -1977,12 +1977,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const car = delegatedCars.find(c => c.id === rev.carId);
                 const carModelName = car ? (car.model || car.plateNumber || '차량') : '차량';
                 const carColor = (car && car.color) ? car.color : (carColorMap[rev.carId] || '#2E7D32');
-                const isPending = rev.paymentStatus === 'pending';
-                const bgColor = isPending ? '#E65100' : carColor;
-                const statusBadge = isPending ? ' (대기)' : '';
-                
+                const pillCursor = (userRole === 'owner') ? 'default' : 'pointer';
+                const pillTitle = (userRole === 'owner') 
+                    ? `[예약 일정] ${rev.startDate} ~ ${rev.endDate}` 
+                    : `${carModelName} (${car ? car.plateNumber : ''}): ${rev.renterName} (${rev.startDate} ~ ${rev.endDate}) - ${rev.amount.toLocaleString()}`;
+
                 bookingsHtml += `
-                    <div class="cal-booking-pill" data-rev-id="${rev.id}" title="${carModelName} (${car ? car.plateNumber : ''}): ${rev.renterName} (${rev.startDate} ~ ${rev.endDate}) - ${rev.amount.toLocaleString()}" style="background: ${bgColor}; color: white; padding: 3px 5px; border-radius: 4px; font-size: 11px; margin-top: 3px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <div class="cal-booking-pill" data-rev-id="${rev.id}" title="${pillTitle}" style="background: ${bgColor}; color: white; padding: 3px 5px; border-radius: 4px; font-size: 11px; margin-top: 3px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: ${pillCursor}; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                         <span class="pill-car-name">[${carModelName}] </span>${rev.renterName}${statusBadge}
                     </div>
                 `;
@@ -2022,10 +2023,12 @@ document.addEventListener('DOMContentLoaded', () => {
         grid.innerHTML = cellsHtml;
         renderCarAgendaList(filteredRevenues);
 
-        // Click Handler on Booking Pills for Edit / View
+        // Click Handler on Booking Pills for Edit / View (Admin only)
         grid.querySelectorAll('.cal-booking-pill').forEach(pill => {
             pill.addEventListener('click', (e) => {
                 e.stopPropagation();
+                if (userRole === 'owner') return; // Owners cannot open booking detail modal
+
                 const revId = pill.getAttribute('data-rev-id');
                 const rev = delegatedRevenues.find(r => r.id === revId);
                 if (rev) {
@@ -2039,18 +2042,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('revenuePaymentStatus').value = rev.paymentStatus || 'completed';
                     document.getElementById('revenueMemo').value = rev.memo || '';
                     
-                    if (userRole === 'owner') {
-                        if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-file-lines"></i> 렌트 예약 상세 조회';
-                        if (saveRevenueBtn) saveRevenueBtn.style.display = 'none';
-                        if (deleteRevenueBtn) deleteRevenueBtn.classList.add('hidden');
-                    } else {
-                        if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 렌트 예약 정보 수정';
-                        if (saveRevenueBtn) {
-                            saveRevenueBtn.style.display = '';
-                            saveRevenueBtn.textContent = '저장하기';
-                        }
-                        if (deleteRevenueBtn) deleteRevenueBtn.classList.remove('hidden');
+                    if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 렌트 예약 정보 수정';
+                    if (saveRevenueBtn) {
+                        saveRevenueBtn.style.display = '';
+                        saveRevenueBtn.textContent = '저장하기';
                     }
+                    if (deleteRevenueBtn) deleteRevenueBtn.classList.remove('hidden');
 
                     openModal('revenueModal');
                 }
@@ -2116,33 +2113,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 '<span class="status-badge status-approved">결제 완료</span>' : 
                 '<span class="status-badge status-pending" style="background: #FFF3E0; color: #E65100;">입금 대기</span>';
 
+            const renterDisplayName = (userRole === 'owner') 
+                ? (rev.renterName || '예약자') 
+                : `${rev.renterName || '예약자'} ${rev.renterContact ? `(${rev.renterContact})` : ''}`;
+
+            const actionBtn = (userRole === 'owner') ? '' : `
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button type="button" class="btn btn-secondary edit-agenda-btn" data-id="${rev.id}" style="padding: 4px 10px; font-size: 12px;">수정</button>
+                </div>
+            `;
+
             return `
                 <div style="background: var(--white); border: 1px solid var(--border-color); border-radius: 6px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                         <div>
                             <span style="font-size: 11px; font-weight: 700; color: var(--accent-color); text-transform: uppercase;">${carLabel}</span>
-                            <h4 style="font-size: 15px; font-weight: 700; margin: 2px 0 0 0; color: var(--text-primary);"><i class="fa-solid fa-user" style="margin-right: 4px; font-size: 12px;"></i> ${rev.renterName} ${rev.renterContact ? `(${rev.renterContact})` : ''}</h4>
+                            <h4 style="font-size: 15px; font-weight: 700; margin: 2px 0 0 0; color: var(--text-primary);"><i class="fa-solid fa-user" style="margin-right: 4px; font-size: 12px;"></i> ${renterDisplayName}</h4>
                         </div>
                         ${statusBadge}
                     </div>
 
-                    <div style="font-size: 13px; color: var(--text-primary); line-height: 1.6; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 8px; margin-bottom: 10px;">
+                    <div style="font-size: 13px; color: var(--text-primary); line-height: 1.6; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 8px; ${userRole === 'owner' ? '' : 'margin-bottom: 10px;'}">
                         <div><i class="fa-solid fa-calendar-days" style="color: var(--text-secondary); width: 16px;"></i> <strong>대여 기간:</strong> ${rev.startDate} ~ ${rev.endDate}</div>
                         <div><i class="fa-solid fa-money-bill-wave" style="color: #2E7D32; width: 16px;"></i> <strong>렌트 금액:</strong> ${rev.amount.toLocaleString()}</div>
                         ${rev.memo ? `<div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;"><i class="fa-solid fa-note-sticky" style="width: 16px;"></i> ${rev.memo}</div>` : ''}
                     </div>
 
-                    <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                        <button type="button" class="btn btn-secondary edit-agenda-btn" data-id="${rev.id}" style="padding: 4px 10px; font-size: 12px;">
-                            ${userRole === 'owner' ? '<i class="fa-solid fa-eye"></i> 상세' : '수정'}
-                        </button>
-                    </div>
+                    ${actionBtn}
                 </div>
             `;
         }).join('');
 
         agendaContainer.querySelectorAll('.edit-agenda-btn').forEach(btn => {
             btn.addEventListener('click', () => {
+                if (userRole === 'owner') return; // Owner cannot open detail/edit modal
+
                 const revId = btn.getAttribute('data-id');
                 const rev = delegatedRevenues.find(r => r.id === revId);
                 if (rev) {
@@ -2156,18 +2161,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('revenuePaymentStatus').value = rev.paymentStatus || 'completed';
                     document.getElementById('revenueMemo').value = rev.memo || '';
                     
-                    if (userRole === 'owner') {
-                        if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-file-lines"></i> 렌트 예약 상세 조회';
-                        if (saveRevenueBtn) saveRevenueBtn.style.display = 'none';
-                        if (deleteRevenueBtn) deleteRevenueBtn.classList.add('hidden');
-                    } else {
-                        if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 렌트 예약 정보 수정';
-                        if (saveRevenueBtn) {
-                            saveRevenueBtn.style.display = '';
-                            saveRevenueBtn.textContent = '저장하기';
-                        }
-                        if (deleteRevenueBtn) deleteRevenueBtn.classList.remove('hidden');
+                    if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 렌트 예약 정보 수정';
+                    if (saveRevenueBtn) {
+                        saveRevenueBtn.style.display = '';
+                        saveRevenueBtn.textContent = '저장하기';
                     }
+                    if (deleteRevenueBtn) deleteRevenueBtn.classList.remove('hidden');
 
                     openModal('revenueModal');
                 }
