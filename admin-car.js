@@ -699,11 +699,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             document.getElementById('revenueId').value = '';
             document.getElementById('revenueForm').reset();
-            document.getElementById('revenueStartDate').value = getLocalDateString(new Date());
-            document.getElementById('revenueEndDate').value = getLocalDateString(new Date());
-            if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-circle-plus"></i> 렌트 매출/예약 등록';
+            const todayStr = getLocalDateString(new Date());
+            document.getElementById('revenueStartDate').value = todayStr;
+            document.getElementById('revenueEndDate').value = calculateOneMonthLater(todayStr);
+            if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-circle-plus"></i> 렌트 예약 등록';
+            if (saveRevenueBtn) saveRevenueBtn.textContent = '예약 등록';
             if (deleteRevenueBtn) deleteRevenueBtn.classList.add('hidden');
             openModal('revenueModal');
+        });
+    }
+
+    const revStartDateInput = document.getElementById('revenueStartDate');
+    if (revStartDateInput) {
+        revStartDateInput.addEventListener('change', () => {
+            const revId = document.getElementById('revenueId').value;
+            if (!revId && revStartDateInput.value) {
+                const endDateInput = document.getElementById('revenueEndDate');
+                if (endDateInput) {
+                    endDateInput.value = calculateOneMonthLater(revStartDateInput.value);
+                }
+            }
         });
     }
 
@@ -1223,7 +1238,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.getElementById('revenuePaymentStatus').value = rev.paymentStatus || 'completed';
                         document.getElementById('revenueMemo').value = rev.memo || '';
                         
-                        if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 렌트 매출/예약 정보 수정';
+                        if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 렌트 예약 정보 수정';
+                        if (saveRevenueBtn) saveRevenueBtn.textContent = '저장하기';
                         if (deleteRevenueBtn) deleteRevenueBtn.classList.remove('hidden');
 
                         openModal('revenueModal');
@@ -1581,6 +1597,33 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${y}-${m}-${d}`;
     }
 
+    // Helper: calculate date string exactly 1 month later
+    function calculateOneMonthLater(dateInput) {
+        if (!dateInput) return '';
+        let y, m, d;
+        if (typeof dateInput === 'string') {
+            const parts = dateInput.split('-');
+            if (parts.length === 3) {
+                y = parseInt(parts[0], 10);
+                m = parseInt(parts[1], 10) - 1;
+                d = parseInt(parts[2], 10);
+            } else {
+                const dt = new Date(dateInput);
+                y = dt.getFullYear();
+                m = dt.getMonth();
+                d = dt.getDate();
+            }
+        } else if (dateInput instanceof Date) {
+            y = dateInput.getFullYear();
+            m = dateInput.getMonth();
+            d = dateInput.getDate();
+        } else {
+            return '';
+        }
+        const target = new Date(y, m + 1, d);
+        return getLocalDateString(target);
+    }
+
     // ----------------------------------------------------
     // 9. Vehicle Reservation Calendar Logic (`#tabCalendar`)
     // ----------------------------------------------------
@@ -1760,7 +1803,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('revenuePaymentStatus').value = rev.paymentStatus || 'completed';
                     document.getElementById('revenueMemo').value = rev.memo || '';
                     
-                    if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 렌트 매출/예약 정보 수정';
+                    if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 렌트 예약 정보 수정';
+                    if (saveRevenueBtn) saveRevenueBtn.textContent = '저장하기';
                     if (deleteRevenueBtn) deleteRevenueBtn.classList.remove('hidden');
 
                     openModal('revenueModal');
@@ -1783,10 +1827,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.getElementById('revenueForm').reset();
 
                         if (startDateInput) startDateInput.value = clickDate;
-                        if (endDateInput) endDateInput.value = clickDate;
+                        if (endDateInput) endDateInput.value = calculateOneMonthLater(clickDate);
                         if (revCarSelect && selectedCarId !== 'all') revCarSelect.value = selectedCarId;
                         
-                        if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-circle-plus"></i> 렌트 매출/예약 등록';
+                        if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-circle-plus"></i> 렌트 예약 등록';
+                        if (saveRevenueBtn) saveRevenueBtn.textContent = '예약 등록';
                         if (deleteRevenueBtn) deleteRevenueBtn.classList.add('hidden');
 
                         openModal('revenueModal');
@@ -1860,7 +1905,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('revenuePaymentStatus').value = rev.paymentStatus || 'completed';
                     document.getElementById('revenueMemo').value = rev.memo || '';
                     
-                    if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 렌트 매출/예약 정보 수정';
+                    if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 렌트 예약 정보 수정';
+                    if (saveRevenueBtn) saveRevenueBtn.textContent = '저장하기';
                     if (deleteRevenueBtn) deleteRevenueBtn.classList.remove('hidden');
 
                     openModal('revenueModal');
@@ -1872,21 +1918,52 @@ document.addEventListener('DOMContentLoaded', () => {
     // View Toggle Handlers
     const carCalViewGridBtn = document.getElementById('carCalViewGridBtn');
     const carCalViewAgendaBtn = document.getElementById('carCalViewAgendaBtn');
+    const carCalAddResBtn = document.getElementById('carCalAddResBtn');
     const carCalGridWrapper = document.querySelector('.car-cal-grid-wrapper');
     const carCalAgendaList = document.getElementById('carCalAgendaList');
 
     if (carCalViewGridBtn && carCalViewAgendaBtn) {
         carCalViewGridBtn.addEventListener('click', () => {
-            carCalViewGridBtn.classList.add('active');
-            carCalViewAgendaBtn.classList.remove('active');
+            carCalViewGridBtn.classList.remove('btn-secondary');
+            carCalViewGridBtn.classList.add('btn-primary', 'active');
+            carCalViewAgendaBtn.classList.remove('btn-primary', 'active');
+            carCalViewAgendaBtn.classList.add('btn-secondary');
             if (carCalGridWrapper) carCalGridWrapper.classList.remove('hidden');
             if (carCalAgendaList) carCalAgendaList.classList.add('hidden');
         });
         carCalViewAgendaBtn.addEventListener('click', () => {
-            carCalViewAgendaBtn.classList.add('active');
-            carCalViewGridBtn.classList.remove('active');
+            carCalViewAgendaBtn.classList.remove('btn-secondary');
+            carCalViewAgendaBtn.classList.add('btn-primary', 'active');
+            carCalViewGridBtn.classList.remove('btn-primary', 'active');
+            carCalViewGridBtn.classList.add('btn-secondary');
             if (carCalGridWrapper) carCalGridWrapper.classList.add('hidden');
             if (carCalAgendaList) carCalAgendaList.classList.remove('hidden');
+        });
+    }
+
+    // Reservation Quick Add Button in Calendar Header
+    if (carCalAddResBtn) {
+        carCalAddResBtn.addEventListener('click', () => {
+            if (delegatedCars.length === 0) {
+                alert('먼저 위탁 차량을 등록해 주세요.');
+                return;
+            }
+            document.getElementById('revenueId').value = '';
+            document.getElementById('revenueForm').reset();
+            const todayStr = getLocalDateString(new Date());
+            document.getElementById('revenueStartDate').value = todayStr;
+            document.getElementById('revenueEndDate').value = calculateOneMonthLater(todayStr);
+
+            const revCarSelect = document.getElementById('revenueCarId');
+            if (revCarSelect && typeof selectedCarId !== 'undefined' && selectedCarId !== 'all') {
+                revCarSelect.value = selectedCarId;
+            }
+
+            if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-circle-plus"></i> 렌트 예약 등록';
+            if (saveRevenueBtn) saveRevenueBtn.textContent = '예약 등록';
+            if (deleteRevenueBtn) deleteRevenueBtn.classList.add('hidden');
+
+            openModal('revenueModal');
         });
     }
 });
