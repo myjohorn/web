@@ -1864,7 +1864,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (statPayoutTitle) {
-                statPayoutTitle.textContent = '당월 배당 (미정산액)';
+                statPayoutTitle.textContent = '당월 배당 (미정산총액)';
             }
             if (statNetPayout) {
                 const formattedCurrent = totalOwnerPayouts.toLocaleString();
@@ -1874,14 +1874,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (statFeeProfit) {
                 statFeeProfit.innerHTML = isSettled 
                     ? '<span style="color: #2E7D32;"><i class="fa-solid fa-circle-check"></i> 당월 정산 완료</span>' 
-                    : '<span style="color: #E65100;"><i class="fa-solid fa-clock"></i> 당월 미정산 (대기)</span>';
+                    : '<span style="color: #E65100;"><i class="fa-solid fa-clock"></i> 당월 미정산(대기)</span>';
             }
         } else {
             // Admin view
             if (statTotalExpenses) statTotalExpenses.textContent = totalExpenses.toLocaleString();
             if (statExpensesSubText) statExpensesSubText.textContent = '정비, 수리 및 사고 처리비';
 
-            if (statPayoutTitle) statPayoutTitle.textContent = '당월 배당 (미정산액)';
+            if (statPayoutTitle) statPayoutTitle.textContent = '당월 배당 (미정산총액)';
             if (statNetPayout) {
                 const formattedCurrent = totalOwnerPayouts.toLocaleString();
                 const formattedUnsettled = totalUnsettledPayout.toLocaleString();
