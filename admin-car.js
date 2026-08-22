@@ -1977,6 +1977,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const car = delegatedCars.find(c => c.id === rev.carId);
                 const carModelName = car ? (car.model || car.plateNumber || '차량') : '차량';
                 const carColor = (car && car.color) ? car.color : (carColorMap[rev.carId] || '#2E7D32');
+                const isPending = rev.paymentStatus === 'pending';
+                const bgColor = isPending ? '#E65100' : carColor;
+                const statusBadge = isPending ? ' (대기)' : '';
                 const pillCursor = (userRole === 'owner') ? 'default' : 'pointer';
                 const pillTitle = (userRole === 'owner') 
                     ? `[예약 일정] ${rev.startDate} ~ ${rev.endDate}` 
