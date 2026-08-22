@@ -289,9 +289,20 @@
                                 </h3>
                                 <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">선택된 월의 차량별 매출, 관리수수료, 공제 비용 및 최종 차주 배당금을 자동으로 산출합니다.</p>
                             </div>
-                            <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: flex-start; flex-wrap: wrap;">
-                                <label for="settlementTargetMonth" style="font-size: 13px; font-weight: 600;">정산 월 선택:</label>
-                                <input type="month" id="settlementTargetMonth" class="form-control" style="font-size: 13px; padding: 8px 12px; width: 170px; flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <label for="settlementTargetMonth" style="font-size: 13px; font-weight: 600; color: var(--text-primary);">정산 월:</label>
+                                <div style="display: inline-flex; align-items: center; gap: 4px; background: #F8F9FA; padding: 3px 6px; border: 1px solid var(--border-color); border-radius: 6px;">
+                                    <button type="button" id="prevSettleMonthBtn" class="btn btn-secondary" style="padding: 6px 10px; font-size: 12px; height: 34px; border-radius: 4px;" title="이전 달">
+                                        <i class="fa-solid fa-chevron-left"></i>
+                                    </button>
+                                    <input type="month" id="settlementTargetMonth" class="form-control" style="font-size: 13px; font-weight: 600; padding: 6px 8px; width: 135px; height: 34px; cursor: pointer; text-align: center; border: 1px solid #D1D5DB; border-radius: 4px; background: #FFF;">
+                                    <button type="button" id="nextSettleMonthBtn" class="btn btn-secondary" style="padding: 6px 10px; font-size: 12px; height: 34px; border-radius: 4px;" title="다음 달">
+                                        <i class="fa-solid fa-chevron-right"></i>
+                                    </button>
+                                    <button type="button" id="todaySettleMonthBtn" class="btn btn-secondary" style="padding: 6px 10px; font-size: 12px; height: 34px; border-radius: 4px; font-weight: 600;" title="이번 달로 이동">
+                                        당월
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -631,7 +642,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <!-- Admin Car JS -->
-    <script src="admin-car.js?v=20260822_16"></script>
+    <script src="admin-car.js?v=20260822_17"></script>
     <script src="mobile-bridge.js"></script>
 
     <!-- Vercel Speed Insights & Analytics -->

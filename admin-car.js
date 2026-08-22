@@ -1634,6 +1634,49 @@ document.addEventListener('DOMContentLoaded', () => {
             renderSettlements();
             updateDashboardMetrics();
         });
+
+        // Trigger date/month picker on input click
+        settlementTargetMonth.addEventListener('click', () => {
+            try {
+                if (typeof settlementTargetMonth.showPicker === 'function') {
+                    settlementTargetMonth.showPicker();
+                }
+            } catch (e) {}
+        });
+    }
+
+    const prevSettleMonthBtn = document.getElementById('prevSettleMonthBtn');
+    const nextSettleMonthBtn = document.getElementById('nextSettleMonthBtn');
+    const todaySettleMonthBtn = document.getElementById('todaySettleMonthBtn');
+
+    if (prevSettleMonthBtn && settlementTargetMonth) {
+        prevSettleMonthBtn.addEventListener('click', () => {
+            const curVal = settlementTargetMonth.value || currentYearMonth;
+            const [y, m] = curVal.split('-').map(Number);
+            const prevDate = new Date(y, m - 2, 1);
+            settlementTargetMonth.value = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
+            renderSettlements();
+            updateDashboardMetrics();
+        });
+    }
+
+    if (nextSettleMonthBtn && settlementTargetMonth) {
+        nextSettleMonthBtn.addEventListener('click', () => {
+            const curVal = settlementTargetMonth.value || currentYearMonth;
+            const [y, m] = curVal.split('-').map(Number);
+            const nextDate = new Date(y, m, 1);
+            settlementTargetMonth.value = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}`;
+            renderSettlements();
+            updateDashboardMetrics();
+        });
+    }
+
+    if (todaySettleMonthBtn && settlementTargetMonth) {
+        todaySettleMonthBtn.addEventListener('click', () => {
+            settlementTargetMonth.value = currentYearMonth;
+            renderSettlements();
+            updateDashboardMetrics();
+        });
     }
 
     function renderSettlements() {
