@@ -1682,7 +1682,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const existingSettlement = getSettlementForCarMonth(car.id, targetMonth);
             const isCompleted = existingSettlement && existingSettlement.status === 'completed';
 
-            // Calculate Rollover Expenses for this car (occurred after settlement completion date or pending rollover)
+            // Calculate Rollover Expenses for this car (occurred after settlement completion date or pending rollover) up to targetMonth
             let carRolloverExpenses = 0;
             delegatedExpenses.forEach(e => {
                 const matchCar = (e.carId === car.id) || (e.carId === car.plateNumber);
@@ -1693,6 +1693,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!rawDate) return;
                 rawDate = String(rawDate).trim().replace(/[\.\/]/g, '-');
                 const eMonth = rawDate.substring(0, 7);
+
+                // Never consider future expenses when viewing past targetMonth
+                if (eMonth > targetMonth) return;
 
                 const pSettle = getSettlementForCarMonth(car.id, eMonth);
                 if (pSettle && pSettle.status === 'completed' && pSettle.settledAt) {
@@ -1705,7 +1708,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Calculate Cumulative Unsettled Total Payout for this car across ALL unsettled months
+            // Calculate Cumulative Unsettled Total Payout for this car up to targetMonth (past & current only, never future)
             let carUnsettledTotalPayout = 0;
             const allMonths = new Set();
 
@@ -1715,9 +1718,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     let d = r.startDate || r.date;
                     if (d) {
                         d = String(d).trim().replace(/[\.\/]/g, '-');
-                        if (d.length >= 7) allMonths.add(d.substring(0, 7));
+                        const m = d.substring(0, 7);
+                        if (m <= targetMonth) allMonths.add(m);
                     }
-                    if (r.settledMonth) allMonths.add(r.settledMonth);
+                    if (r.settledMonth && r.settledMonth <= targetMonth) allMonths.add(r.settledMonth);
                 }
             });
 
@@ -1727,15 +1731,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     let d = e.expenseDate || e.date;
                     if (d) {
                         d = String(d).trim().replace(/[\.\/]/g, '-');
-                        if (d.length >= 7) allMonths.add(d.substring(0, 7));
+                        const m = d.substring(0, 7);
+                        if (m <= targetMonth) allMonths.add(m);
                     }
-                    if (e.settledMonth) allMonths.add(e.settledMonth);
+                    if (e.settledMonth && e.settledMonth <= targetMonth) allMonths.add(e.settledMonth);
                 }
             });
 
             if (targetMonth) allMonths.add(targetMonth);
 
             allMonths.forEach(m => {
+                if (m > targetMonth) return; // Strict: Never include future months in unsettled total!
                 const sObj = getSettlementForCarMonth(car.id, m);
                 const isMonthDone = sObj && sObj.status === 'completed';
 
