@@ -1777,7 +1777,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         const totalExpenses = monthExpenses.reduce((sum, e) => sum + e.amount, 0);
 
-        // Calculate Total Company Fee Profit & Net Owner Payouts
+        // Calculate Total Company Fee Profit & Net Owner Payouts for targetMonth
         let companyFeeProfit = 0;
         let totalOwnerPayouts = 0;
 
@@ -1794,6 +1794,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
             companyFeeProfit += fee;
             totalOwnerPayouts += ownerPayout;
+        });
+
+        // Calculate All Cumulative Unsettled Payouts for Target Cars
+        let totalUnsettledPayout = 0;
+        const allMonthsSet = new Set();
+        delegatedRevenues.forEach(r => {
+            if (r.startDate && r.startDate.length >= 7) {
+                allMonthsSet.add(r.startDate.substring(0, 7));
+            }
+        });
+        delegatedExpenses.forEach(e => {
+            if (e.expenseDate && e.expenseDate.length >= 7) {
+                allMonthsSet.add(e.expenseDate.substring(0, 7));
+            }
+        });
+        if (targetMonth) allMonthsSet.add(targetMonth);
+
+        allMonthsSet.forEach(m => {
+            const mRevs = delegatedRevenues.filter(r => r.startDate && r.startDate.startsWith(m) && r.paymentStatus === 'completed');
+            const mExps = delegatedExpenses.filter(e => e.expenseDate && e.expenseDate.startsWith(m) && e.deductibleFromOwner);
+
+            targetCars.forEach(car => {
+                const settleId = `settle_${m.replace('-', '_')}_${car.id}`;
+                const existingSettlement = delegatedSettlements.find(s => s.id === settleId);
+                const isMonthCompleted = existingSettlement && existingSettlement.status === 'completed';
+
+                // If this month is not settled yet, accumulate to totalUnsettledPayout
+                if (!isMonthCompleted) {
+                    const carRevs = mRevs.filter(r => r.carId === car.id);
+                    const carGross = carRevs.reduce((sum, r) => sum + r.amount, 0);
+                    const feeRate = car.feeRate || 20;
+                    const fee = carGross * (feeRate / 100);
+
+                    const carExps = mExps.filter(e => e.carId === car.id);
+                    const expSum = carExps.reduce((sum, e) => sum + e.amount, 0);
+
+                    const monthOwnerPayout = carGross - fee - expSum;
+                    totalUnsettledPayout += monthOwnerPayout;
+                }
+            });
         });
 
         const statGrossRevenue = document.getElementById('statGrossRevenue');
@@ -1824,21 +1864,29 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (statPayoutTitle) {
-                statPayoutTitle.textContent = isSettled ? '당월 배당 (정산 완료)' : '당월 배당 (미정산액)';
+                statPayoutTitle.textContent = '당월 배당 (미정산액)';
             }
-            if (statNetPayout) statNetPayout.textContent = totalOwnerPayouts.toLocaleString();
+            if (statNetPayout) {
+                const formattedCurrent = totalOwnerPayouts.toLocaleString();
+                const formattedUnsettled = totalUnsettledPayout.toLocaleString();
+                statNetPayout.innerHTML = `${formattedCurrent} <span style="font-size: 16px; font-weight: 600; color: #E65100; margin-left: 4px;">(${formattedUnsettled})</span>`;
+            }
             if (statFeeProfit) {
                 statFeeProfit.innerHTML = isSettled 
-                    ? '<span style="color: #2E7D32;"><i class="fa-solid fa-circle-check"></i> 정산 지급 완료</span>' 
-                    : '<span style="color: #E65100;"><i class="fa-solid fa-clock"></i> 정산 대기 (미정산액)</span>';
+                    ? '<span style="color: #2E7D32;"><i class="fa-solid fa-circle-check"></i> 당월 정산 완료</span>' 
+                    : '<span style="color: #E65100;"><i class="fa-solid fa-clock"></i> 당월 미정산 (대기)</span>';
             }
         } else {
             // Admin view
             if (statTotalExpenses) statTotalExpenses.textContent = totalExpenses.toLocaleString();
             if (statExpensesSubText) statExpensesSubText.textContent = '정비, 수리 및 사고 처리비';
 
-            if (statPayoutTitle) statPayoutTitle.textContent = '차주 배당 / 관리수수료';
-            if (statNetPayout) statNetPayout.textContent = totalOwnerPayouts.toLocaleString();
+            if (statPayoutTitle) statPayoutTitle.textContent = '당월 배당 (미정산액)';
+            if (statNetPayout) {
+                const formattedCurrent = totalOwnerPayouts.toLocaleString();
+                const formattedUnsettled = totalUnsettledPayout.toLocaleString();
+                statNetPayout.innerHTML = `${formattedCurrent} <span style="font-size: 16px; font-weight: 600; color: #E65100; margin-left: 4px;">(${formattedUnsettled})</span>`;
+            }
             if (statFeeProfit) statFeeProfit.textContent = `수수료 수익: ${companyFeeProfit.toLocaleString()}`;
         }
     }
