@@ -1563,16 +1563,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
     // Core Business Logic: Determine whether a revenue or expense item belongs to targetMonth
     function isItemAssignedToMonth(item, targetMonth, carId) {
-        if (item.carId !== carId) return false;
+        const car = delegatedCars.find(c => c.id === carId);
+        const matchCar = (item.carId === carId) || 
+                         (car && car.plateNumber && item.carId === car.plateNumber) || 
+                         (car && car.plateNumber && item.carPlate === car.plateNumber);
+        if (!matchCar) return false;
 
         // If explicit settledMonth is stamped
         if (item.settledMonth) {
             return item.settledMonth === targetMonth;
         }
 
-        const itemDate = item.startDate || item.expenseDate;
-        if (!itemDate) return false;
-        const itemMonth = itemDate.substring(0, 7);
+        let rawDate = item.startDate || item.expenseDate || item.date;
+        if (!rawDate) return false;
+        rawDate = String(rawDate).trim().replace(/[\.\/]/g, '-');
+        const itemMonth = rawDate.substring(0, 7);
 
         // 1. Item occurred in targetMonth
         if (itemMonth === targetMonth) {
@@ -1582,7 +1587,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (existingSettlement && existingSettlement.status === 'completed' && existingSettlement.settledAt) {
                 const settleCutoffDate = getLocalDateString(new Date(existingSettlement.settledAt));
                 // If item occurred AFTER settlement completion date, it CANNOT be in this already-settled statement
-                if (itemDate > settleCutoffDate) {
+                if (rawDate > settleCutoffDate) {
                     return false;
                 }
             }
@@ -1595,7 +1600,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const pastSettlement = delegatedSettlements.find(s => s.id === pastSettleId);
             if (pastSettlement && pastSettlement.status === 'completed' && pastSettlement.settledAt) {
                 const pastCutoffDate = getLocalDateString(new Date(pastSettlement.settledAt));
-                if (itemDate > pastCutoffDate) {
+                if (rawDate > pastCutoffDate) {
                     const nextMonth = calculateNextMonth(itemMonth);
                     if (nextMonth === targetMonth) {
                         return true;
@@ -1636,16 +1641,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         tbody.innerHTML = displayCars.map(car => {
             // Calculate Gross Revenue (assigned to targetMonth)
-            const revs = delegatedRevenues.filter(r => r.paymentStatus === 'completed' && isItemAssignedToMonth(r, targetMonth, car.id));
-            const grossRevenue = revs.reduce((sum, r) => sum + r.amount, 0);
+            const revs = delegatedRevenues.filter(r => {
+                const isValidStatus = !r.paymentStatus || r.paymentStatus === 'completed' || r.paymentStatus === 'paid';
+                return isValidStatus && isItemAssignedToMonth(r, targetMonth, car.id);
+            });
+            const grossRevenue = revs.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
 
             // Management Fee
-            const feeRate = car.feeRate || 20;
+            const feeRate = parseFloat(car.feeRate) || 20;
             const feeAmount = grossRevenue * (feeRate / 100);
 
             // Deductible Expenses (assigned to targetMonth including rollovers)
-            const exps = delegatedExpenses.filter(e => e.deductibleFromOwner && isItemAssignedToMonth(e, targetMonth, car.id));
-            const totalExpenses = exps.reduce((sum, e) => sum + e.amount, 0);
+            const exps = delegatedExpenses.filter(e => {
+                const isDeductible = e.deductibleFromOwner === true || e.deductibleFromOwner === 'true';
+                return isDeductible && isItemAssignedToMonth(e, targetMonth, car.id);
+            });
+            const totalExpenses = exps.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
 
             // Net Owner Payout
             const netOwnerPayout = grossRevenue - feeAmount - totalExpenses;
@@ -1658,50 +1669,76 @@ document.addEventListener('DOMContentLoaded', () => {
             // Calculate Rollover Expenses for this car (occurred after settlement completion date or pending rollover)
             let carRolloverExpenses = 0;
             delegatedExpenses.forEach(e => {
-                if (e.carId !== car.id || !e.deductibleFromOwner || e.isSettled) return;
-                const eDate = e.expenseDate;
-                if (!eDate) return;
-                const eMonth = eDate.substring(0, 7);
+                const matchCar = (e.carId === car.id) || (e.carId === car.plateNumber);
+                const isDeductible = e.deductibleFromOwner === true || e.deductibleFromOwner === 'true';
+                if (!matchCar || !isDeductible || e.isSettled) return;
+
+                let rawDate = e.expenseDate || e.date;
+                if (!rawDate) return;
+                rawDate = String(rawDate).trim().replace(/[\.\/]/g, '-');
+                const eMonth = rawDate.substring(0, 7);
 
                 const sKey = `settle_${eMonth.replace('-', '_')}_${car.id}`;
                 const pSettle = delegatedSettlements.find(s => s.id === sKey);
                 if (pSettle && pSettle.status === 'completed' && pSettle.settledAt) {
                     const cutoff = getLocalDateString(new Date(pSettle.settledAt));
-                    if (eDate > cutoff) {
-                        carRolloverExpenses += e.amount;
+                    if (rawDate > cutoff) {
+                        carRolloverExpenses += (parseFloat(e.amount) || 0);
                     }
                 } else if (e.isRollover) {
-                    carRolloverExpenses += e.amount;
+                    carRolloverExpenses += (parseFloat(e.amount) || 0);
                 }
             });
 
-            // Calculate Cumulative Unsettled Total Payout for this car across all unsettled months
+            // Calculate Cumulative Unsettled Total Payout for this car across ALL historical unsettled months (5월, 6월, 7월 등)
             let carUnsettledTotalPayout = 0;
             const allMonths = new Set();
+
             delegatedRevenues.forEach(r => {
-                if (r.carId === car.id) {
-                    const m = r.settledMonth || (r.startDate && r.startDate.substring(0, 7));
-                    if (m && m.length >= 7) allMonths.add(m);
+                const matchCar = (r.carId === car.id) || (r.carId === car.plateNumber);
+                if (matchCar) {
+                    let d = r.startDate || r.date;
+                    if (d) {
+                        d = String(d).trim().replace(/[\.\/]/g, '-');
+                        if (d.length >= 7) allMonths.add(d.substring(0, 7));
+                    }
+                    if (r.settledMonth) allMonths.add(r.settledMonth);
                 }
             });
+
             delegatedExpenses.forEach(e => {
-                if (e.carId === car.id) {
-                    const m = e.settledMonth || (e.expenseDate && e.expenseDate.substring(0, 7));
-                    if (m && m.length >= 7) allMonths.add(m);
+                const matchCar = (e.carId === car.id) || (e.carId === car.plateNumber);
+                if (matchCar) {
+                    let d = e.expenseDate || e.date;
+                    if (d) {
+                        d = String(d).trim().replace(/[\.\/]/g, '-');
+                        if (d.length >= 7) allMonths.add(d.substring(0, 7));
+                    }
+                    if (e.settledMonth) allMonths.add(e.settledMonth);
                 }
             });
+
             if (targetMonth) allMonths.add(targetMonth);
 
             allMonths.forEach(m => {
                 const sId = `settle_${m.replace('-', '_')}_${car.id}`;
                 const sObj = delegatedSettlements.find(s => s.id === sId);
                 const isMonthDone = sObj && sObj.status === 'completed';
+
                 if (!isMonthDone) {
-                    const mRevs = delegatedRevenues.filter(r => r.paymentStatus === 'completed' && isItemAssignedToMonth(r, m, car.id));
-                    const mGross = mRevs.reduce((sum, r) => sum + r.amount, 0);
+                    const mRevs = delegatedRevenues.filter(r => {
+                        const isValidStatus = !r.paymentStatus || r.paymentStatus === 'completed' || r.paymentStatus === 'paid';
+                        return isValidStatus && isItemAssignedToMonth(r, m, car.id);
+                    });
+                    const mGross = mRevs.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
                     const mFee = mGross * (feeRate / 100);
-                    const mExps = delegatedExpenses.filter(e => e.deductibleFromOwner && isItemAssignedToMonth(e, m, car.id));
-                    const mExpSum = mExps.reduce((sum, e) => sum + e.amount, 0);
+
+                    const mExps = delegatedExpenses.filter(e => {
+                        const isDeductible = e.deductibleFromOwner === true || e.deductibleFromOwner === 'true';
+                        return isDeductible && isItemAssignedToMonth(e, m, car.id);
+                    });
+                    const mExpSum = mExps.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+
                     carUnsettledTotalPayout += (mGross - mFee - mExpSum);
                 }
             });
@@ -1761,15 +1798,21 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!car) return;
 
         // Gross Revenue assigned to targetMonth
-        const revs = delegatedRevenues.filter(r => r.paymentStatus === 'completed' && isItemAssignedToMonth(r, targetMonth, car.id));
-        const grossRevenue = revs.reduce((sum, r) => sum + r.amount, 0);
+        const revs = delegatedRevenues.filter(r => {
+            const isValidStatus = !r.paymentStatus || r.paymentStatus === 'completed' || r.paymentStatus === 'paid';
+            return isValidStatus && isItemAssignedToMonth(r, targetMonth, car.id);
+        });
+        const grossRevenue = revs.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
 
-        const feeRate = car.feeRate || 20;
+        const feeRate = parseFloat(car.feeRate) || 20;
         const feeAmount = grossRevenue * (feeRate / 100);
 
         // Deductible Expenses assigned to targetMonth (including rollovers)
-        const exps = delegatedExpenses.filter(e => e.deductibleFromOwner && isItemAssignedToMonth(e, targetMonth, car.id));
-        const totalExpenses = exps.reduce((sum, e) => sum + e.amount, 0);
+        const exps = delegatedExpenses.filter(e => {
+            const isDeductible = e.deductibleFromOwner === true || e.deductibleFromOwner === 'true';
+            return isDeductible && isItemAssignedToMonth(e, targetMonth, car.id);
+        });
+        const totalExpenses = exps.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
 
         const netOwnerPayout = grossRevenue - feeAmount - totalExpenses;
 
