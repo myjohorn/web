@@ -11,7 +11,7 @@
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="style.css?v=20260821_02">
+    <link rel="stylesheet" href="style.css?v=20260822_01">
 </head>
 <body>
 
@@ -112,7 +112,7 @@
                                 <i class="fa-solid fa-car" style="color: var(--accent-color); font-size: 18px;"></i>
                             </div>
                             <div id="statTotalCars" style="font-size: 26px; font-weight: 700; color: var(--text-primary);">0 대</div>
-                            <div style="font-size: 11px; color: #8C8782; margin-top: 5px;">현재 위탁 운행 중인 차량</div>
+                            <div class="stat-subtext" style="font-size: 11px; color: #8C8782; margin-top: 5px; line-height: 1.3;">현재 위탁 운행 중인 차량</div>
                         </div>
 
                         <div class="stat-card" style="background: var(--white); padding: 22px 25px; border-radius: 6px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
@@ -121,7 +121,7 @@
                                 <i class="fa-solid fa-arrow-trend-up" style="color: #2E7D32; font-size: 18px;"></i>
                             </div>
                             <div id="statGrossRevenue" style="font-size: 24px; font-weight: 700; color: #2E7D32;">0</div>
-                            <div style="font-size: 11px; color: #8C8782; margin-top: 5px;">선택 월 총 발생 대여 수입</div>
+                            <div class="stat-subtext" style="font-size: 11px; color: #8C8782; margin-top: 5px; line-height: 1.3;">선택 월 총 발생 대여 수입</div>
                         </div>
 
                         <div class="stat-card" style="background: var(--white); padding: 22px 25px; border-radius: 6px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
@@ -130,7 +130,7 @@
                                 <i class="fa-solid fa-screwdriver-wrench" style="color: #C62828; font-size: 18px;"></i>
                             </div>
                             <div id="statTotalExpenses" style="font-size: 24px; font-weight: 700; color: #C62828;">0</div>
-                            <div id="statExpensesSubText" style="font-size: 11px; color: #8C8782; margin-top: 5px;">정비, 수리 및 사고 처리비</div>
+                            <div class="stat-subtext" id="statExpensesSubText" style="font-size: 11px; color: #8C8782; margin-top: 5px; line-height: 1.3;">정비, 수리 및 사고 처리비</div>
                         </div>
 
                         <div class="stat-card" style="background: var(--white); padding: 22px 25px; border-radius: 6px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
@@ -139,7 +139,7 @@
                                 <i class="fa-solid fa-scale-balanced" style="color: #1565C0; font-size: 18px;"></i>
                             </div>
                             <div id="statNetPayout" style="font-size: 24px; font-weight: 700; color: #1565C0;">0</div>
-                            <div id="statFeeProfit" style="font-size: 12px; color: var(--accent-color); font-weight: 600; margin-top: 4px;">수수료 수익: 0</div>
+                            <div class="stat-subtext" id="statFeeProfit" style="font-size: 11px; color: #8C8782; margin-top: 5px; line-height: 1.3;">수수료 수익: 0</div>
                         </div>
                     </div>
 
@@ -631,7 +631,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <!-- Admin Car JS -->
-    <script src="admin-car.js?v=20260822_15"></script>
+    <script src="admin-car.js?v=20260822_16"></script>
     <script src="mobile-bridge.js"></script>
 
     <!-- Vercel Speed Insights & Analytics -->

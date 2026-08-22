@@ -2098,8 +2098,20 @@ body.faq-mode .faq-section {
     .stat-card {
         padding: 14px 12px !important;
     }
-    .stat-card div[id^="stat"] {
-        font-size: 17px !important;
+    .stat-card #statTotalCars,
+    .stat-card #statGrossRevenue,
+    .stat-card #statTotalExpenses,
+    .stat-card #statNetPayout {
+        font-size: 18px !important;
+    }
+    .stat-card .stat-subtext,
+    .stat-card #statExpensesSubText,
+    .stat-card #statFeeProfit,
+    .stat-card div.stat-subtext {
+        font-size: 11px !important;
+        color: #8C8782 !important;
+        font-weight: 400 !important;
+        line-height: 1.3 !important;
     }
 
     /* Ledger Filter Bar */

@@ -2150,13 +2150,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 statExpensesSubText.textContent = companyFeeProfit > 0 
                     ? `관리수수료(${companyFeeProfit.toLocaleString()}원) + 정비공제 포함`
                     : '정비, 수리 및 관리수수료 합계';
+                statExpensesSubText.style.fontSize = '11px';
+                statExpensesSubText.style.color = '#8C8782';
+                statExpensesSubText.style.fontWeight = '400';
             }
 
             // Check settlement confirmation status for the owner's car in targetMonth
             let isSettled = false;
             if (ownerCarId) {
-                const settleId = `settle_${targetMonth.replace('-', '_')}_${ownerCarId}`;
-                const existingSettlement = delegatedSettlements.find(s => s.id === settleId);
+                const existingSettlement = getSettlementForCarMonth(ownerCarId, targetMonth);
                 isSettled = existingSettlement && existingSettlement.status === 'completed';
             }
 
@@ -2170,13 +2172,21 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (statFeeProfit) {
                 statFeeProfit.innerHTML = isSettled 
-                    ? '<span style="color: #2E7D32;"><i class="fa-solid fa-circle-check"></i> 당월 정산 완료</span>' 
-                    : '<span style="color: #E65100;"><i class="fa-solid fa-clock"></i> 당월 미정산(대기)</span>';
+                    ? '<span style="color: #8C8782; font-size: 11px; font-weight: 400;"><i class="fa-solid fa-circle-check" style="color: #2E7D32; margin-right: 3px;"></i> 당월 정산 완료</span>' 
+                    : '<span style="color: #8C8782; font-size: 11px; font-weight: 400;"><i class="fa-solid fa-clock" style="color: #E65100; margin-right: 3px;"></i> 당월 미정산(대기)</span>';
+                statFeeProfit.style.fontSize = '11px';
+                statFeeProfit.style.color = '#8C8782';
+                statFeeProfit.style.fontWeight = '400';
             }
         } else {
             // Admin view
             if (statTotalExpenses) statTotalExpenses.textContent = totalExpenses.toLocaleString();
-            if (statExpensesSubText) statExpensesSubText.textContent = '정비, 수리 및 사고 처리비';
+            if (statExpensesSubText) {
+                statExpensesSubText.textContent = '정비, 수리 및 사고 처리비';
+                statExpensesSubText.style.fontSize = '11px';
+                statExpensesSubText.style.color = '#8C8782';
+                statExpensesSubText.style.fontWeight = '400';
+            }
 
             if (statPayoutTitle) statPayoutTitle.textContent = '당월 배당 (미정산총액)';
             if (statNetPayout) {
@@ -2184,7 +2194,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const formattedUnsettled = totalUnsettledPayout.toLocaleString();
                 statNetPayout.innerHTML = `${formattedCurrent} <span style="font-size: 16px; font-weight: 600; color: #E65100; margin-left: 4px;">(${formattedUnsettled})</span>`;
             }
-            if (statFeeProfit) statFeeProfit.textContent = `수수료 수익: ${companyFeeProfit.toLocaleString()}`;
+            if (statFeeProfit) {
+                statFeeProfit.textContent = `수수료 수익: ${companyFeeProfit.toLocaleString()}`;
+                statFeeProfit.style.fontSize = '11px';
+                statFeeProfit.style.color = '#8C8782';
+                statFeeProfit.style.fontWeight = '400';
+            }
         }
     }
 
