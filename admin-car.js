@@ -1561,6 +1561,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
     // 7. Settlement Engine & Profit Sharing (`#tabSettlements`)
     // ----------------------------------------------------
+    // Helper: Safely get settlement object for specific car and month
+    function getSettlementForCarMonth(carId, targetMonth) {
+        const car = delegatedCars.find(c => c.id === carId);
+        const targetSettleId = `settle_${targetMonth.replace('-', '_')}_${carId}`;
+        const targetPlateSettleId = car && car.plateNumber ? `settle_${targetMonth.replace('-', '_')}_${car.plateNumber}` : '';
+
+        return delegatedSettlements.find(s => {
+            if (s.id === targetSettleId || (targetPlateSettleId && s.id === targetPlateSettleId)) return true;
+            const matchMonth = s.yearMonth === targetMonth;
+            const matchCar = (s.carId === carId) || (car && car.plateNumber && s.carId === car.plateNumber);
+            return matchMonth && matchCar;
+        });
+    }
+
     // Core Business Logic: Determine whether a revenue or expense item belongs to targetMonth
     function isItemAssignedToMonth(item, targetMonth, carId) {
         const car = delegatedCars.find(c => c.id === carId);
@@ -1569,21 +1583,25 @@ document.addEventListener('DOMContentLoaded', () => {
                          (car && car.plateNumber && item.carPlate === car.plateNumber);
         if (!matchCar) return false;
 
-        // If explicit settledMonth is stamped
-        if (item.settledMonth) {
-            return item.settledMonth === targetMonth;
-        }
-
         let rawDate = item.startDate || item.expenseDate || item.date;
         if (!rawDate) return false;
         rawDate = String(rawDate).trim().replace(/[\.\/]/g, '-');
         const itemMonth = rawDate.substring(0, 7);
 
-        // 1. Item occurred in targetMonth
+        // 1. Strict Boundary: Future items NEVER belong to a past month!
+        if (itemMonth > targetMonth) {
+            return false;
+        }
+
+        // If explicit settledMonth is stamped, only match if it equals targetMonth
+        if (item.settledMonth) {
+            return item.settledMonth === targetMonth;
+        }
+
+        // 2. Item occurred in targetMonth
         if (itemMonth === targetMonth) {
             // Check if this month's settlement was ALREADY completed
-            const settleId = `settle_${targetMonth.replace('-', '_')}_${carId}`;
-            const existingSettlement = delegatedSettlements.find(s => s.id === settleId);
+            const existingSettlement = getSettlementForCarMonth(carId, targetMonth);
             if (existingSettlement && existingSettlement.status === 'completed' && existingSettlement.settledAt) {
                 const settleCutoffDate = getLocalDateString(new Date(existingSettlement.settledAt));
                 // If item occurred AFTER settlement completion date, it CANNOT be in this already-settled statement
@@ -1594,10 +1612,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return true;
         }
 
-        // 2. Item occurred in an EARLIER month and rolled over because the earlier month was settled before this item occurred
+        // 3. Item occurred in an EARLIER month and rolled over because the earlier month was settled before this item occurred
         if (itemMonth < targetMonth) {
-            const pastSettleId = `settle_${itemMonth.replace('-', '_')}_${carId}`;
-            const pastSettlement = delegatedSettlements.find(s => s.id === pastSettleId);
+            const pastSettlement = getSettlementForCarMonth(carId, itemMonth);
             if (pastSettlement && pastSettlement.status === 'completed' && pastSettlement.settledAt) {
                 const pastCutoffDate = getLocalDateString(new Date(pastSettlement.settledAt));
                 if (rawDate > pastCutoffDate) {
@@ -1661,9 +1678,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Net Owner Payout
             const netOwnerPayout = grossRevenue - feeAmount - totalExpenses;
 
-            // Settlement Key: settle_YYYY_MM_carId
-            const settleId = `settle_${targetMonth.replace('-', '_')}_${car.id}`;
-            const existingSettlement = delegatedSettlements.find(s => s.id === settleId);
+            // Check settlement for this car and targetMonth
+            const existingSettlement = getSettlementForCarMonth(car.id, targetMonth);
             const isCompleted = existingSettlement && existingSettlement.status === 'completed';
 
             // Calculate Rollover Expenses for this car (occurred after settlement completion date or pending rollover)
@@ -1678,8 +1694,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 rawDate = String(rawDate).trim().replace(/[\.\/]/g, '-');
                 const eMonth = rawDate.substring(0, 7);
 
-                const sKey = `settle_${eMonth.replace('-', '_')}_${car.id}`;
-                const pSettle = delegatedSettlements.find(s => s.id === sKey);
+                const pSettle = getSettlementForCarMonth(car.id, eMonth);
                 if (pSettle && pSettle.status === 'completed' && pSettle.settledAt) {
                     const cutoff = getLocalDateString(new Date(pSettle.settledAt));
                     if (rawDate > cutoff) {
@@ -1690,7 +1705,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Calculate Cumulative Unsettled Total Payout for this car across ALL historical unsettled months (5월, 6월, 7월 등)
+            // Calculate Cumulative Unsettled Total Payout for this car across ALL unsettled months
             let carUnsettledTotalPayout = 0;
             const allMonths = new Set();
 
@@ -1721,8 +1736,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (targetMonth) allMonths.add(targetMonth);
 
             allMonths.forEach(m => {
-                const sId = `settle_${m.replace('-', '_')}_${car.id}`;
-                const sObj = delegatedSettlements.find(s => s.id === sId);
+                const sObj = getSettlementForCarMonth(car.id, m);
                 const isMonthDone = sObj && sObj.status === 'completed';
 
                 if (!isMonthDone) {
@@ -1817,7 +1831,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const netOwnerPayout = grossRevenue - feeAmount - totalExpenses;
 
         const settleId = `settle_${targetMonth.replace('-', '_')}_${car.id}`;
-        const existingSettlement = delegatedSettlements.find(s => s.id === settleId);
+        const existingSettlement = getSettlementForCarMonth(car.id, targetMonth);
         const isCompleted = existingSettlement && existingSettlement.status === 'completed';
 
         const stmtContentSheet = document.getElementById('stmtContentSheet');
@@ -1856,7 +1870,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <tr style="border-bottom: 1px solid #EEE;">
                                     <td style="padding: 6px;">${revRolloverBadge}${r.startDate} ~ ${r.endDate}</td>
                                     <td style="padding: 6px;">${(userRole === 'owner') ? maskRenterName(r.renterName) : (r.renterName || '-')}</td>
-                                    <td style="padding: 6px; text-align: right;">${r.amount.toLocaleString()}</td>
+                                    <td style="padding: 6px; text-align: right;">${(parseFloat(r.amount) || 0).toLocaleString()}</td>
                                 </tr>
                             `;
                         }).join('') : '<tr><td colspan="3" style="text-align: center; padding: 10px; color: #888;">당월 렌트 매출 내역 없음</td></tr>'}
@@ -1891,7 +1905,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                             </button>
                                         ` : ''}
                                     </td>
-                                    <td style="padding: 6px; text-align: right;">${e.amount.toLocaleString()}</td>
+                                    <td style="padding: 6px; text-align: right;">${(parseFloat(e.amount) || 0).toLocaleString()}</td>
                                 </tr>
                             `;
                         }).join('') : '<tr><td colspan="3" style="text-align: center; padding: 10px; color: #888;">당월 차주 공제 비용 내역 없음</td></tr>'}
@@ -1934,13 +1948,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (confirmStmtBtn) {
             if (isCompleted) {
-                confirmStmtBtn.innerHTML = '<i class="fa-solid fa-check-double"></i> 이미 정산 완료됨';
-                confirmStmtBtn.style.background = '#8C8782';
-                confirmStmtBtn.disabled = true;
+                confirmStmtBtn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> 정산 완료 취소 (미정산 전환)';
+                confirmStmtBtn.style.background = '#C62828';
+                confirmStmtBtn.disabled = (userRole === 'owner');
+
+                confirmStmtBtn.onclick = () => {
+                    if (confirm(`${car.ownerName} 차주님의 ${targetMonth}월 정산 완료 상태를 취소하고 [미정산 (대기)] 상태로 되돌리시겠습니까?`)) {
+                        const targetPlateSettleId = car.plateNumber ? `settle_${targetMonth.replace('-', '_')}_${car.plateNumber}` : '';
+                        const updates = {};
+                        if (existingSettlement && existingSettlement.id) {
+                            updates[`delegated_car_settlements/${existingSettlement.id}`] = null;
+                        }
+                        updates[`delegated_car_settlements/${settleId}`] = null;
+                        if (targetPlateSettleId) updates[`delegated_car_settlements/${targetPlateSettleId}`] = null;
+
+                        revs.forEach(r => {
+                            if (r.id) {
+                                updates[`delegated_car_revenues/${r.id}/isSettled`] = false;
+                                updates[`delegated_car_revenues/${r.id}/settledMonth`] = null;
+                                updates[`delegated_car_revenues/${r.id}/settledAt`] = null;
+                            }
+                        });
+
+                        exps.forEach(e => {
+                            if (e.id) {
+                                updates[`delegated_car_expenses/${e.id}/isSettled`] = false;
+                                updates[`delegated_car_expenses/${e.id}/settledMonth`] = null;
+                                updates[`delegated_car_expenses/${e.id}/settledAt`] = null;
+                            }
+                        });
+
+                        db.ref().update(updates).then(() => {
+                            closeModal('settlementModal');
+                        });
+                    }
+                };
             } else {
                 confirmStmtBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> 정산 완료 처리';
                 confirmStmtBtn.style.background = 'var(--accent-color)';
-                confirmStmtBtn.disabled = false;
+                confirmStmtBtn.disabled = (userRole === 'owner');
 
                 confirmStmtBtn.onclick = () => {
                     if (confirm(`${car.ownerName} 차주님의 ${targetMonth}월 정산을 완료 처리하시겠습니까?\n\n포함된 매출 및 공제 비용이 ${targetMonth}월 정산 완료 상태로 전환됩니다.`)) {
@@ -1949,6 +1995,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             id: settleId,
                             yearMonth: targetMonth,
                             carId: car.id,
+                            carPlate: car.plateNumber || '',
                             ownerName: car.ownerName,
                             grossRevenue,
                             feeRate,
