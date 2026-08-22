@@ -14,8 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let delegatedExpenses = [];
     let delegatedSettlements = [];
     
-    let activeTab = 'cars'; // 'cars' | 'ledger' | 'settlements'
+    let activeTab = 'calendar'; // 'cars' | 'calendar' | 'ledger' | 'settlements'
     let adminPasswordHash = null;
+    let userRole = 'admin'; // 'admin' | 'owner'
+    let ownerCarId = null;
+    let ownerCarPlate = '';
+    let ownerName = '';
 
     // Default target month: current YYYY-MM
     const today = new Date();
@@ -88,16 +92,99 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminPasswordInput = document.getElementById('adminPassword');
     const adminLoginBtn = document.getElementById('adminLoginBtn');
 
+    // Dual Login Tab Elements
+    const loginTabOwnerBtn = document.getElementById('loginTabOwnerBtn');
+    const loginTabAdminBtn = document.getElementById('loginTabAdminBtn');
+    const ownerLoginForm = document.getElementById('ownerLoginForm');
+    const adminLoginForm = document.getElementById('adminLoginForm');
+    const ownerPlateNumberInput = document.getElementById('ownerPlateNumber');
+    const ownerContactNumberInput = document.getElementById('ownerContactNumber');
+    const ownerLoginBtn = document.getElementById('ownerLoginBtn');
+
+    // Profile & Logout Elements
+    const userBadgeText = document.getElementById('userBadgeText');
+    const userBadgeIcon = document.getElementById('userBadgeIcon');
+    const portalSubTag = document.getElementById('portalSubTag');
+    const dashboardMainTitle = document.getElementById('dashboardMainTitle');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const carCalGuideText = document.getElementById('carCalGuideText');
+
+    // Login Tabs Switching
+    if (loginTabOwnerBtn && loginTabAdminBtn && ownerLoginForm && adminLoginForm) {
+        loginTabOwnerBtn.addEventListener('click', () => {
+            loginTabOwnerBtn.classList.remove('btn-secondary');
+            loginTabOwnerBtn.classList.add('btn-primary');
+            loginTabAdminBtn.classList.remove('btn-primary');
+            loginTabAdminBtn.classList.add('btn-secondary');
+            ownerLoginForm.style.display = 'block';
+            adminLoginForm.style.display = 'none';
+        });
+        loginTabAdminBtn.addEventListener('click', () => {
+            loginTabAdminBtn.classList.remove('btn-secondary');
+            loginTabAdminBtn.classList.add('btn-primary');
+            loginTabOwnerBtn.classList.remove('btn-primary');
+            loginTabOwnerBtn.classList.add('btn-secondary');
+            adminLoginForm.style.display = 'block';
+            ownerLoginForm.style.display = 'none';
+        });
+    }
+
     db.ref('settings/admin_password').on('value', (snapshot) => {
         adminPasswordHash = snapshot.val() || 'c5ade4700915e1f704bef4a178d76f5e7e9945fefd7f2cdabc6293bc1e78a445'; // default: '10011001'
     });
 
+    function applyRolePermissions() {
+        const isOwner = userRole === 'owner';
+
+        if (isOwner) {
+            // Owner mode UI
+            if (userBadgeText) userBadgeText.textContent = `${ownerCarPlate} (${ownerName} 님)`;
+            if (userBadgeIcon) userBadgeIcon.className = 'fa-solid fa-car-side';
+            if (portalSubTag) portalSubTag.textContent = 'Vehicle Owner Portal';
+            if (dashboardMainTitle) dashboardMainTitle.textContent = `${ownerCarPlate} 차량 운행 및 정산 조회`;
+            if (carCalGuideText) carCalGuideText.innerHTML = '<i class="fa-solid fa-circle-info"></i> 내 차량의 예약 현황을 달력과 목록으로 확인하실 수 있습니다.';
+
+            // Hide admin-only controls
+            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+
+            // Default tab: calendar
+            const carsTabBtn = document.querySelector('.car-tab-btn[data-tab="cars"]');
+            if (carsTabBtn) carsTabBtn.style.display = 'none';
+
+            // Activate calendar tab if currently on cars
+            const calTabBtn = document.querySelector('.car-tab-btn[data-tab="calendar"]');
+            if (calTabBtn) calTabBtn.click();
+        } else {
+            // Admin mode UI
+            if (userBadgeText) userBadgeText.textContent = '마스터 관리자 모드';
+            if (userBadgeIcon) userBadgeIcon.className = 'fa-solid fa-user-shield';
+            if (portalSubTag) portalSubTag.textContent = 'Consignment Car Management';
+            if (dashboardMainTitle) dashboardMainTitle.textContent = '렌트카 매출/비용 및 수익 배분 관리';
+            if (carCalGuideText) carCalGuideText.innerHTML = '<i class="fa-solid fa-circle-info"></i> 날짜를 클릭하면 해당 시작일로 신규 예약을 등록할 수 있습니다.';
+
+            // Show admin-only controls
+            document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+
+            const carsTabBtn = document.querySelector('.car-tab-btn[data-tab="cars"]');
+            if (carsTabBtn) carsTabBtn.style.display = '';
+        }
+    }
+
     function checkAuth() {
-        if (sessionStorage.getItem('johorn_admin_auth') === 'true' || sessionStorage.getItem('admin_logged_in') === 'true') {
-            sessionStorage.setItem('johorn_admin_auth', 'true');
-            sessionStorage.setItem('admin_logged_in', 'true');
+        const isAuth = sessionStorage.getItem('johorn_car_portal_auth') === 'true' || 
+                       sessionStorage.getItem('johorn_admin_auth') === 'true' || 
+                       sessionStorage.getItem('admin_logged_in') === 'true';
+
+        if (isAuth) {
+            userRole = sessionStorage.getItem('car_admin_role') || 'admin';
+            ownerCarId = sessionStorage.getItem('owner_car_id') || null;
+            ownerCarPlate = sessionStorage.getItem('owner_car_plate') || '';
+            ownerName = sessionStorage.getItem('owner_name') || '';
+
             if (adminLogin) adminLogin.style.display = 'none';
             if (adminDashboard) adminDashboard.style.display = 'block';
+
+            applyRolePermissions();
             initDataListeners();
         } else {
             if (adminLogin) adminLogin.style.display = 'block';
@@ -105,11 +192,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Master Admin Login Handler
     if (adminLoginBtn) {
         adminLoginBtn.addEventListener('click', async () => {
             const input = adminPasswordInput ? adminPasswordInput.value.trim() : '';
             if (!input) {
-                alert('비밀번호를 입력해주세요.');
+                alert('관리자 비밀번호를 입력해주세요.');
                 return;
             }
 
@@ -117,8 +205,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const defaultHash = await hashPassword('10011001');
 
             if (inputHash === adminPasswordHash || inputHash === defaultHash || input === '10011001') {
+                sessionStorage.setItem('johorn_car_portal_auth', 'true');
                 sessionStorage.setItem('johorn_admin_auth', 'true');
                 sessionStorage.setItem('admin_logged_in', 'true');
+                sessionStorage.setItem('car_admin_role', 'admin');
+                sessionStorage.removeItem('owner_car_id');
+                sessionStorage.removeItem('owner_car_plate');
+                sessionStorage.removeItem('owner_name');
                 checkAuth();
             } else {
                 alert('비밀번호가 올바르지 않습니다.');
@@ -129,6 +222,71 @@ document.addEventListener('DOMContentLoaded', () => {
     if (adminPasswordInput) {
         adminPasswordInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') adminLoginBtn.click();
+        });
+    }
+
+    // Owner Login Handler (ID = Car Plate, PW = Owner Contact)
+    if (ownerLoginBtn) {
+        ownerLoginBtn.addEventListener('click', () => {
+            const plateInput = ownerPlateNumberInput ? ownerPlateNumberInput.value.trim() : '';
+            const contactInput = ownerContactNumberInput ? ownerContactNumberInput.value.trim() : '';
+
+            if (!plateInput || !contactInput) {
+                alert('차량 번호(아이디)와 차주 연락처(비밀번호)를 모두 입력해 주세요.');
+                return;
+            }
+
+            const normPlate = plateInput.replace(/\s+/g, '').toUpperCase();
+            const normContact = contactInput.replace(/[^0-9]/g, '');
+
+            db.ref('delegated_cars').once('value').then((snapshot) => {
+                const val = snapshot.val();
+                if (!val) {
+                    alert('등록된 위탁 차량 정보를 찾을 수 없습니다.');
+                    return;
+                }
+                const cars = Object.keys(val).map(k => ({ id: k, ...val[k] }));
+
+                const matched = cars.find(c => {
+                    const cPlate = (c.plateNumber || '').replace(/\s+/g, '').toUpperCase();
+                    const cContact = (c.ownerContact || '').replace(/[^0-9]/g, '');
+                    return cPlate === normPlate && cContact === normContact;
+                });
+
+                if (matched) {
+                    sessionStorage.setItem('johorn_car_portal_auth', 'true');
+                    sessionStorage.setItem('car_admin_role', 'owner');
+                    sessionStorage.setItem('owner_car_id', matched.id);
+                    sessionStorage.setItem('owner_car_plate', matched.plateNumber || plateInput);
+                    sessionStorage.setItem('owner_name', matched.ownerName || '차주');
+                    checkAuth();
+                } else {
+                    alert('일치하는 위탁 차량 또는 차주 연락처 정보를 찾을 수 없습니다.\n등록된 차량 번호와 연락처를 다시 확인해 주세요.');
+                }
+            }).catch(err => {
+                alert('로그인 처리 중 오류가 발생했습니다: ' + err.message);
+            });
+        });
+    }
+
+    if (ownerPlateNumberInput) {
+        ownerPlateNumberInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && ownerContactNumberInput) ownerContactNumberInput.focus();
+        });
+    }
+    if (ownerContactNumberInput) {
+        ownerContactNumberInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') ownerLoginBtn.click();
+        });
+    }
+
+    // Logout Handler
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            if (confirm('로그아웃 하시겠습니까?')) {
+                sessionStorage.clear();
+                location.reload();
+            }
         });
     }
 
@@ -491,17 +649,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById('carsContainer');
         if (!container) return;
 
-        if (delegatedCars.length === 0) {
+        const carsToRender = (userRole === 'owner' && ownerCarId) 
+            ? delegatedCars.filter(c => c.id === ownerCarId) 
+            : delegatedCars;
+
+        if (carsToRender.length === 0) {
             container.innerHTML = `
-                <div style="grid-column: 1 / -1; background: var(--white); padding: 40px; text-align: center; border: 1px dashed var(--border-color); border-radius: 6px;">
-                    <i class="fa-solid fa-car-side" style="font-size: 36px; color: var(--accent-color); margin-bottom: 12px;"></i>
-                    <p style="color: var(--text-secondary); margin: 0;">등록된 위탁 차량이 없습니다. [+ 신규 위탁 차량 등록] 버튼을 눌러 차량을 추가하세요.</p>
+                <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: var(--white); border: 1px solid var(--border-color); border-radius: 6px;">
+                    <i class="fa-solid fa-car-side" style="font-size: 40px; color: #BBB7B2; margin-bottom: 15px;"></i>
+                    <p style="color: var(--text-secondary); margin: 0; font-size: 14px;">등록된 위탁 관리 차량이 없습니다.</p>
                 </div>
             `;
             return;
         }
 
-        container.innerHTML = delegatedCars.map(car => {
+        container.innerHTML = carsToRender.map(car => {
             let statusBadge = '<span class="status-badge status-approved">운행 가능</span>';
             if (car.status === 'maintenance') {
                 statusBadge = '<span class="status-badge status-pending" style="background: #FFF3E0; color: #E65100;">정비 중</span>';
@@ -518,6 +680,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const docBadge = docCount > 0 
                 ? `<span style="font-size: 11px; background: rgba(46, 125, 50, 0.1); color: #2E7D32; padding: 2px 7px; border-radius: 4px; font-weight: 600;"><i class="fa-solid fa-file-check"></i> 서류/사진 (${docCount}건)</span>`
                 : `<span style="font-size: 11px; background: rgba(0,0,0,0.04); color: var(--text-secondary); padding: 2px 7px; border-radius: 4px;"><i class="fa-solid fa-file"></i> 서류 미등록</span>`;
+
+            const actionButtons = (userRole === 'owner') ? `
+                <button type="button" class="btn btn-secondary view-car-docs-btn" data-id="${car.id}" style="padding: 6px 10px; font-size: 11px; color: var(--accent-color); border-color: var(--accent-color);">
+                    <i class="fa-solid fa-folder-open"></i> 서류/사진 열람
+                </button>
+            ` : `
+                <button type="button" class="btn btn-secondary view-car-docs-btn" data-id="${car.id}" style="padding: 6px 10px; font-size: 11px; color: var(--accent-color); border-color: var(--accent-color);">
+                    <i class="fa-solid fa-folder-open"></i> 서류/사진 열람
+                </button>
+                <button type="button" class="btn btn-secondary edit-car-btn" data-id="${car.id}" style="padding: 6px 10px; font-size: 11px;">
+                    <i class="fa-solid fa-pen-to-square"></i> 수정
+                </button>
+                <button type="button" class="btn btn-secondary delete-car-btn" data-id="${car.id}" style="padding: 6px 10px; font-size: 11px; color: #E24C4C; border-color: #E24C4C;">
+                    <i class="fa-solid fa-trash"></i> 삭제
+                </button>
+            `;
 
             return `
                 <div class="car-card" style="background: var(--white); border: 1px solid var(--border-color); border-radius: 6px; padding: 22px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); position: relative;">
@@ -544,15 +722,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
 
                     <div style="display: flex; gap: 6px; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 12px; flex-wrap: wrap;">
-                        <button type="button" class="btn btn-secondary view-car-docs-btn" data-id="${car.id}" style="padding: 6px 10px; font-size: 11px; color: var(--accent-color); border-color: var(--accent-color);">
-                            <i class="fa-solid fa-folder-open"></i> 서류/사진 열람
-                        </button>
-                        <button type="button" class="btn btn-secondary edit-car-btn" data-id="${car.id}" style="padding: 6px 10px; font-size: 11px;">
-                            <i class="fa-solid fa-pen-to-square"></i> 수정
-                        </button>
-                        <button type="button" class="btn btn-secondary delete-car-btn" data-id="${car.id}" style="padding: 6px 10px; font-size: 11px; color: #E24C4C; border-color: #E24C4C;">
-                            <i class="fa-solid fa-trash"></i> 삭제
-                        </button>
+                        ${actionButtons}
                     </div>
                 </div>
             `;
@@ -664,18 +834,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const activeCars = delegatedCars.filter(c => c.status !== 'inactive');
 
-        if (carFilter) {
-            const currentVal = carFilter.value;
-            carFilter.innerHTML = '<option value="all">전체 차량 보기</option>' + 
-                delegatedCars.map(c => `<option value="${c.id}">${c.plateNumber} (${c.model})</option>`).join('');
-            carFilter.value = currentVal;
-        }
+        if (userRole === 'owner' && ownerCarId) {
+            const myCar = delegatedCars.find(c => c.id === ownerCarId);
+            const myCarOption = myCar 
+                ? `<option value="${myCar.id}">${myCar.plateNumber} (${myCar.model})</option>` 
+                : `<option value="${ownerCarId}">내 차량</option>`;
 
-        if (carCalFilter) {
-            const currentCalVal = carCalFilter.value;
-            carCalFilter.innerHTML = '<option value="all">전체 위탁 차량 보기</option>' + 
-                delegatedCars.map(c => `<option value="${c.id}">${c.plateNumber} (${c.model})</option>`).join('');
-            carCalFilter.value = currentCalVal || 'all';
+            if (carFilter) {
+                carFilter.innerHTML = myCarOption;
+                carFilter.value = ownerCarId;
+                carFilter.disabled = true;
+            }
+            if (carCalFilter) {
+                carCalFilter.innerHTML = myCarOption;
+                carCalFilter.value = ownerCarId;
+                carCalFilter.disabled = true;
+            }
+        } else {
+            if (carFilter) {
+                const currentVal = carFilter.value;
+                carFilter.disabled = false;
+                carFilter.innerHTML = '<option value="all">전체 차량 보기</option>' + 
+                    delegatedCars.map(c => `<option value="${c.id}">${c.plateNumber} (${c.model})</option>`).join('');
+                carFilter.value = currentVal || 'all';
+            }
+
+            if (carCalFilter) {
+                const currentCalVal = carCalFilter.value;
+                carCalFilter.disabled = false;
+                carCalFilter.innerHTML = '<option value="all">전체 위탁 차량 보기</option>' + 
+                    delegatedCars.map(c => `<option value="${c.id}">${c.plateNumber} (${c.model})</option>`).join('');
+                carCalFilter.value = currentCalVal || 'all';
+            }
         }
 
         const optionsHtml = activeCars.map(c => `<option value="${c.id}">${c.plateNumber} - ${c.model} (${c.ownerName})</option>`).join('');
@@ -1106,7 +1296,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const tbody = document.getElementById('ledgerTableBody');
         if (!tbody) return;
 
-        const carIdFilter = ledgerCarFilter ? ledgerCarFilter.value : 'all';
+        let carIdFilter = ledgerCarFilter ? ledgerCarFilter.value : 'all';
+        if (userRole === 'owner' && ownerCarId) {
+            carIdFilter = ownerCarId;
+        }
         const typeFilter = ledgerTypeFilter ? ledgerTypeFilter.value : 'all';
         const monthFilter = ledgerMonthFilter ? ledgerMonthFilter.value : '';
 
@@ -1193,6 +1386,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>
             ` : `<span style="color: #BBB7B2; font-size: 11px;">-</span>`;
 
+            const actionCol = (userRole === 'owner') ? `
+                <span style="color: #BBB7B2; font-size: 11px;">-</span>
+            ` : `
+                <button type="button" class="btn btn-secondary edit-ledger-btn" data-type="${item.type}" data-id="${item.id}" style="padding: 4px 8px; font-size: 11px; margin-right: 4px;">수정</button>
+                <button type="button" class="btn btn-secondary delete-ledger-btn" data-type="${item.type}" data-id="${item.id}" style="padding: 4px 8px; font-size: 11px; color: #E24C4C; border-color: #E24C4C;">
+                    삭제
+                </button>
+            `;
+
             return `
                 <tr>
                     <td data-label="날짜" style="font-weight: 500;">${item.date}</td>
@@ -1203,10 +1405,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td data-label="공제 여부">${item.deductibleStr}</td>
                     <td data-label="영수증">${receiptCol}</td>
                     <td data-label="관리">
-                        <button type="button" class="btn btn-secondary edit-ledger-btn" data-type="${item.type}" data-id="${item.id}" style="padding: 4px 8px; font-size: 11px; margin-right: 4px;">수정</button>
-                        <button type="button" class="btn btn-secondary delete-ledger-btn" data-type="${item.type}" data-id="${item.id}" style="padding: 4px 8px; font-size: 11px; color: #E24C4C; border-color: #E24C4C;">
-                            삭제
-                        </button>
+                        ${actionCol}
                     </td>
                 </tr>
             `;
@@ -1309,8 +1508,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!tbody) return;
 
         const targetMonth = settlementTargetMonth ? settlementTargetMonth.value : currentYearMonth;
+        const displayCars = (userRole === 'owner' && ownerCarId) 
+            ? delegatedCars.filter(c => c.id === ownerCarId) 
+            : delegatedCars;
 
-        if (delegatedCars.length === 0) {
+        if (displayCars.length === 0) {
             tbody.innerHTML = `
                 <tr>
                     <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-secondary);">
@@ -1321,7 +1523,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        tbody.innerHTML = delegatedCars.map(car => {
+        tbody.innerHTML = displayCars.map(car => {
             // Calculate Gross Revenue R
             const revs = delegatedRevenues.filter(r => r.carId === car.id && r.startDate.startsWith(targetMonth) && r.paymentStatus === 'completed');
             const grossRevenue = revs.reduce((sum, r) => sum + r.amount, 0);
@@ -1547,22 +1749,38 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
     function updateDashboardMetrics() {
         const targetMonth = settlementTargetMonth ? settlementTargetMonth.value : currentYearMonth;
+        const targetCars = (userRole === 'owner' && ownerCarId) 
+            ? delegatedCars.filter(c => c.id === ownerCarId) 
+            : delegatedCars;
 
-        const totalCarsCount = delegatedCars.filter(c => c.status === 'active').length;
+        const statTotalCars = document.getElementById('statTotalCars');
+        if (statTotalCars) {
+            statTotalCars.textContent = (userRole === 'owner') ? '1 대 (위탁)' : `${delegatedCars.filter(c => c.status === 'active').length} 대`;
+        }
 
         // Calculate Month Gross Revenue
-        const monthRevenues = delegatedRevenues.filter(r => r.startDate.startsWith(targetMonth) && r.paymentStatus === 'completed');
+        const monthRevenues = delegatedRevenues.filter(r => {
+            const matchMonth = r.startDate && r.startDate.startsWith(targetMonth);
+            const matchStatus = r.paymentStatus === 'completed';
+            const matchCar = (userRole === 'owner' && ownerCarId) ? r.carId === ownerCarId : true;
+            return matchMonth && matchStatus && matchCar;
+        });
         const grossRevenue = monthRevenues.reduce((sum, r) => sum + r.amount, 0);
 
         // Calculate Month Expenses
-        const monthExpenses = delegatedExpenses.filter(e => e.expenseDate.startsWith(targetMonth) && e.deductibleFromOwner);
+        const monthExpenses = delegatedExpenses.filter(e => {
+            const matchMonth = e.expenseDate && e.expenseDate.startsWith(targetMonth);
+            const matchDeductible = e.deductibleFromOwner;
+            const matchCar = (userRole === 'owner' && ownerCarId) ? e.carId === ownerCarId : true;
+            return matchMonth && matchDeductible && matchCar;
+        });
         const totalExpenses = monthExpenses.reduce((sum, e) => sum + e.amount, 0);
 
         // Calculate Total Company Fee Profit & Net Owner Payouts
         let companyFeeProfit = 0;
         let totalOwnerPayouts = 0;
 
-        delegatedCars.forEach(car => {
+        targetCars.forEach(car => {
             const carRevs = monthRevenues.filter(r => r.carId === car.id);
             const carGross = carRevs.reduce((sum, r) => sum + r.amount, 0);
             const feeRate = car.feeRate || 20;
@@ -1583,7 +1801,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const statNetPayout = document.getElementById('statNetPayout');
 
         if (statGrossRevenue) statGrossRevenue.textContent = grossRevenue.toLocaleString();
-        if (statFeeProfit) statFeeProfit.textContent = companyFeeProfit.toLocaleString();
+        if (statFeeProfit) {
+            statFeeProfit.textContent = (userRole === 'owner') 
+                ? `공제 수수료: ${companyFeeProfit.toLocaleString()}` 
+                : `수수료 수익: ${companyFeeProfit.toLocaleString()}`;
+        }
         if (statTotalExpenses) statTotalExpenses.textContent = totalExpenses.toLocaleString();
         if (statNetPayout) statNetPayout.textContent = totalOwnerPayouts.toLocaleString();
     }
@@ -1686,7 +1908,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let cellsHtml = '';
 
-        const selectedCarId = carCalFilter ? carCalFilter.value : 'all';
+        let selectedCarId = carCalFilter ? carCalFilter.value : 'all';
+        if (userRole === 'owner' && ownerCarId) {
+            selectedCarId = ownerCarId;
+        }
+
         const filteredRevenues = delegatedRevenues.filter(r => {
             if (selectedCarId !== 'all' && r.carId !== selectedCarId) return false;
             return true;
@@ -1702,15 +1928,23 @@ document.addEventListener('DOMContentLoaded', () => {
         // Dynamic Legend Bar update for car colors
         const legendBar = document.querySelector('.car-cal-legend-bar');
         if (legendBar) {
-            let carLegendItems = delegatedCars.map(c => {
+            const legendCars = (userRole === 'owner' && ownerCarId) 
+                ? delegatedCars.filter(c => c.id === ownerCarId) 
+                : delegatedCars;
+
+            let carLegendItems = legendCars.map(c => {
                 const color = c.color || carColorMap[c.id] || '#2E7D32';
                 return `<span style="display: flex; align-items: center; gap: 6px; white-space: nowrap;"><span style="width: 10px; height: 10px; background: ${color}; border-radius: 50%; display: inline-block; box-shadow: 0 0 0 1px rgba(0,0,0,0.15);"></span> ${c.plateNumber} (${c.model})</span>`;
             }).join('');
 
+            const guideText = (userRole === 'owner')
+                ? '<i class="fa-solid fa-circle-info"></i> 내 차량의 예약 내역을 확인하실 수 있습니다.'
+                : '<i class="fa-solid fa-circle-info"></i> 날짜를 클릭하면 해당 시작일로 신규 예약을 등록할 수 있습니다.';
+
             legendBar.innerHTML = `
                 ${carLegendItems}
                 <span style="display: flex; align-items: center; gap: 6px; white-space: nowrap; border-left: 1px solid #DDD; padding-left: 10px;"><span style="width: 10px; height: 10px; background: #E65100; border-radius: 50%; display: inline-block;"></span> 입금 대기</span>
-                <span style="margin-left: auto; color: #8C8782;"><i class="fa-solid fa-circle-info"></i> 날짜를 클릭하면 해당 시작일로 신규 예약을 등록할 수 있습니다.</span>
+                <span id="carCalGuideText" style="margin-left: auto; color: #8C8782;">${guideText}</span>
             `;
         }
 
@@ -1758,8 +1992,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? 'background: #FFF7ED; font-weight: 700; border: 1.5px solid #F59E0B;' 
                 : 'background: var(--white);';
 
+            const cellCursor = (userRole === 'owner') ? 'default' : 'pointer';
+
             cellsHtml += `
-                <div class="cal-date-cell ${isToday ? 'today' : ''}" data-date="${dateStr}" style="${dayStyle} transition: background 0.2s; cursor: pointer;">
+                <div class="cal-date-cell ${isToday ? 'today' : ''}" data-date="${dateStr}" style="${dayStyle} transition: background 0.2s; cursor: ${cellCursor};">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
                         <span class="date-num" style="font-size: 12px; font-weight: 700; color: ${isToday ? '#9A3412' : 'var(--text-primary)'};">${d}</span>
                     </div>
@@ -1786,7 +2022,7 @@ document.addEventListener('DOMContentLoaded', () => {
         grid.innerHTML = cellsHtml;
         renderCarAgendaList(filteredRevenues);
 
-        // Click Handler on Booking Pills for Edit / Delete
+        // Click Handler on Booking Pills for Edit / View
         grid.querySelectorAll('.cal-booking-pill').forEach(pill => {
             pill.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -1803,18 +2039,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('revenuePaymentStatus').value = rev.paymentStatus || 'completed';
                     document.getElementById('revenueMemo').value = rev.memo || '';
                     
-                    if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 렌트 예약 정보 수정';
-                    if (saveRevenueBtn) saveRevenueBtn.textContent = '저장하기';
-                    if (deleteRevenueBtn) deleteRevenueBtn.classList.remove('hidden');
+                    if (userRole === 'owner') {
+                        if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-file-lines"></i> 렌트 예약 상세 조회';
+                        if (saveRevenueBtn) saveRevenueBtn.style.display = 'none';
+                        if (deleteRevenueBtn) deleteRevenueBtn.classList.add('hidden');
+                    } else {
+                        if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 렌트 예약 정보 수정';
+                        if (saveRevenueBtn) {
+                            saveRevenueBtn.style.display = '';
+                            saveRevenueBtn.textContent = '저장하기';
+                        }
+                        if (deleteRevenueBtn) deleteRevenueBtn.classList.remove('hidden');
+                    }
 
                     openModal('revenueModal');
                 }
             });
         });
 
-        // Date Cell Click Handler for Fast Reservation Entry
+        // Date Cell Click Handler for Fast Reservation Entry (Admin only)
         grid.querySelectorAll('.cal-date-cell').forEach(cell => {
             cell.addEventListener('click', (e) => {
+                if (userRole === 'owner') return; // Owner is read-only
                 if (!e.target.closest('.cal-booking-pill')) {
                     const clickDate = cell.getAttribute('data-date');
                     const openRevenueBtn = document.getElementById('openRevenueModalBtn');
@@ -1831,7 +2077,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (revCarSelect && selectedCarId !== 'all') revCarSelect.value = selectedCarId;
                         
                         if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-circle-plus"></i> 렌트 예약 등록';
-                        if (saveRevenueBtn) saveRevenueBtn.textContent = '예약 등록';
+                        if (saveRevenueBtn) {
+                            saveRevenueBtn.style.display = '';
+                            saveRevenueBtn.textContent = '예약 등록';
+                        }
                         if (deleteRevenueBtn) deleteRevenueBtn.classList.add('hidden');
 
                         openModal('revenueModal');
@@ -1884,7 +2133,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
 
                     <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                        <button type="button" class="btn btn-secondary edit-agenda-btn" data-id="${rev.id}" style="padding: 4px 10px; font-size: 12px;">수정</button>
+                        <button type="button" class="btn btn-secondary edit-agenda-btn" data-id="${rev.id}" style="padding: 4px 10px; font-size: 12px;">
+                            ${userRole === 'owner' ? '<i class="fa-solid fa-eye"></i> 상세' : '수정'}
+                        </button>
                     </div>
                 </div>
             `;
@@ -1905,9 +2156,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('revenuePaymentStatus').value = rev.paymentStatus || 'completed';
                     document.getElementById('revenueMemo').value = rev.memo || '';
                     
-                    if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 렌트 예약 정보 수정';
-                    if (saveRevenueBtn) saveRevenueBtn.textContent = '저장하기';
-                    if (deleteRevenueBtn) deleteRevenueBtn.classList.remove('hidden');
+                    if (userRole === 'owner') {
+                        if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-file-lines"></i> 렌트 예약 상세 조회';
+                        if (saveRevenueBtn) saveRevenueBtn.style.display = 'none';
+                        if (deleteRevenueBtn) deleteRevenueBtn.classList.add('hidden');
+                    } else {
+                        if (revenueModalTitle) revenueModalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 렌트 예약 정보 수정';
+                        if (saveRevenueBtn) {
+                            saveRevenueBtn.style.display = '';
+                            saveRevenueBtn.textContent = '저장하기';
+                        }
+                        if (deleteRevenueBtn) deleteRevenueBtn.classList.remove('hidden');
+                    }
 
                     openModal('revenueModal');
                 }

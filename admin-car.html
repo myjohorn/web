@@ -36,25 +36,71 @@
     <main style="padding-top: 80px;">
         <section id="admin">
             <div class="container">
-                <!-- Admin Login Section -->
-                <div class="admin-login-wrapper" id="adminLogin">
-                    <span class="section-tag">Authentication</span>
-                    <h2 style="font-size: 28px; margin-bottom: 25px;">렌트카 관리자 로그인</h2>
-                    <div class="form-group">
-                        <input type="password" id="adminPassword" class="form-control" placeholder="관리자 비밀번호를 입력하세요." style="text-align: center;">
+                <!-- Admin / Owner Login Section -->
+                <div class="admin-login-wrapper" id="adminLogin" style="max-width: 440px; margin: 30px auto; background: var(--white); border: 1px solid var(--border-color); border-radius: 8px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.04);">
+                    <div style="display: flex; gap: 8px; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                        <button type="button" id="loginTabOwnerBtn" class="btn btn-primary" style="flex: 1; padding: 10px; font-size: 13px; font-weight: 600;">
+                            <i class="fa-solid fa-user-tie"></i> 차주 전용 로그인
+                        </button>
+                        <button type="button" id="loginTabAdminBtn" class="btn btn-secondary" style="flex: 1; padding: 10px; font-size: 13px; font-weight: 600;">
+                            <i class="fa-solid fa-lock"></i> 관리자 로그인
+                        </button>
                     </div>
-                    <button id="adminLoginBtn" class="btn btn-primary" style="width: 100%;">로그인</button>
+
+                    <!-- Owner Login Form (Default) -->
+                    <div id="ownerLoginForm">
+                        <span class="section-tag" style="display: inline-block; margin-bottom: 8px;">Vehicle Owner Portal</span>
+                        <h2 style="font-size: 22px; margin-bottom: 10px;">차주 전용 조회 시스템</h2>
+                        <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">
+                            등록된 <strong>차량 번호</strong>와 <strong>차주 연락처</strong>를 입력하시면 내 차의 예약 현황, 운행 수익 및 월별 정산서를 확인하실 수 있습니다.
+                        </p>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px; color: var(--text-primary);">차량 번호 (아이디)</label>
+                            <input type="text" id="ownerPlateNumber" class="form-control" placeholder="예: WVV 1234 또는 12가3456" style="padding: 10px 12px; font-size: 14px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px; color: var(--text-primary);">차주 연락처 (비밀번호)</label>
+                            <input type="password" id="ownerContactNumber" class="form-control" placeholder="예: 010-1234-5678 (숫자만 입력 가능)" style="padding: 10px 12px; font-size: 14px;">
+                        </div>
+                        <button id="ownerLoginBtn" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 700; background: #2E7D32; border-color: #2E7D32;">
+                            <i class="fa-solid fa-right-to-bracket" style="margin-right: 6px;"></i> 차주 로그인
+                        </button>
+                    </div>
+
+                    <!-- Master Admin Login Form -->
+                    <div id="adminLoginForm" style="display: none;">
+                        <span class="section-tag" style="display: inline-block; margin-bottom: 8px;">Master Administration</span>
+                        <h2 style="font-size: 22px; margin-bottom: 10px;">렌트카 관리자 로그인</h2>
+                        <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 20px;">
+                            통합 관리자 비밀번호를 입력해 주세요.
+                        </p>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px; color: var(--text-primary);">관리자 비밀번호</label>
+                            <input type="password" id="adminPassword" class="form-control" placeholder="관리자 비밀번호" style="padding: 10px 12px; font-size: 14px;">
+                        </div>
+                        <button id="adminLoginBtn" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 700;">
+                            <i class="fa-solid fa-lock-open" style="margin-right: 6px;"></i> 관리자 로그인
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Admin Dashboard (Hidden initially) -->
                 <div class="admin-dashboard" id="adminDashboard" style="display: none;">
 
-
-                    <!-- Header Title -->
-                    <div class="admin-header-actions">
+                    <!-- Header Title & User Info Bar -->
+                    <div class="admin-header-actions" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
                         <div>
-                            <span class="section-tag">Consignment Car Management</span>
-                            <h2>렌트카 매출/비용 및 수익 배분 관리</h2>
+                            <span class="section-tag" id="portalSubTag">Consignment Car Management</span>
+                            <h2 id="dashboardMainTitle" style="margin: 4px 0 0 0;">렌트카 매출/비용 및 수익 배분 관리</h2>
+                        </div>
+                        <div id="userProfileBar" style="display: flex; align-items: center; gap: 12px;">
+                            <div id="userBadge" style="background: rgba(197, 168, 128, 0.15); border: 1px solid var(--accent-color); color: var(--text-primary); padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-user-shield" id="userBadgeIcon" style="color: var(--accent-color);"></i>
+                                <span id="userBadgeText">관리자 모드</span>
+                            </div>
+                            <button type="button" id="logoutBtn" class="btn btn-secondary" style="padding: 6px 14px; font-size: 12px; display: flex; align-items: center; gap: 4px;">
+                                <i class="fa-solid fa-right-from-bracket"></i> 로그아웃
+                            </button>
                         </div>
                     </div>
 
@@ -99,7 +145,7 @@
 
                     <!-- Sub-Tab Navigation -->
                     <div class="car-tab-nav" style="display: flex; gap: 6px; margin-bottom: 25px; border-bottom: 1px solid var(--border-color);">
-                        <button class="car-tab-btn active" data-tab="cars" style="padding: 12px 16px; font-size: 14px; font-weight: 600; border: none; background: none; cursor: pointer; border-bottom: 3px solid var(--accent-color); color: var(--text-primary);">
+                        <button class="car-tab-btn active admin-only" data-tab="cars" style="padding: 12px 16px; font-size: 14px; font-weight: 600; border: none; background: none; cursor: pointer; border-bottom: 3px solid var(--accent-color); color: var(--text-primary);">
                             <i class="fa-solid fa-car" style="margin-right: 4px;"></i> 차량 관리
                         </button>
                         <button class="car-tab-btn" data-tab="calendar" style="padding: 12px 16px; font-size: 14px; font-weight: 600; border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent; color: var(--text-secondary);">
@@ -119,7 +165,7 @@
                             <h3 style="font-size: 18px; font-weight: 600; margin: 0; color: var(--text-primary);">
                                 <i class="fa-solid fa-list" style="color: var(--accent-color); margin-right: 8px;"></i> 위탁 관리 차량 리스트
                             </h3>
-                            <button type="button" id="openCarModalBtn" class="btn btn-primary" style="padding: 10px 18px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                            <button type="button" id="openCarModalBtn" class="btn btn-primary admin-only" style="padding: 10px 18px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
                                 <i class="fa-solid fa-plus"></i> 신규 위탁 차량 등록
                             </button>
                         </div>
@@ -146,7 +192,7 @@
                                     <div style="display: flex; gap: 4px; margin-left: 6px; align-items: center;">
                                         <button type="button" id="carCalViewGridBtn" class="btn btn-primary" style="padding: 6px 10px; font-size: 12px; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-calendar"></i> 달력</button>
                                         <button type="button" id="carCalViewAgendaBtn" class="btn btn-secondary" style="padding: 6px 10px; font-size: 12px; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-list-ul"></i> 목록</button>
-                                        <button type="button" id="carCalAddResBtn" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px; display: flex; align-items: center; gap: 4px; background: #2E7D32; border-color: #2E7D32; margin-left: 6px;"><i class="fa-solid fa-circle-plus"></i> 예약등록</button>
+                                        <button type="button" id="carCalAddResBtn" class="btn btn-primary admin-only" style="padding: 6px 12px; font-size: 12px; display: flex; align-items: center; gap: 4px; background: #2E7D32; border-color: #2E7D32; margin-left: 6px;"><i class="fa-solid fa-circle-plus"></i> 예약등록</button>
                                     </div>
                                 </div>
                                 <div class="car-cal-header-right" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
@@ -161,7 +207,7 @@
                             <div class="car-cal-legend-bar" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap; margin-bottom: 15px; font-size: 12px; color: var(--text-secondary);">
                                 <span style="display: flex; align-items: center; gap: 6px; white-space: nowrap;"><span style="width: 10px; height: 10px; background: #2E7D32; border-radius: 50%; display: inline-block;"></span> 결제 완료 예약</span>
                                 <span style="display: flex; align-items: center; gap: 6px; white-space: nowrap;"><span style="width: 10px; height: 10px; background: #E65100; border-radius: 50%; display: inline-block;"></span> 입금 대기</span>
-                                <span style="margin-left: auto; color: #8C8782;"><i class="fa-solid fa-circle-info"></i> 날짜를 클릭하면 해당 시작일로 신규 예약을 등록할 수 있습니다.</span>
+                                <span id="carCalGuideText" style="margin-left: auto; color: #8C8782;"><i class="fa-solid fa-circle-info"></i> 날짜를 클릭하면 해당 시작일로 신규 예약을 등록할 수 있습니다.</span>
                             </div>
 
                             <!-- Calendar Grid Wrapper -->
@@ -203,7 +249,7 @@
                                 </select>
                                 <input type="month" id="ledgerMonthFilter" class="form-control" style="font-size: 13px; padding: 8px 12px; min-width: 140px; flex: 1;">
                             </div>
-                            <div style="display: flex; gap: 10px; flex-wrap: wrap; width: 100%;">
+                            <div class="admin-only" style="display: flex; gap: 10px; flex-wrap: wrap; width: 100%;">
                                 <button type="button" id="openRevenueModalBtn" class="btn btn-primary" style="flex: 1; padding: 9px 16px; font-size: 13px; background: #2E7D32; border-color: #2E7D32; display: flex; align-items: center; justify-content: center; gap: 6px;">
                                     <i class="fa-solid fa-circle-plus"></i> + 렌트 매출 등록
                                 </button>
@@ -514,7 +560,7 @@
                 <button type="button" id="printStmtBtn" class="btn btn-secondary" style="padding: 10px 20px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
                     <i class="fa-solid fa-print"></i> 명세서 인쇄 / PDF
                 </button>
-                <button type="button" id="confirmStmtBtn" class="btn btn-primary" style="padding: 10px 22px; font-size: 13px;">
+                <button type="button" id="confirmStmtBtn" class="btn btn-primary admin-only" style="padding: 10px 22px; font-size: 13px;">
                     <i class="fa-solid fa-circle-check"></i> 정산 완료 처리
                 </button>
             </div>
@@ -585,7 +631,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <!-- Admin Car JS -->
-    <script src="admin-car.js?v=20260822_01"></script>
+    <script src="admin-car.js?v=20260822_02"></script>
     <script src="mobile-bridge.js"></script>
 
     <!-- Vercel Speed Insights & Analytics -->
