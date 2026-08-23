@@ -9,7 +9,8 @@
     "cap:open": "npx cap open android",
     "build:apk": "node scripts/build-apk.js",
     "build:aab": "node scripts/build-aab.js",
-    "share": "node scripts/share-qr.js"
+    "share": "node scripts/share-qr.js",
+    "keep-alive:supabase": "node scripts/supabase_keep_alive.js"
   },
   "repository": {
     "type": "git",
