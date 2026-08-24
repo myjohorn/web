@@ -228,8 +228,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (window.location.hash === '#car') {
         window.location.replace('admin-car.html');
-    } else if (window.location.hash === '#commission') {
-        window.location.replace('admin-commission.html');
+    } else if (window.location.hash === '#commission' || window.location.hash === '#school') {
+        window.location.replace('admin-school.html');
     }
 
     // ----------------------------------------------------

@@ -16,7 +16,7 @@ const filesToCopy = [
     { src: 'admin.html', dest: 'index.html' }, // Set admin.html as entry point for the app
     { src: 'admin.html', dest: 'admin.html' },
     { src: 'admin-car.html', dest: 'admin-car.html' },
-    { src: 'admin-commission.html', dest: 'admin-commission.html' },
+    { src: 'admin-school.html', dest: 'admin-school.html' },
     { src: 'admin.js', dest: 'admin.js' },
     { src: 'admin-car.js', dest: 'admin-car.js' },
     { src: 'admin-commission.js', dest: 'admin-commission.js' },
