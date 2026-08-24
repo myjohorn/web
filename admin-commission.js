@@ -18,6 +18,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeTab = 'admissions';
     let adminPasswordHash = null;
 
+    // Role & Entity Portal Session
+    let userRole = 'admin'; // 'admin' | 'entity'
+    let currentEntityId = null;
+    let currentEntityName = '';
+
     // Default target month
     const today = new Date();
     const currentYearMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
@@ -124,16 +129,107 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminPasswordInput = document.getElementById('adminPassword');
     const adminLoginBtn = document.getElementById('adminLoginBtn');
 
+    // Dual Login Tabs & Elements
+    const loginTabEntityBtn = document.getElementById('loginTabEntityBtn');
+    const loginTabAdminBtn = document.getElementById('loginTabAdminBtn');
+    const entityLoginForm = document.getElementById('entityLoginForm');
+    const adminLoginForm = document.getElementById('adminLoginForm');
+    const entityLoginIdInput = document.getElementById('entityLoginIdInput');
+    const entityLoginPasswordInput = document.getElementById('entityLoginPasswordInput');
+    const entityLoginBtn = document.getElementById('entityLoginBtn');
+    const logoutCommBtn = document.getElementById('logoutCommBtn');
+
+    // Header Role Info Elements
+    const userRoleBadge = document.getElementById('userRoleBadge');
+    const userRoleIcon = document.getElementById('userRoleIcon');
+    const userRoleText = document.getElementById('userRoleText');
+    const portalSubTag = document.getElementById('portalSubTag');
+    const dashboardMainTitle = document.getElementById('dashboardMainTitle');
+    const headerNavBooking = document.getElementById('headerNavBooking');
+    const headerNavCar = document.getElementById('headerNavCar');
+
     db.ref('settings/admin_password').on('value', (snapshot) => {
         adminPasswordHash = snapshot.val() || 'c5ade4700915e1f704bef4a178d76f5e7e9945fefd7f2cdabc6293bc1e78a445'; // default: '10011001'
     });
 
+    // Login Tab Switching
+    if (loginTabEntityBtn && loginTabAdminBtn && entityLoginForm && adminLoginForm) {
+        loginTabEntityBtn.addEventListener('click', () => {
+            loginTabEntityBtn.classList.remove('btn-secondary');
+            loginTabEntityBtn.classList.add('btn-primary');
+            loginTabAdminBtn.classList.remove('btn-primary');
+            loginTabAdminBtn.classList.add('btn-secondary');
+            entityLoginForm.style.display = 'block';
+            adminLoginForm.style.display = 'none';
+        });
+
+        loginTabAdminBtn.addEventListener('click', () => {
+            loginTabAdminBtn.classList.remove('btn-secondary');
+            loginTabAdminBtn.classList.add('btn-primary');
+            loginTabEntityBtn.classList.remove('btn-primary');
+            loginTabEntityBtn.classList.add('btn-secondary');
+            adminLoginForm.style.display = 'block';
+            entityLoginForm.style.display = 'none';
+        });
+    }
+
+    // Role-based Permission and UI Application
+    function applyRolePermissions() {
+        const isEntity = (userRole === 'entity');
+
+        if (isEntity) {
+            // Hide links to other management consoles for corporate entity portal users
+            if (headerNavBooking && headerNavBooking.parentElement) headerNavBooking.parentElement.style.display = 'none';
+            if (headerNavCar && headerNavCar.parentElement) headerNavCar.parentElement.style.display = 'none';
+
+            // User Badge & Title
+            if (userRoleText) userRoleText.textContent = `${currentEntityName || '법인'} (조회 전용)`;
+            if (userRoleIcon) userRoleIcon.className = 'fa-solid fa-building';
+            if (userRoleBadge) {
+                userRoleBadge.style.background = '#E8F5E9';
+                userRoleBadge.style.borderColor = '#C8E6C9';
+                userRoleBadge.style.color = '#2E7D32';
+            }
+            if (portalSubTag) portalSubTag.textContent = 'Corporate Issuer Portal';
+            if (dashboardMainTitle) dashboardMainTitle.textContent = `${currentEntityName || '법인'} 커미션 및 인보이스 현황`;
+
+            // Hide admin-only buttons & settings tab
+            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+        } else {
+            // Show all navigation links for Master Admin
+            if (headerNavBooking && headerNavBooking.parentElement) headerNavBooking.parentElement.style.display = '';
+            if (headerNavCar && headerNavCar.parentElement) headerNavCar.parentElement.style.display = '';
+
+            // User Badge & Title
+            if (userRoleText) userRoleText.textContent = '마스터 관리자';
+            if (userRoleIcon) userRoleIcon.className = 'fa-solid fa-user-shield';
+            if (userRoleBadge) {
+                userRoleBadge.style.background = '#f0f4f8';
+                userRoleBadge.style.borderColor = '#d9e2ec';
+                userRoleBadge.style.color = '#102a43';
+            }
+            if (portalSubTag) portalSubTag.textContent = 'International School Commission Console';
+            if (dashboardMainTitle) dashboardMainTitle.textContent = '국제학교 학생 입학 및 커미션 정산 관리';
+
+            // Show admin-only buttons & settings tab
+            document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+        }
+    }
+
     function checkAuth() {
-        if (sessionStorage.getItem('johorn_admin_auth') === 'true' || sessionStorage.getItem('admin_logged_in') === 'true') {
-            sessionStorage.setItem('johorn_admin_auth', 'true');
-            sessionStorage.setItem('admin_logged_in', 'true');
+        const isAuth = sessionStorage.getItem('johorn_commission_portal_auth') === 'true' || 
+                       sessionStorage.getItem('johorn_admin_auth') === 'true' || 
+                       sessionStorage.getItem('admin_logged_in') === 'true';
+
+        if (isAuth) {
+            userRole = sessionStorage.getItem('commission_auth_role') || (sessionStorage.getItem('johorn_admin_auth') === 'true' ? 'admin' : 'entity');
+            currentEntityId = sessionStorage.getItem('commission_entity_id') || null;
+            currentEntityName = sessionStorage.getItem('commission_entity_name') || '';
+
             if (adminLogin) adminLogin.style.display = 'none';
             if (adminDashboard) adminDashboard.style.display = 'block';
+
+            applyRolePermissions();
             initDataListeners();
         } else {
             if (adminLogin) adminLogin.style.display = 'block';
@@ -141,11 +237,66 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Corporate Entity Login Handler
+    if (entityLoginBtn) {
+        entityLoginBtn.addEventListener('click', () => {
+            const idInput = entityLoginIdInput ? entityLoginIdInput.value.trim() : '';
+            const pwInput = entityLoginPasswordInput ? entityLoginPasswordInput.value.trim() : '';
+
+            if (!idInput || !pwInput) {
+                alert('법인 아이디와 비밀번호를 모두 입력해주세요.');
+                return;
+            }
+
+            db.ref('commission_entities').once('value').then((snapshot) => {
+                const val = snapshot.val();
+                if (!val) {
+                    alert('등록된 발행 법인 정보를 찾을 수 없습니다.');
+                    return;
+                }
+                const entityList = Object.keys(val).filter(k => !k.startsWith('_')).map(k => ({ id: k, ...val[k] }));
+
+                const matched = entityList.find(e => {
+                    const entId = (e.loginId || '').trim();
+                    const entPw = (e.loginPassword || '').trim();
+                    return entId && entPw && entId.toLowerCase() === idInput.toLowerCase() && entPw === pwInput;
+                });
+
+                if (matched) {
+                    sessionStorage.setItem('johorn_commission_portal_auth', 'true');
+                    sessionStorage.setItem('commission_auth_role', 'entity');
+                    sessionStorage.setItem('commission_entity_id', matched.id);
+                    sessionStorage.setItem('commission_entity_name', matched.name || '법인');
+                    // Ensure master admin session is cleared to prevent cross-tool access
+                    sessionStorage.removeItem('johorn_admin_auth');
+                    sessionStorage.removeItem('admin_logged_in');
+                    checkAuth();
+                } else {
+                    alert('일치하는 법인 계정 정보가 없습니다.\n아이디와 비밀번호를 다시 확인해 주세요.');
+                }
+            }).catch(err => {
+                alert('로그인 처리 중 오류가 발생했습니다: ' + err.message);
+            });
+        });
+    }
+
+    if (entityLoginIdInput) {
+        entityLoginIdInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && entityLoginPasswordInput) entityLoginPasswordInput.focus();
+        });
+    }
+    if (entityLoginPasswordInput) {
+        entityLoginPasswordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && entityLoginBtn) entityLoginBtn.click();
+        });
+    }
+
+    // Master Admin Login Handler
     if (adminLoginBtn) {
         adminLoginBtn.addEventListener('click', async () => {
             const input = adminPasswordInput ? adminPasswordInput.value.trim() : '';
             if (!input) {
-                alert('비밀번호를 입력해주세요.');
+                alert('관리자 비밀번호를 입력해주세요.');
                 return;
             }
 
@@ -153,8 +304,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const defaultHash = await hashPassword('10011001');
 
             if (inputHash === adminPasswordHash || inputHash === defaultHash || input === '10011001') {
+                sessionStorage.setItem('johorn_commission_portal_auth', 'true');
                 sessionStorage.setItem('johorn_admin_auth', 'true');
                 sessionStorage.setItem('admin_logged_in', 'true');
+                sessionStorage.setItem('commission_auth_role', 'admin');
+                sessionStorage.removeItem('commission_entity_id');
+                sessionStorage.removeItem('commission_entity_name');
                 checkAuth();
             } else {
                 alert('비밀번호가 올바르지 않습니다.');
@@ -164,8 +319,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (adminPasswordInput) {
         adminPasswordInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') adminLoginBtn.click();
+            if (e.key === 'Enter' && adminLoginBtn) adminLoginBtn.click();
         });
+    }
+
+    // Logout Handler
+    if (logoutCommBtn) {
+        logoutCommBtn.addEventListener('click', () => {
+            if (confirm('로그아웃 하시겠습니까?')) {
+                sessionStorage.removeItem('johorn_commission_portal_auth');
+                sessionStorage.removeItem('commission_auth_role');
+                sessionStorage.removeItem('commission_entity_id');
+                sessionStorage.removeItem('commission_entity_name');
+                sessionStorage.removeItem('johorn_admin_auth');
+                sessionStorage.removeItem('admin_logged_in');
+                location.reload();
+            }
+        });
+    }
+
+    // Role-based Data Filtering Helpers
+    function getFilteredAdmissions() {
+        if (userRole !== 'entity' || !currentEntityId) return admissions;
+        return admissions.filter(a => a.entityId === currentEntityId || (currentEntityName && a.entityName === currentEntityName));
+    }
+
+    function getFilteredInvoices() {
+        if (userRole !== 'entity' || !currentEntityId) return invoices;
+        return invoices.filter(i => i.entityId === currentEntityId || (currentEntityName && i.entityName === currentEntityName));
+    }
+
+    function getFilteredPayments() {
+        if (userRole !== 'entity' || !currentEntityId) return payments;
+        const filteredAdms = getFilteredAdmissions();
+        const admIds = new Set(filteredAdms.map(a => a.id));
+        const filteredInvs = getFilteredInvoices();
+        const invIds = new Set(filteredInvs.map(i => i.id));
+        return payments.filter(p => (p.admissionId && admIds.has(p.admissionId)) || (p.invoiceId && invIds.has(p.invoiceId)));
     }
 
     checkAuth();
@@ -355,7 +545,9 @@ document.addEventListener('DOMContentLoaded', () => {
             accountNo: "5012 8899 4321",
             accountName: "GLOBAL EDU CONSULTING SDN BHD",
             swiftCode: "MBBEMYKL",
-            isDefault: true
+            isDefault: true,
+            loginId: "globaledu",
+            loginPassword: "edu1234"
         };
         db.ref('commission_entities').push(defaultEntity);
     }
@@ -516,22 +708,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const statTotalPaid = document.getElementById('statTotalPaid');
         const statPendingCommission = document.getElementById('statPendingCommission');
 
+        const curAdmissions = getFilteredAdmissions();
+        const curInvoices = getFilteredInvoices();
+        const curPayments = getFilteredPayments();
+
         // Total Admissions
-        const activeAdmCount = admissions.filter(a => a.status !== 'cancelled').length;
-        const completedAdmCount = admissions.filter(a => a.status === 'paid').length;
+        const activeAdmCount = curAdmissions.filter(a => a.status !== 'cancelled').length;
+        const completedAdmCount = curAdmissions.filter(a => a.status === 'paid').length;
         if (statTotalAdmissions) statTotalAdmissions.textContent = `${activeAdmCount}명`;
         if (statAdmissionsSub) statAdmissionsSub.textContent = `진행중 ${activeAdmCount - completedAdmCount}명 / 완료 ${completedAdmCount}명`;
 
         // Total Invoiced
-        const totalInvoicedSum = invoices.reduce((sum, inv) => sum + (parseFloat(inv.amount) || 0), 0);
+        const totalInvoicedSum = curInvoices.reduce((sum, inv) => sum + (parseFloat(inv.amount) || 0), 0);
         if (statTotalInvoiced) statTotalInvoiced.textContent = formatMYR(totalInvoicedSum);
-        if (statInvoicedSub) statInvoicedSub.textContent = `총 ${invoices.length}건 발행`;
+        if (statInvoicedSub) statInvoicedSub.textContent = `총 ${curInvoices.length}건 발행`;
 
         // Total Paid & Pending
-        const totalPaidSum = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+        const totalPaidSum = curPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
         if (statTotalPaid) statTotalPaid.textContent = formatMYR(totalPaidSum);
 
-        const totalExpectedSum = admissions.filter(a => a.status !== 'cancelled').reduce((sum, a) => sum + (parseFloat(a.commissionAmount) || 0), 0);
+        const totalExpectedSum = curAdmissions.filter(a => a.status !== 'cancelled').reduce((sum, a) => sum + (parseFloat(a.commissionAmount) || 0), 0);
         const pendingSum = Math.max(0, totalExpectedSum - totalPaidSum);
         if (statPendingCommission) statPendingCommission.textContent = formatMYR(pendingSum);
     }
@@ -551,7 +747,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const schoolFilter = (admissionSchoolFilter ? admissionSchoolFilter.value : 'all');
         const statusFilter = (admissionStatusFilter ? admissionStatusFilter.value : 'all');
 
-        const filtered = admissions.filter(adm => {
+        const baseAdmissions = getFilteredAdmissions();
+
+        const filtered = baseAdmissions.filter(adm => {
             if (schoolFilter !== 'all' && adm.schoolName !== schoolFilter) return false;
             if (statusFilter !== 'all' && adm.status !== statusFilter) return false;
             if (search) {
@@ -572,6 +770,8 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             return;
         }
+
+        const isEntity = (userRole === 'entity');
 
         admissionTableBody.innerHTML = filtered.map(adm => {
             const statusBadge = getStatusBadge(adm.status);
@@ -602,6 +802,29 @@ document.addEventListener('DOMContentLoaded', () => {
             const termDisplay = adm.termEn 
                 ? `<span>${adm.termEn}</span>`
                 : (adm.term || '-');
+
+            const actionButtonsHtml = isEntity ? `
+                <div class="table-action-btns">
+                    <button type="button" class="btn btn-primary btn-generate-invoice" data-id="${adm.id}" style="padding: 5px 9px; font-size: 11px;" title="인보이스 조회 / 출력">
+                        <i class="fa-solid fa-file-invoice"></i> 인보이스
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-view-admission" data-id="${adm.id}" style="padding: 5px 9px; font-size: 11px; color: var(--accent-color);" title="상세 조회">
+                        <i class="fa-solid fa-eye"></i> 조회
+                    </button>
+                </div>
+            ` : `
+                <div class="table-action-btns">
+                    <button type="button" class="btn btn-primary btn-generate-invoice" data-id="${adm.id}" style="padding: 5px 9px; font-size: 11px;" title="인보이스 발행 / 출력">
+                        <i class="fa-solid fa-file-invoice"></i> 인보이스
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-quick-payment" data-id="${adm.id}" style="padding: 5px 9px; font-size: 11px; color: #2E7D32; border-color: #2E7D32;" title="입금 확인 처리">
+                        <i class="fa-solid fa-money-bill-check"></i> 입금
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-edit-admission" data-id="${adm.id}" style="padding: 5px 8px; font-size: 11px;" title="수정">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                </div>
+            `;
 
             return `
                 <tr>
@@ -635,17 +858,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                     <td>${statusBadge}</td>
                     <td>
-                        <div class="table-action-btns">
-                            <button type="button" class="btn btn-primary btn-generate-invoice" data-id="${adm.id}" style="padding: 5px 9px; font-size: 11px;" title="인보이스 발행 / 출력">
-                                <i class="fa-solid fa-file-invoice"></i> 인보이스
-                            </button>
-                            <button type="button" class="btn btn-secondary btn-quick-payment" data-id="${adm.id}" style="padding: 5px 9px; font-size: 11px; color: #2E7D32; border-color: #2E7D32;" title="입금 확인 처리">
-                                <i class="fa-solid fa-money-bill-check"></i> 입금
-                            </button>
-                            <button type="button" class="btn btn-secondary btn-edit-admission" data-id="${adm.id}" style="padding: 5px 8px; font-size: 11px;" title="수정">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                            </button>
-                        </div>
+                        ${actionButtonsHtml}
                     </td>
                 </tr>
             `;
@@ -660,6 +873,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         document.querySelectorAll('.btn-edit-admission').forEach(btn => {
             btn.addEventListener('click', () => openEditAdmissionModal(btn.getAttribute('data-id')));
+        });
+        document.querySelectorAll('.btn-view-admission').forEach(btn => {
+            btn.addEventListener('click', () => openEditAdmissionModal(btn.getAttribute('data-id'), true));
         });
     }
 
@@ -849,11 +1065,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function openEditAdmissionModal(id) {
+    function openEditAdmissionModal(id, isViewOnly = false) {
         const adm = admissions.find(a => a.id === id);
         if (!adm) return;
 
-        document.getElementById('admissionModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: var(--accent-color);"></i> 입학 및 커미션 정보 수정';
+        const isReadOnly = isViewOnly || userRole === 'entity';
+
+        if (isReadOnly) {
+            document.getElementById('admissionModalTitle').innerHTML = '<i class="fa-solid fa-graduation-cap" style="color: var(--accent-color);"></i> 학생 입학 및 커미션 정보 조회';
+        } else {
+            document.getElementById('admissionModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: var(--accent-color);"></i> 입학 및 커미션 정보 수정';
+        }
         document.getElementById('admissionId').value = adm.id;
         
         // Find matching school in select
@@ -899,7 +1121,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('admissionSettlementMode').value = adm.settlementMode || '1';
         document.getElementById('admissionMemo').value = adm.memo || '';
 
-        const ent = entities.find(e => e.name === adm.entityName);
+        const ent = entities.find(e => e.name === adm.entityName || e.id === adm.entityId);
         if (ent && document.getElementById('admissionEntityId')) {
             document.getElementById('admissionEntityId').value = ent.id;
         }
@@ -917,7 +1139,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         renderInstallmentsScheduleInputs(parseFloat(adm.commissionAmount) || 0, adm.installments);
 
-        if (deleteAdmissionBtn) deleteAdmissionBtn.classList.remove('hidden');
+        // Toggle form inputs disabled state based on readonly
+        const admForm = document.getElementById('admissionForm');
+        if (admForm) {
+            admForm.querySelectorAll('input, select, textarea').forEach(elem => {
+                if (elem.id !== 'admissionId') elem.disabled = isReadOnly;
+            });
+        }
+
+        if (saveAdmissionBtn) saveAdmissionBtn.style.display = isReadOnly ? 'none' : '';
+        if (deleteAdmissionBtn) {
+            if (isReadOnly) {
+                deleteAdmissionBtn.classList.add('hidden');
+            } else {
+                deleteAdmissionBtn.classList.remove('hidden');
+            }
+        }
         openModal('admissionModal');
     }
 
@@ -1050,7 +1287,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const schoolFilter = (invoiceSchoolFilter ? invoiceSchoolFilter.value : 'all');
         const statusFilter = (invoiceStatusFilter ? invoiceStatusFilter.value : 'all');
 
-        const filtered = invoices.filter(inv => {
+        const baseInvoices = getFilteredInvoices();
+
+        const filtered = baseInvoices.filter(inv => {
             if (schoolFilter !== 'all' && inv.schoolName !== schoolFilter) return false;
             if (statusFilter !== 'all' && inv.status !== statusFilter) return false;
             if (search) {
@@ -1071,6 +1310,8 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             return;
         }
+
+        const isEntity = (userRole === 'entity');
 
         invoiceTableBody.innerHTML = filtered.map(inv => {
             let statusBadge = '<span class="status-badge status-invoiced">발행됨</span>';
@@ -1094,6 +1335,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const monthDisplay = inv.billingMonth ? `<span style="font-size: 11px; color: var(--accent-color); font-weight: 600; display: block;">[${inv.billingMonth}월분]</span>` : '';
 
+            const invoiceActionsHtml = isEntity ? `
+                <div class="table-action-btns">
+                    <button type="button" class="btn btn-primary btn-view-invoice" data-id="${inv.id}" style="padding: 5px 9px; font-size: 11px;" title="공식 영문 인보이스 열람 및 인쇄">
+                        <i class="fa-solid fa-file-pdf"></i> 열람/PDF
+                    </button>
+                </div>
+            ` : `
+                <div class="table-action-btns">
+                    <button type="button" class="btn btn-primary btn-view-invoice" data-id="${inv.id}" style="padding: 5px 9px; font-size: 11px;" title="공식 영문 인보이스 열람 및 인쇄">
+                        <i class="fa-solid fa-file-pdf"></i> 열람/PDF
+                    </button>
+                    ${inv.status !== 'paid' ? `
+                        <button type="button" class="btn btn-secondary btn-pay-invoice" data-id="${inv.id}" style="padding: 5px 9px; font-size: 11px; color: #2E7D32; border-color: #2E7D32;" title="입금 확인 처리">
+                            <i class="fa-solid fa-circle-check"></i> 입금
+                        </button>
+                    ` : ''}
+                    <button type="button" class="btn btn-secondary btn-del-invoice" data-id="${inv.id}" style="padding: 5px 8px; font-size: 11px; color: #C62828; border-color: #C62828;" title="인보이스 삭제">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            `;
+
             return `
                 <tr>
                     <td>
@@ -1110,19 +1373,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td style="font-weight: 700; color: #2E7D32; font-size: 14px;">${formatMYR(inv.amount)}</td>
                     <td>${statusBadge}</td>
                     <td>
-                        <div class="table-action-btns">
-                            <button type="button" class="btn btn-primary btn-view-invoice" data-id="${inv.id}" style="padding: 5px 9px; font-size: 11px;" title="공식 영문 인보이스 열람 및 인쇄">
-                                <i class="fa-solid fa-file-pdf"></i> 열람/PDF
-                            </button>
-                            ${inv.status !== 'paid' ? `
-                                <button type="button" class="btn btn-secondary btn-pay-invoice" data-id="${inv.id}" style="padding: 5px 9px; font-size: 11px; color: #2E7D32; border-color: #2E7D32;" title="입금 확인 처리">
-                                    <i class="fa-solid fa-circle-check"></i> 입금
-                                </button>
-                            ` : ''}
-                            <button type="button" class="btn btn-secondary btn-del-invoice" data-id="${inv.id}" style="padding: 5px 8px; font-size: 11px; color: #C62828; border-color: #C62828;" title="인보이스 삭제">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
+                        ${invoiceActionsHtml}
                     </td>
                 </tr>
             `;
@@ -1807,7 +2058,9 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         const targetMonth = (paymentMonthFilter ? paymentMonthFilter.value : '');
         const schoolFilter = (paymentSchoolFilter ? paymentSchoolFilter.value : 'all');
 
-        const filtered = payments.filter(p => {
+        const basePayments = getFilteredPayments();
+
+        const filtered = basePayments.filter(p => {
             if (targetMonth && (!p.paymentDate || !p.paymentDate.startsWith(targetMonth))) return false;
             if (schoolFilter !== 'all' && p.schoolName !== schoolFilter) return false;
             return true;
@@ -1828,34 +2081,51 @@ Email / Contact: ${ent.contact || '-'}`.trim();
             return;
         }
 
-        paymentTableBody.innerHTML = filtered.map(p => `
-            <tr class="payment-row-clickable" data-id="${p.id}" title="클릭하여 상세 입금/정산 정보 보기">
-                <td style="font-weight: 600;">${formatDate(p.paymentDate)}</td>
-                <td style="font-weight: 600; color: var(--text-primary);">${p.schoolName || '-'}</td>
-                <td>
-                    <div>${p.studentName || (p.studentListSummary || '-')}</div>
-                    <span class="installment-tag" style="font-size: 10px;">${p.termName || '정산완료'}</span>
-                </td>
-                <td style="font-family: monospace; font-size: 12px; color: var(--accent-color);">${p.invoiceNo || '-'}</td>
-                <td style="font-weight: 700; color: #2E7D32; font-size: 14px;">${formatMYR(p.amount)}</td>
-                <td style="font-size: 12px;">${p.bank || 'Maybank'}</td>
-                <td style="font-family: monospace; font-size: 11px;">${p.refNo || '-'}</td>
-                <td style="font-size: 12px; color: var(--text-secondary);">${p.memo || '-'}</td>
-                <td>
-                    <div class="table-action-btns" onclick="event.stopPropagation();">
-                        <button type="button" class="btn btn-secondary btn-detail-payment" data-id="${p.id}" style="padding: 5px 8px; font-size: 11px; color: var(--accent-color);" title="상세보기">
-                            <i class="fa-solid fa-circle-info"></i> 상세
-                        </button>
-                        <button type="button" class="btn btn-primary btn-view-payment-inv" data-invoice-no="${p.invoiceNo || ''}" data-invoice-id="${p.invoiceId || ''}" data-admission-id="${p.admissionId || ''}" style="padding: 5px 8px; font-size: 11px;" title="인보이스 PDF 열람">
-                            <i class="fa-solid fa-file-pdf"></i>
-                        </button>
-                        <button type="button" class="btn btn-secondary btn-del-payment" data-id="${p.id}" style="padding: 5px 8px; font-size: 11px; color: #C62828; border-color: #C62828;" title="입금 내역 삭제">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `).join('');
+        const isEntity = (userRole === 'entity');
+
+        paymentTableBody.innerHTML = filtered.map(p => {
+            const paymentActionsHtml = isEntity ? `
+                <div class="table-action-btns" onclick="event.stopPropagation();">
+                    <button type="button" class="btn btn-secondary btn-detail-payment" data-id="${p.id}" style="padding: 5px 8px; font-size: 11px; color: var(--accent-color);" title="상세보기">
+                        <i class="fa-solid fa-circle-info"></i> 상세
+                    </button>
+                    <button type="button" class="btn btn-primary btn-view-payment-inv" data-invoice-no="${p.invoiceNo || ''}" data-invoice-id="${p.invoiceId || ''}" data-admission-id="${p.admissionId || ''}" style="padding: 5px 8px; font-size: 11px;" title="인보이스 PDF 열람">
+                        <i class="fa-solid fa-file-pdf"></i>
+                    </button>
+                </div>
+            ` : `
+                <div class="table-action-btns" onclick="event.stopPropagation();">
+                    <button type="button" class="btn btn-secondary btn-detail-payment" data-id="${p.id}" style="padding: 5px 8px; font-size: 11px; color: var(--accent-color);" title="상세보기">
+                        <i class="fa-solid fa-circle-info"></i> 상세
+                    </button>
+                    <button type="button" class="btn btn-primary btn-view-payment-inv" data-invoice-no="${p.invoiceNo || ''}" data-invoice-id="${p.invoiceId || ''}" data-admission-id="${p.admissionId || ''}" style="padding: 5px 8px; font-size: 11px;" title="인보이스 PDF 열람">
+                        <i class="fa-solid fa-file-pdf"></i>
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-del-payment" data-id="${p.id}" style="padding: 5px 8px; font-size: 11px; color: #C62828; border-color: #C62828;" title="입금 내역 삭제">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            `;
+
+            return `
+                <tr class="payment-row-clickable" data-id="${p.id}" title="클릭하여 상세 입금/정산 정보 보기">
+                    <td style="font-weight: 600;">${formatDate(p.paymentDate)}</td>
+                    <td style="font-weight: 600; color: var(--text-primary);">${p.schoolName || '-'}</td>
+                    <td>
+                        <div>${p.studentName || (p.studentListSummary || '-')}</div>
+                        <span class="installment-tag" style="font-size: 10px;">${p.termName || '정산완료'}</span>
+                    </td>
+                    <td style="font-family: monospace; font-size: 12px; color: var(--accent-color);">${p.invoiceNo || '-'}</td>
+                    <td style="font-weight: 700; color: #2E7D32; font-size: 14px;">${formatMYR(p.amount)}</td>
+                    <td style="font-size: 12px;">${p.bank || 'Maybank'}</td>
+                    <td style="font-family: monospace; font-size: 11px;">${p.refNo || '-'}</td>
+                    <td style="font-size: 12px; color: var(--text-secondary);">${p.memo || '-'}</td>
+                    <td>
+                        ${paymentActionsHtml}
+                    </td>
+                </tr>
+            `;
+        }).join('');
 
         // Bind Payment Row Click to Details Modal
         document.querySelectorAll('.payment-row-clickable').forEach(row => {
@@ -2212,8 +2482,11 @@ Email / Contact: ${ent.contact || '-'}`.trim();
             return;
         }
 
+        const isEntity = (userRole === 'entity');
+        const curAdmissions = getFilteredAdmissions();
+
         schoolsListGrid.innerHTML = schools.map(sch => {
-            const schoolAdmissions = admissions.filter(a => a.schoolName === sch.nameEn || a.schoolName === sch.nameKo || a.schoolId === sch.id);
+            const schoolAdmissions = curAdmissions.filter(a => a.schoolName === sch.nameEn || a.schoolName === sch.nameKo || a.schoolId === sch.id);
             const totalCount = schoolAdmissions.length;
             const settledCount = schoolAdmissions.filter(a => a.status === 'paid').length;
             const pendingCount = totalCount - settledCount;
@@ -2228,6 +2501,23 @@ Email / Contact: ${ent.contact || '-'}`.trim();
             const contractDatesDisplay = (sch.contractStartDate && sch.contractEndDate) 
                 ? `${sch.contractStartDate} ~ ${sch.contractEndDate}`
                 : '계약기간 미지정';
+
+            const schoolButtonsHtml = isEntity ? `
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="btn btn-primary btn-view-school-students" data-id="${sch.id}" style="width: 100%; padding: 6px 10px; font-size: 11px;">
+                        <i class="fa-solid fa-users"></i> 소속 등록 학생 명단 (${totalCount}명)
+                    </button>
+                </div>
+            ` : `
+                <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 8px;">
+                    <button type="button" class="btn btn-primary btn-view-school-students" data-id="${sch.id}" style="padding: 6px 10px; font-size: 11px;">
+                        <i class="fa-solid fa-users"></i> 등록 학생 명단 (${totalCount}명)
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-edit-school" data-id="${sch.id}" style="padding: 6px 10px; font-size: 11px;">
+                        <i class="fa-solid fa-pen"></i> 학교/계약 수정
+                    </button>
+                </div>
+            `;
 
             return `
                 <div class="school-card">
@@ -2276,14 +2566,7 @@ Email / Contact: ${ent.contact || '-'}`.trim();
                             총 학생 <strong>${totalCount}명</strong> (정산완료 ${settledCount}명 / 진행중 ${pendingCount}명)<br>
                             총 커미션: <strong style="color: #2E7D32;">${formatMYR(totalCommission)}</strong>
                         </div>
-                        <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 8px;">
-                            <button type="button" class="btn btn-primary btn-view-school-students" data-id="${sch.id}" style="padding: 6px 10px; font-size: 11px;">
-                                <i class="fa-solid fa-users"></i> 등록 학생 명단 (${totalCount}명)
-                            </button>
-                            <button type="button" class="btn btn-secondary btn-edit-school" data-id="${sch.id}" style="padding: 6px 10px; font-size: 11px;">
-                                <i class="fa-solid fa-pen"></i> 학교/계약 수정
-                            </button>
-                        </div>
+                        ${schoolButtonsHtml}
                     </div>
                 </div>
             `;
@@ -2304,7 +2587,7 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         const sch = schools.find(s => s.id === schoolId);
         if (!sch) return;
 
-        const schoolStudents = admissions.filter(a => a.schoolId === sch.id || a.schoolName === sch.nameEn || a.schoolName === sch.nameKo);
+        const schoolStudents = getFilteredAdmissions().filter(a => a.schoolId === sch.id || a.schoolName === sch.nameEn || a.schoolName === sch.nameKo);
         const totalTuition = schoolStudents.reduce((sum, a) => sum + (parseFloat(a.tuitionFee) || 0), 0);
         const totalCommission = schoolStudents.reduce((sum, a) => sum + (parseFloat(a.commissionAmount) || 0), 0);
         
@@ -2590,11 +2873,18 @@ Email / Contact: ${ent.contact || '-'}`.trim();
                     <div><i class="fa-solid fa-map-pin" style="width: 16px;"></i> ${ent.address || '-'}</div>
                 </div>
 
-                <div style="background: #F4F2EE; padding: 10px 12px; border-radius: 6px; font-size: 11px; margin-bottom: 15px;">
+                <div style="background: #F4F2EE; padding: 10px 12px; border-radius: 6px; font-size: 11px; margin-bottom: 12px;">
                     <div style="font-weight: 700; color: #2E7D32; margin-bottom: 4px;"><i class="fa-solid fa-building-columns"></i> 수취 은행: ${ent.bankName || 'Maybank'}</div>
                     <div>계좌번호: <strong style="font-family: monospace;">${ent.accountNo || '-'}</strong></div>
                     <div>예금주: ${ent.accountName || ent.name}</div>
                     ${ent.swiftCode ? `<div>SWIFT: ${ent.swiftCode}</div>` : ''}
+                </div>
+
+                <!-- Portal Access Credentials Display -->
+                <div style="background: #EBF8FF; border: 1px solid #BEE3F8; padding: 10px 12px; border-radius: 6px; font-size: 11px; margin-bottom: 15px;">
+                    <div style="font-weight: 700; color: #0288D1; margin-bottom: 4px;"><i class="fa-solid fa-key"></i> 법인 조회 포털 접속 계정</div>
+                    <div>아이디: <strong style="font-family: monospace; color: #1a1a1a;">${ent.loginId || '(미설정)'}</strong></div>
+                    <div>비밀번호: <strong style="font-family: monospace; color: #4A5568;">${ent.loginPassword ? '••••••••' : '(미설정)'}</strong></div>
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: 8px;">
@@ -2615,6 +2905,8 @@ Email / Contact: ${ent.contact || '-'}`.trim();
             document.getElementById('entityModalTitle').innerHTML = '<i class="fa-solid fa-building-columns" style="color: var(--accent-color);"></i> 신규 발행 법인 프로필 등록';
             document.getElementById('entityId').value = '';
             document.getElementById('entityForm').reset();
+            if (document.getElementById('entityLoginId')) document.getElementById('entityLoginId').value = '';
+            if (document.getElementById('entityLoginPassword')) document.getElementById('entityLoginPassword').value = '';
             if (deleteEntityBtn) deleteEntityBtn.classList.add('hidden');
             openModal('entityModal');
         });
@@ -2636,6 +2928,13 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         document.getElementById('entityAccountName').value = ent.accountName || '';
         document.getElementById('entitySwiftCode').value = ent.swiftCode || '';
         document.getElementById('entityIsDefault').checked = !!ent.isDefault;
+
+        if (document.getElementById('entityLoginId')) {
+            document.getElementById('entityLoginId').value = ent.loginId || '';
+        }
+        if (document.getElementById('entityLoginPassword')) {
+            document.getElementById('entityLoginPassword').value = ent.loginPassword || '';
+        }
 
         if (deleteEntityBtn) deleteEntityBtn.classList.remove('hidden');
         openModal('entityModal');
@@ -2666,7 +2965,9 @@ Email / Contact: ${ent.contact || '-'}`.trim();
                 accountNo,
                 accountName: document.getElementById('entityAccountName').value.trim() || name,
                 swiftCode: document.getElementById('entitySwiftCode').value.trim(),
-                isDefault
+                isDefault,
+                loginId: document.getElementById('entityLoginId') ? document.getElementById('entityLoginId').value.trim() : '',
+                loginPassword: document.getElementById('entityLoginPassword') ? document.getElementById('entityLoginPassword').value.trim() : ''
             };
 
             if (isDefault) {

@@ -25,9 +25,9 @@
                 <span></span><span></span><span></span>
             </button>
             <ul class="nav-links" id="navLinks">
-                <li><a href="admin.html" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-list-check" style="margin-right: 4px;"></i> 예약/상담 관리</a></li>
-                <li><a href="admin-car.html" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-car" style="margin-right: 4px;"></i> 렌트카 관리</a></li>
-                <li><a href="admin-commission.html" class="nav-link active" style="color: var(--accent-color); font-weight: 600;"><i class="fa-solid fa-graduation-cap" style="margin-right: 4px;"></i> 국제학교 커미션</a></li>
+                <li><a href="admin.html" id="headerNavBooking" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-list-check" style="margin-right: 4px;"></i> 예약/상담 관리</a></li>
+                <li><a href="admin-car.html" id="headerNavCar" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-car" style="margin-right: 4px;"></i> 렌트카 관리</a></li>
+                <li><a href="admin-commission.html" id="headerNavCommission" class="nav-link active" style="color: var(--accent-color); font-weight: 600;"><i class="fa-solid fa-graduation-cap" style="margin-right: 4px;"></i> 국제학교 커미션</a></li>
                 <li><a href="index.html" class="nav-link">메인 페이지로 이동</a></li>
             </ul>
         </div>
@@ -36,29 +36,74 @@
     <main style="padding-top: 80px;">
         <section id="admin">
             <div class="container">
-                <!-- Admin Login Section -->
-                <div class="admin-login-wrapper" id="adminLogin">
-                    <span class="section-tag">Authentication</span>
-                    <h2 style="font-size: 28px; margin-bottom: 25px;">국제학교 커미션 관리자 로그인</h2>
-                    <div class="form-group">
-                        <input type="password" id="adminPassword" class="form-control" placeholder="관리자 비밀번호를 입력하세요." style="text-align: center;">
+                <!-- Dual Login Section (Corporate Portal & Master Admin) -->
+                <div class="admin-login-wrapper" id="adminLogin" style="max-width: 440px; margin: 30px auto; background: var(--white); border: 1px solid var(--border-color); border-radius: 8px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.04);">
+                    <div style="display: flex; gap: 8px; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                        <button type="button" id="loginTabEntityBtn" class="btn btn-primary" style="flex: 1; padding: 10px; font-size: 13px; font-weight: 600;">
+                            <i class="fa-solid fa-building"></i> 법인 전용 로그인
+                        </button>
+                        <button type="button" id="loginTabAdminBtn" class="btn btn-secondary" style="flex: 1; padding: 10px; font-size: 13px; font-weight: 600;">
+                            <i class="fa-solid fa-lock"></i> 관리자 로그인
+                        </button>
                     </div>
-                    <button id="adminLoginBtn" class="btn btn-primary" style="width: 100%;">로그인</button>
+
+                    <!-- Corporate Entity Login Form (Default) -->
+                    <div id="entityLoginForm">
+                        <span class="section-tag" style="display: inline-block; margin-bottom: 8px;">Corporate Issuer Portal</span>
+                        <h2 style="font-size: 22px; margin-bottom: 10px;">인보이스 발행 법인 조회</h2>
+                        <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">
+                            발급받으신 <strong>법인 아이디</strong>와 <strong>비밀번호</strong>를 입력하시면 소속 학생의 입학 수속 현황, 인보이스 및 커미션 정산 내역을 조회하실 수 있습니다.
+                        </p>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px; color: var(--text-primary);">법인 접속 아이디</label>
+                            <input type="text" id="entityLoginIdInput" class="form-control" placeholder="예: corp_johor" style="padding: 10px 12px; font-size: 14px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px; color: var(--text-primary);">접속 비밀번호</label>
+                            <input type="password" id="entityLoginPasswordInput" class="form-control" placeholder="비밀번호를 입력하세요" style="padding: 10px 12px; font-size: 14px;">
+                        </div>
+                        <button id="entityLoginBtn" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 700; background: #0288D1; border-color: #0288D1;">
+                            <i class="fa-solid fa-right-to-bracket" style="margin-right: 6px;"></i> 법인 로그인
+                        </button>
+                    </div>
+
+                    <!-- Master Admin Login Form -->
+                    <div id="adminLoginForm" style="display: none;">
+                        <span class="section-tag" style="display: inline-block; margin-bottom: 8px;">Master Administration</span>
+                        <h2 style="font-size: 22px; margin-bottom: 10px;">마스터 관리자 로그인</h2>
+                        <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 20px;">
+                            통합 관리자 비밀번호를 입력해 주세요.
+                        </p>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px; color: var(--text-primary);">관리자 비밀번호</label>
+                            <input type="password" id="adminPassword" class="form-control" placeholder="관리자 비밀번호" style="padding: 10px 12px; font-size: 14px;">
+                        </div>
+                        <button id="adminLoginBtn" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 700;">
+                            <i class="fa-solid fa-lock-open" style="margin-right: 6px;"></i> 관리자 로그인
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Admin Dashboard (Hidden initially) -->
                 <div class="admin-dashboard" id="adminDashboard" style="display: none;">
 
-
                     <!-- Header Title & Overview -->
                     <div class="admin-header-actions" style="margin-bottom: 25px;">
                         <div>
-                            <span class="section-tag">International School Commission Console</span>
-                            <h2 style="font-size: 26px; font-weight: 600; color: var(--text-primary);">국제학교 학생 입학 및 커미션 정산 관리</h2>
+                            <span class="section-tag" id="portalSubTag">International School Commission Console</span>
+                            <h2 id="dashboardMainTitle" style="font-size: 26px; font-weight: 600; color: var(--text-primary);">국제학교 학생 입학 및 커미션 정산 관리</h2>
                         </div>
                         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <!-- User Role Badge -->
+                            <div id="userRoleBadge" style="display: flex; align-items: center; gap: 8px; background: #f0f4f8; border: 1px solid #d9e2ec; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; color: #102a43;">
+                                <i id="userRoleIcon" class="fa-solid fa-user-shield"></i>
+                                <span id="userRoleText">마스터 관리자</span>
+                            </div>
                             <button type="button" id="refreshCommDataBtn" class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px; display: flex; align-items: center; gap: 6px;">
                                 <i class="fa-solid fa-arrows-rotate"></i> 새로고침
+                            </button>
+                            <button type="button" id="logoutCommBtn" class="btn btn-secondary" style="padding: 8px 14px; font-size: 12px; color: #C62828; border-color: #ef9a9a; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-right-from-bracket"></i> 로그아웃
                             </button>
                         </div>
                     </div>
@@ -128,7 +173,7 @@
                             <span class="tab-label-full">학교 관리</span>
                             <span class="tab-label-short">학교</span>
                         </button>
-                        <button type="button" class="comm-tab-btn" data-tab="entities" id="subTabBtnEntities">
+                        <button type="button" class="comm-tab-btn admin-only" data-tab="entities" id="subTabBtnEntities">
                             <i class="fa-solid fa-building-columns"></i>
                             <span class="tab-label-full">법인 설정</span>
                             <span class="tab-label-short">법인</span>
@@ -161,7 +206,7 @@
                                         <option value="cancelled">취소 / 환불</option>
                                     </select>
                                 </div>
-                                <button type="button" id="openAddAdmissionBtn" class="btn btn-primary" style="padding: 9px 20px; font-size: 13px; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+                                <button type="button" id="openAddAdmissionBtn" class="btn btn-primary admin-only" style="padding: 9px 20px; font-size: 13px; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
                                     <i class="fa-solid fa-plus"></i> 신규 학생 입학 등록
                                 </button>
                             </div>
@@ -210,7 +255,7 @@
                                         <option value="overdue">지급 기한 초과</option>
                                     </select>
                                 </div>
-                                <button type="button" id="openCreateMonthlyInvoiceBtn" class="btn btn-primary" style="padding: 9px 20px; font-size: 13px; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+                                <button type="button" id="openCreateMonthlyInvoiceBtn" class="btn btn-primary admin-only" style="padding: 9px 20px; font-size: 13px; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
                                     <i class="fa-solid fa-plus"></i> 학교별 월별 통합 인보이스 생성
                                 </button>
                             </div>
@@ -285,7 +330,7 @@
                                 <h3 style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 0;">조호바루 협력 국제학교 & 커미션 계약 관리</h3>
                                 <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">학교별 계약 기간, 표준 커미션 요율(%), 정산 주기, 어드민 및 회계 담당자 연락처를 통합 관리합니다.</p>
                             </div>
-                            <button type="button" id="openAddSchoolBtn" class="btn btn-primary" style="padding: 9px 20px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                            <button type="button" id="openAddSchoolBtn" class="btn btn-primary admin-only" style="padding: 9px 20px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
                                 <i class="fa-solid fa-plus"></i> 협력 국제학교 추가
                             </button>
                         </div>
@@ -295,13 +340,13 @@
                     </div>
 
                     <!-- SUB-TAB 5: Corporate Issuer Profile Settings -->
-                    <div id="tabContentEntities" class="comm-tab-content hidden">
+                    <div id="tabContentEntities" class="comm-tab-content hidden admin-only">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
                             <div>
                                 <h3 style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 0;">인보이스 발행 법인 프로필</h3>
                                 <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">커미션 수익 수령을 위한 법인명(Entity), 사업자등록번호(SSM), 은행 수취 계좌를 설정합니다.</p>
                             </div>
-                            <button type="button" id="openAddEntityBtn" class="btn btn-primary" style="padding: 9px 20px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                            <button type="button" id="openAddEntityBtn" class="btn btn-primary admin-only" style="padding: 9px 20px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
                                 <i class="fa-solid fa-plus"></i> 신규 발행 법인 추가
                             </button>
                         </div>
@@ -847,6 +892,26 @@
                     </div>
                 </div>
 
+                <!-- Corporate Portal Login Credentials -->
+                <div style="border-top: 1px dashed var(--border-color); padding-top: 15px; margin-bottom: 15px; background: #F8FAFC; padding: 14px; border-radius: 6px; border: 1px solid #E2E8F0;">
+                    <h4 style="font-size: 13px; font-weight: 700; color: #0288D1; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-key"></i> 법인 전용 조회 포털 로그인 계정 (Portal Access)
+                    </h4>
+                    <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4;">
+                        ※ 이 법인 담당자가 국제학교 커미션/인보이스 현황을 조회할 수 있도록 아이디와 비밀번호를 발급합니다. (계정 정보 수정은 관리자만 가능)
+                    </p>
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">포털 접속 아이디 (Login ID)</label>
+                            <input type="text" id="entityLoginId" class="form-control" placeholder="예: globaledu_admin" style="font-size: 13px; padding: 10px; font-weight: 600;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">포털 접속 비밀번호 (Password)</label>
+                            <input type="text" id="entityLoginPassword" class="form-control" placeholder="비밀번호 설정" style="font-size: 13px; padding: 10px;">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-group" style="margin-bottom: 20px;">
                     <label style="font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
                         <input type="checkbox" id="entityIsDefault" style="width: 16px; height: 16px;">
@@ -1079,7 +1144,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <!-- Admin Commission Management JS -->
-    <script src="admin-commission.js?v=20260817_06"></script>
+    <script src="admin-commission.js?v=20260824_01"></script>
     <script src="mobile-bridge.js"></script>
 
     <!-- Vercel Speed Insights & Analytics -->
