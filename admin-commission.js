@@ -386,7 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const val = snapshot.val();
             schools = val ? Object.keys(val).filter(k => !k.startsWith('_')).map(k => ({ id: k, ...val[k] })) : [];
             
-            // Auto ensure Invictus International School (HH) is seeded if missing
+            // Auto ensure Invictus International School (HH) & Tenby Schools are seeded if missing
             const hasInvictus = schools.some(s => s.nameEn && (s.nameEn.includes('Invictus') || s.nameEn.includes('HH')));
             if (!hasInvictus && userRole === 'admin') {
                 const invictusData = {
@@ -407,6 +407,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     memo: "영국 캠브리지 커리큘럼(Early Years, Primary, Secondary - IGCSE & A-Levels), 싱가포르 Invictus 계열 Horizon Hills 캠퍼스"
                 };
                 db.ref('commission_schools').push(invictusData);
+            }
+
+            const hasTenby = schools.some(s => s.nameEn && s.nameEn.toLowerCase().includes('tenby'));
+            if (!hasTenby && userRole === 'admin') {
+                const tenbyData = {
+                    nameEn: "Tenby Schools Setia Eco Gardens",
+                    nameKo: "텐비 국제학교 (세티아 에코 가든스)",
+                    contractStartDate: "2025-01-01",
+                    contractEndDate: "2027-12-31",
+                    commissionType: "percentage",
+                    defaultRate: 10,
+                    defaultSettlement: "1",
+                    adminContactName: "Admissions Department / WhatsApp: +60 16-723 3788",
+                    adminContactEmail: "admissions.seg@tenby.edu.my",
+                    adminContactPhone: "+60 7-558 8812",
+                    financeContactName: "Finance & Accounts (Tenby Southern Sdn. Bhd.)",
+                    financeContactEmail: "finance.seg@tenby.edu.my",
+                    financeContactPhone: "+60 7-558 8812",
+                    location: "7, Jalan Laman Setia 2/1, Setia Eco Gardens, 81550 Gelang Patah, Johor, Malaysia",
+                    memo: "영국 IPC 및 캠브리지 IGCSE 커리큘럼, 글로벌 교육그룹 ISP(International Schools Partnership) 소속, 에코 가든스 친환경 명품 단지 내 위치"
+                };
+                db.ref('commission_schools').push(tenbyData);
             }
 
             updateSchoolDropdowns();
@@ -569,6 +591,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 financeContactPhone: "+60 7-364 3810",
                 location: "Puteri Harbour, Johor",
                 memo: "푸테리 하버 인근 위치, 학생당 고정 커미션 RM 3,500 정산"
+            },
+            {
+                nameEn: "Tenby Schools Setia Eco Gardens",
+                nameKo: "텐비 국제학교 (세티아 에코 가든스)",
+                contractStartDate: "2025-01-01",
+                contractEndDate: "2027-12-31",
+                commissionType: "percentage",
+                defaultRate: 10,
+                defaultSettlement: "1",
+                adminContactName: "Admissions Department / WhatsApp: +60 16-723 3788",
+                adminContactEmail: "admissions.seg@tenby.edu.my",
+                adminContactPhone: "+60 7-558 8812",
+                financeContactName: "Finance & Accounts (Tenby Southern Sdn. Bhd.)",
+                financeContactEmail: "finance.seg@tenby.edu.my",
+                financeContactPhone: "+60 7-558 8812",
+                location: "7, Jalan Laman Setia 2/1, Setia Eco Gardens, 81550 Gelang Patah, Johor, Malaysia",
+                memo: "영국 IPC 및 캠브리지 IGCSE 커리큘럼, 글로벌 교육그룹 ISP(International Schools Partnership) 소속, 에코 가든스 친환경 명품 단지 내 위치"
             }
         ];
 
