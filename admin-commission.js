@@ -757,7 +757,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (schoolFilter !== 'all' && adm.schoolName !== schoolFilter) return false;
             if (statusFilter !== 'all' && adm.status !== statusFilter) return false;
             if (search) {
-                const combined = `${adm.studentNameEn || ''} ${adm.studentNameKo || ''} ${adm.studentName || ''} ${adm.parentContact || ''} ${adm.schoolName || ''} ${adm.gradeEn || ''} ${adm.gradeKo || ''}`.toLowerCase();
+                const combined = `${adm.studentNameEn || ''} ${adm.studentNameKo || ''} ${adm.studentName || ''} ${adm.parentName || ''} ${adm.parentPhone || ''} ${adm.parentEmail || ''} ${adm.parentKakaoWhatsapp || adm.parentKakao || ''} ${adm.parentContact || ''} ${adm.schoolName || ''} ${adm.gradeEn || adm.grade || ''}`.toLowerCase();
                 if (!combined.includes(search)) return false;
             }
             return true;
@@ -799,13 +799,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? `<strong style="color: var(--text-primary); font-size: 14px;">${adm.studentNameEn}</strong> <span style="font-size: 11px; color: #888;">(${adm.studentNameKo || ''})</span>`
                 : `<strong style="color: var(--text-primary); font-size: 14px;">${adm.studentName || '-'}</strong>`;
 
-            const gradeDisplay = adm.gradeEn 
-                ? `<span>${adm.gradeEn}</span> <span style="font-size: 10px; color: #888;">(${adm.gradeKo || ''})</span>`
-                : (adm.grade || '-');
+            const gradeDisplay = adm.gradeEn || adm.grade || '-';
 
-            const termDisplay = adm.termEn 
-                ? `<span>${adm.termEn}</span>`
-                : (adm.term || '-');
+            const termDisplay = adm.termEn || adm.term || '-';
+
+            const parentInfoList = [adm.parentName, adm.parentPhone, adm.parentKakaoWhatsapp || adm.parentKakao, adm.parentEmail].filter(Boolean);
+            const parentInfoDisplay = parentInfoList.length > 0 ? parentInfoList.join(' / ') : (adm.parentContact || '-');
 
             const actionButtonsHtml = isEntity ? `
                 <div class="table-action-btns">
@@ -835,7 +834,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>
                         <div>${studentNameDisplay}</div>
                         <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">
-                            <i class="fa-solid fa-phone" style="font-size: 10px;"></i> ${adm.parentContact || '-'}
+                            <i class="fa-solid fa-user-group" style="font-size: 10px;"></i> ${parentInfoDisplay}
                         </div>
                     </td>
                     <td>
@@ -1099,20 +1098,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (document.getElementById('admissionGradeEn')) {
             document.getElementById('admissionGradeEn').value = adm.gradeEn || adm.grade || '';
         }
-        if (document.getElementById('admissionGradeKo')) {
-            document.getElementById('admissionGradeKo').value = adm.gradeKo || '';
-        }
         if (document.getElementById('admissionTermEn')) {
             document.getElementById('admissionTermEn').value = adm.termEn || adm.term || '';
         }
-        if (document.getElementById('admissionTermKo')) {
-            document.getElementById('admissionTermKo').value = adm.termKo || '';
+
+        if (document.getElementById('admissionParentName')) {
+            document.getElementById('admissionParentName').value = adm.parentName || '';
+        }
+        if (document.getElementById('admissionParentPhone')) {
+            document.getElementById('admissionParentPhone').value = adm.parentPhone || adm.parentContact || '';
+        }
+        if (document.getElementById('admissionParentEmail')) {
+            document.getElementById('admissionParentEmail').value = adm.parentEmail || '';
+        }
+        if (document.getElementById('admissionParentKakao')) {
+            document.getElementById('admissionParentKakao').value = adm.parentKakaoWhatsapp || adm.parentKakao || '';
         }
 
         document.getElementById('admissionDate').value = adm.admissionDate || '';
         document.getElementById('admissionStatus').value = adm.status || 'applied';
-        document.getElementById('admissionParentContact').value = adm.parentContact || '';
-        document.getElementById('admissionParentEmail').value = adm.parentEmail || '';
         document.getElementById('admissionTuitionFee').value = adm.tuitionFee || '';
         
         if (commType === 'fixed') {
@@ -1192,9 +1196,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const gradeEn = document.getElementById('admissionGradeEn') ? document.getElementById('admissionGradeEn').value.trim() : '';
-            const gradeKo = document.getElementById('admissionGradeKo') ? document.getElementById('admissionGradeKo').value.trim() : '';
             const termEn = document.getElementById('admissionTermEn') ? document.getElementById('admissionTermEn').value.trim() : '';
-            const termKo = document.getElementById('admissionTermKo') ? document.getElementById('admissionTermKo').value.trim() : '';
+
+            const parentName = document.getElementById('admissionParentName') ? document.getElementById('admissionParentName').value.trim() : '';
+            const parentPhone = document.getElementById('admissionParentPhone') ? document.getElementById('admissionParentPhone').value.trim() : '';
+            const parentEmail = document.getElementById('admissionParentEmail') ? document.getElementById('admissionParentEmail').value.trim() : '';
+            const parentKakaoWhatsapp = document.getElementById('admissionParentKakao') ? document.getElementById('admissionParentKakao').value.trim() : '';
+            const parentContactCombined = [parentName, parentPhone, parentKakaoWhatsapp, parentEmail].filter(Boolean).join(' / ');
 
             const data = {
                 studentNameEn,
@@ -1203,13 +1211,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 schoolId,
                 schoolName,
                 gradeEn,
-                gradeKo,
                 grade: gradeEn,
                 termEn,
-                termKo,
                 term: termEn,
-                parentContact: document.getElementById('admissionParentContact').value.trim(),
-                parentEmail: document.getElementById('admissionParentEmail').value.trim(),
+                parentName,
+                parentPhone,
+                parentEmail,
+                parentKakaoWhatsapp,
+                parentKakao: parentKakaoWhatsapp,
+                parentContact: parentContactCombined,
                 admissionDate: document.getElementById('admissionDate').value,
                 status: document.getElementById('admissionStatus').value,
                 tuitionFee: parseFloat(document.getElementById('admissionTuitionFee').value) || 0,
@@ -2671,17 +2681,18 @@ Email / Contact: ${ent.contact || '-'}`.trim();
                     const insts = adm.installments || [];
                     const paidCount = insts.filter(i => i.status === 'paid').length;
                     
+                    const pInfo = [adm.parentName, adm.parentPhone, adm.parentKakaoWhatsapp || adm.parentKakao].filter(Boolean).join(' / ') || (adm.parentContact || '-');
+                    
                     return `
                         <tr>
                             <td style="text-align: center; color: #888;">${idx + 1}</td>
                             <td>
                                 <strong>${adm.studentNameEn || adm.studentName}</strong>
                                 ${adm.studentNameKo ? `<span style="font-size: 11px; color: #888;"> (${adm.studentNameKo})</span>` : ''}
-                                <div style="font-size: 10px; color: #888;">${adm.parentContact || '-'}</div>
+                                <div style="font-size: 10px; color: #888;">${pInfo}</div>
                             </td>
                             <td>
                                 <div>${adm.gradeEn || adm.grade || '-'}</div>
-                                ${adm.gradeKo ? `<span style="font-size: 10px; color: #888;">${adm.gradeKo}</span>` : ''}
                             </td>
                             <td>
                                 <div>${adm.termEn || adm.term || '-'}</div>
