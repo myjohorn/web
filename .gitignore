@@ -3,6 +3,8 @@ data/*.json
 *.pem
 *.key
 .env
+oauth-credentials*
+gmail-token.json
 
 # Temporary and local data
 temp/

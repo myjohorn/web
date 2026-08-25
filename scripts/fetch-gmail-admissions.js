@@ -46,18 +46,29 @@ async function getOAuth2Client() {
     let clientSecret = process.env.GMAIL_CLIENT_SECRET;
     let redirectUri = 'http://localhost:3000/oauth2callback';
 
-    if (fs.existsSync(CREDENTIALS_PATH)) {
-        try {
-            const raw = fs.readFileSync(CREDENTIALS_PATH, 'utf8');
-            const parsed = JSON.parse(raw);
-            const key = parsed.installed || parsed.web || parsed;
-            clientId = key.client_id || clientId;
-            clientSecret = key.client_secret || clientSecret;
-            if (key.redirect_uris && key.redirect_uris.length > 0) {
-                redirectUri = key.redirect_uris[0];
+    const possibleCredPaths = [
+        CREDENTIALS_PATH,
+        path.join(ROOT_DIR, 'oauth-credentials.json.json'),
+        path.join(ROOT_DIR, 'credentials.json')
+    ];
+
+    for (const p of possibleCredPaths) {
+        if (fs.existsSync(p)) {
+            try {
+                const raw = fs.readFileSync(p, 'utf8');
+                const parsed = JSON.parse(raw);
+                const key = parsed.installed || parsed.web || parsed;
+                clientId = key.client_id || clientId;
+                clientSecret = key.client_secret || clientSecret;
+                if (parsed.installed) {
+                    redirectUri = 'http://localhost:3000/oauth2callback';
+                } else if (key.redirect_uris && key.redirect_uris.length > 0 && key.redirect_uris[0].startsWith('http://localhost:')) {
+                    redirectUri = key.redirect_uris[0];
+                }
+                break;
+            } catch (e) {
+                console.warn('[Warning] Failed to parse credentials:', e.message);
             }
-        } catch (e) {
-            console.warn('[Warning] Failed to parse oauth-credentials.json:', e.message);
         }
     }
 
