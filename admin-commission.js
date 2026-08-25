@@ -623,6 +623,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.admin-modal').forEach(modal => {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
+                // Prevent accidental backdrop closing for student admission modal
+                if (modal.id === 'admissionModal') return;
                 modal.style.display = 'none';
             }
         });
@@ -631,6 +633,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             document.querySelectorAll('.admin-modal').forEach(m => {
+                // Prevent closing student admission modal via ESC key
+                if (m.id === 'admissionModal') return;
                 if (m.style.display === 'flex' || m.style.display === 'block') {
                     m.style.display = 'none';
                 }
