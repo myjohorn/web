@@ -98,7 +98,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Contract Status Evaluation Helper
-    function getContractStatus(startDate, endDate) {
+    function getContractStatus(startDate, endDate, commissionType, defaultRate) {
+        if (commissionType === 'none' || (defaultRate !== undefined && parseFloat(defaultRate) === 0 && commissionType !== 'fixed')) {
+            return { status: 'non-contract', label: '비제휴 / 수수료 0%', cssClass: 'non-contract', text: '수수료 미적용 (단순 수속)' };
+        }
         if (!startDate || !endDate) {
             return { status: 'none', label: '기간 미지정', cssClass: 'expiring', text: '계약기간 미지정' };
         }
@@ -969,6 +972,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (type === 'fixed') {
             if (admissionRateWrapper) admissionRateWrapper.style.display = 'none';
             if (admissionFixedWrapper) admissionFixedWrapper.style.display = 'block';
+        } else if (type === 'none') {
+            if (admissionRateWrapper) admissionRateWrapper.style.display = 'none';
+            if (admissionFixedWrapper) admissionFixedWrapper.style.display = 'none';
         } else {
             if (admissionRateWrapper) admissionRateWrapper.style.display = 'block';
             if (admissionFixedWrapper) admissionFixedWrapper.style.display = 'none';
@@ -983,10 +989,12 @@ document.addEventListener('DOMContentLoaded', () => {
         let totalCommission = 0;
         if (type === 'percentage') {
             const tuition = parseFloat(admissionTuitionFee ? admissionTuitionFee.value : 0) || 0;
-            const rate = parseFloat(admissionCommissionRate ? admissionCommissionRate.value : 10) || 10;
+            const rate = parseFloat(admissionCommissionRate ? admissionCommissionRate.value : 10) || 0;
             totalCommission = Math.round(tuition * (rate / 100));
-        } else {
+        } else if (type === 'fixed') {
             totalCommission = parseFloat(admissionFixedAmount ? admissionFixedAmount.value : 0) || 0;
+        } else {
+            totalCommission = 0;
         }
 
         if (admissionCommissionAmount) {
@@ -1009,8 +1017,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const school = schools.find(s => s.id === schoolId);
 
             if (school) {
-                const commType = school.commissionType || 'percentage';
-                const defaultRate = school.defaultRate || (commType === 'fixed' ? 3500 : 10);
+                const commType = school.commissionType || (parseFloat(school.defaultRate) === 0 ? 'none' : 'percentage');
+                const defaultRate = school.defaultRate !== undefined ? school.defaultRate : (commType === 'fixed' ? 3500 : (commType === 'none' ? 0 : 10));
                 const defaultSettlement = school.defaultSettlement || '1';
 
                 // 1. Reflect Commission Type
@@ -1020,6 +1028,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 2. Reflect Default Rate / Fixed Amount
                 if (commType === 'fixed') {
                     if (admissionFixedAmount) admissionFixedAmount.value = defaultRate;
+                } else if (commType === 'none') {
+                    if (admissionCommissionRate) admissionCommissionRate.value = 0;
+                    if (admissionFixedAmount) admissionFixedAmount.value = 0;
                 } else {
                     if (admissionCommissionRate) admissionCommissionRate.value = defaultRate;
                 }
@@ -1030,15 +1041,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 4. Show Auto Terms Notice with Contract Period
                 if (schoolAutoTermsNotice && schoolAutoTermsText) {
                     const settlementLabel = defaultSettlement === '1' ? '1회 일괄 정산' : `${defaultSettlement}회 분할 정산 (Term별)`;
-                    const termsDesc = commType === 'fixed' 
-                        ? `고정 금액 RM ${parseFloat(defaultRate).toLocaleString()} / ${settlementLabel}` 
-                        : `학비의 ${defaultRate}% / ${settlementLabel}`;
+                    let termsDesc = '';
+                    if (commType === 'none' || parseFloat(defaultRate) === 0) {
+                        termsDesc = '<span style="color: #666; font-weight: 700;">비제휴 / 수수료 없음 (0% 단순 수속)</span>';
+                    } else if (commType === 'fixed') {
+                        termsDesc = `고정 금액 RM ${parseFloat(defaultRate).toLocaleString()} / ${settlementLabel}`;
+                    } else {
+                        termsDesc = `학비의 ${defaultRate}% / ${settlementLabel}`;
+                    }
                     
                     const contractInfo = school.contractStartDate && school.contractEndDate 
                         ? ` | 계약기간: ${school.contractStartDate} ~ ${school.contractEndDate}`
                         : '';
 
-                    schoolAutoTermsText.textContent = `[${school.nameEn}] 학교 계약 요율 자동 반영: ${termsDesc}${contractInfo}`;
+                    schoolAutoTermsText.innerHTML = `[${school.nameEn}] 학교 계약 정책 반영: ${termsDesc}${contractInfo}`;
                     schoolAutoTermsNotice.style.display = 'block';
                 }
 
@@ -2515,12 +2531,28 @@ Email / Contact: ${ent.contact || '-'}`.trim();
 
     if (schoolCommissionType) {
         schoolCommissionType.addEventListener('change', () => {
+            const valWrapper = document.getElementById('schoolValueWrapper');
             if (schoolCommissionType.value === 'fixed') {
+                if (valWrapper) valWrapper.style.display = 'block';
                 if (schoolValueLabel) schoolValueLabel.innerHTML = '기본 고정 금액 (MYR) <span style="color: #C62828;">*</span>';
-                if (schoolDefaultRate) schoolDefaultRate.placeholder = '예: 3500';
+                if (schoolDefaultRate) {
+                    schoolDefaultRate.placeholder = '예: 3500';
+                    if (schoolDefaultRate.value === '0' || schoolDefaultRate.value === '10') schoolDefaultRate.value = '3500';
+                }
+            } else if (schoolCommissionType.value === 'none') {
+                if (valWrapper) valWrapper.style.display = 'block';
+                if (schoolValueLabel) schoolValueLabel.innerHTML = '기본 요율 (수수료 없음)';
+                if (schoolDefaultRate) {
+                    schoolDefaultRate.value = '0';
+                    schoolDefaultRate.placeholder = '0';
+                }
             } else {
+                if (valWrapper) valWrapper.style.display = 'block';
                 if (schoolValueLabel) schoolValueLabel.innerHTML = '기본 요율 (%) <span style="color: #C62828;">*</span>';
-                if (schoolDefaultRate) schoolDefaultRate.placeholder = '10';
+                if (schoolDefaultRate) {
+                    schoolDefaultRate.placeholder = '10';
+                    if (schoolDefaultRate.value === '0' || schoolDefaultRate.value === '3500') schoolDefaultRate.value = '10';
+                }
             }
         });
     }
@@ -2547,12 +2579,17 @@ Email / Contact: ${ent.contact || '-'}`.trim();
             const pendingCount = totalCount - settledCount;
             const totalCommission = schoolAdmissions.reduce((sum, a) => sum + (parseFloat(a.commissionAmount) || 0), 0);
 
-            const rateTag = sch.commissionType === 'fixed'
-                ? `<span class="installment-tag" style="background: rgba(2, 136, 209, 0.1); color: #0288D1; font-weight: 700;">고정 ${formatMYR(sch.defaultRate || 0)}</span>`
-                : `<span class="installment-tag" style="background: rgba(46, 125, 50, 0.1); color: #2E7D32; font-weight: 700;">${sch.defaultRate || 10}%</span>`;
+            let rateTag = '';
+            if (sch.commissionType === 'none' || (sch.defaultRate !== undefined && parseFloat(sch.defaultRate) === 0 && sch.commissionType !== 'fixed')) {
+                rateTag = `<span class="installment-tag" style="background: rgba(140, 135, 130, 0.15); color: #616161; font-weight: 700;"><i class="fa-solid fa-ban"></i> 수수료 없음 (0%)</span>`;
+            } else if (sch.commissionType === 'fixed') {
+                rateTag = `<span class="installment-tag" style="background: rgba(2, 136, 209, 0.1); color: #0288D1; font-weight: 700;">고정 ${formatMYR(sch.defaultRate || 0)}</span>`;
+            } else {
+                rateTag = `<span class="installment-tag" style="background: rgba(46, 125, 50, 0.1); color: #2E7D32; font-weight: 700;">${sch.defaultRate || 10}%</span>`;
+            }
 
             // Contract Status Badge
-            const contractStatus = getContractStatus(sch.contractStartDate, sch.contractEndDate);
+            const contractStatus = getContractStatus(sch.contractStartDate, sch.contractEndDate, sch.commissionType, sch.defaultRate);
             const contractDatesDisplay = (sch.contractStartDate && sch.contractEndDate) 
                 ? `${sch.contractStartDate} ~ ${sch.contractEndDate}`
                 : '계약기간 미지정';
@@ -2807,14 +2844,17 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         document.getElementById('schoolContractStartDate').value = sch.contractStartDate || '';
         document.getElementById('schoolContractEndDate').value = sch.contractEndDate || '';
 
-        const commType = sch.commissionType || 'percentage';
+        const commType = sch.commissionType || (parseFloat(sch.defaultRate) === 0 ? 'none' : 'percentage');
         document.getElementById('schoolCommissionType').value = commType;
         if (commType === 'fixed') {
             if (schoolValueLabel) schoolValueLabel.innerHTML = '기본 고정 금액 (MYR) <span style="color: #C62828;">*</span>';
             document.getElementById('schoolDefaultRate').value = sch.defaultRate || 3500;
+        } else if (commType === 'none') {
+            if (schoolValueLabel) schoolValueLabel.innerHTML = '기본 요율 (수수료 없음)';
+            document.getElementById('schoolDefaultRate').value = 0;
         } else {
             if (schoolValueLabel) schoolValueLabel.innerHTML = '기본 요율 (%) <span style="color: #C62828;">*</span>';
-            document.getElementById('schoolDefaultRate').value = sch.defaultRate || 10;
+            document.getElementById('schoolDefaultRate').value = sch.defaultRate !== undefined ? sch.defaultRate : 10;
         }
 
         document.getElementById('schoolDefaultSettlement').value = sch.defaultSettlement || '1';
@@ -2848,6 +2888,7 @@ Email / Contact: ${ent.contact || '-'}`.trim();
             }
 
             const commType = document.getElementById('schoolCommissionType').value;
+            const parsedRate = parseFloat(document.getElementById('schoolDefaultRate').value);
 
             const data = {
                 nameEn,
@@ -2856,7 +2897,7 @@ Email / Contact: ${ent.contact || '-'}`.trim();
                 contractStartDate: document.getElementById('schoolContractStartDate').value,
                 contractEndDate: document.getElementById('schoolContractEndDate').value,
                 commissionType: commType,
-                defaultRate: parseFloat(document.getElementById('schoolDefaultRate').value) || 10,
+                defaultRate: (commType === 'none') ? 0 : (isNaN(parsedRate) ? 0 : parsedRate),
                 defaultSettlement: document.getElementById('schoolDefaultSettlement').value,
                 adminContactName: document.getElementById('schoolAdminContactName').value.trim(),
                 adminContactEmail: adminEmail,

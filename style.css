@@ -2617,6 +2617,11 @@ body.faq-mode .faq-section {
     color: #C62828;
     border: 1px solid rgba(198, 40, 40, 0.2);
 }
+.contract-badge.non-contract {
+    background: rgba(140, 135, 130, 0.12);
+    color: #616161;
+    border: 1px solid rgba(140, 135, 130, 0.3);
+}
 
 /* Clickable Payment Table Row */
 .payment-row-clickable {
