@@ -2357,6 +2357,11 @@ body.faq-mode .faq-section {
     color: #757575;
     border: 1px solid rgba(117, 117, 117, 0.3);
 }
+.status-completed {
+    background-color: rgba(30, 136, 229, 0.12);
+    color: #1565C0;
+    border: 1px solid rgba(30, 136, 229, 0.3);
+}
 
 /* Commission Sub-Tab Navigation */
 .comm-tab-nav {

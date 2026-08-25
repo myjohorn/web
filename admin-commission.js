@@ -801,7 +801,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Total Admissions
         const activeAdmCount = curAdmissions.filter(a => a.status !== 'cancelled').length;
-        const completedAdmCount = curAdmissions.filter(a => a.status === 'paid').length;
+        const completedAdmCount = curAdmissions.filter(a => a.status === 'paid' || a.status === 'completed').length;
         if (statTotalAdmissions) statTotalAdmissions.textContent = `${activeAdmCount}명`;
         if (statAdmissionsSub) statAdmissionsSub.textContent = `진행중 ${activeAdmCount - completedAdmCount}명 / 완료 ${completedAdmCount}명`;
 
@@ -981,6 +981,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return '<span class="status-badge status-partially-paid"><i class="fa-solid fa-clock-rotate-left"></i> 부분입금</span>';
             case 'paid':
                 return '<span class="status-badge status-paid"><i class="fa-solid fa-circle-check"></i> 완납(입금완료)</span>';
+            case 'completed':
+                return '<span class="status-badge status-completed"><i class="fa-solid fa-flag-checkered"></i> 수속완료</span>';
             case 'cancelled':
                 return '<span class="status-badge status-cancelled">취소/환불</span>';
             default:
