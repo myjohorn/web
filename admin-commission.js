@@ -382,6 +382,30 @@ document.addEventListener('DOMContentLoaded', () => {
         db.ref('commission_schools').on('value', (snapshot) => {
             const val = snapshot.val();
             schools = val ? Object.keys(val).filter(k => !k.startsWith('_')).map(k => ({ id: k, ...val[k] })) : [];
+            
+            // Auto ensure Invictus International School (HH) is seeded if missing
+            const hasInvictus = schools.some(s => s.nameEn && (s.nameEn.includes('Invictus') || s.nameEn.includes('HH')));
+            if (!hasInvictus && userRole === 'admin') {
+                const invictusData = {
+                    nameEn: "Invictus International School (HH)",
+                    nameKo: "인빅투스 국제학교 (호라이즌힐스)",
+                    contractStartDate: "2025-01-01",
+                    contractEndDate: "2027-12-31",
+                    commissionType: "percentage",
+                    defaultRate: 10,
+                    defaultSettlement: "1",
+                    adminContactName: "Admissions Office / WhatsApp: +60 10-882 8721",
+                    adminContactEmail: "admissions@invictus.edu.my",
+                    adminContactPhone: "+60 7-233 0800",
+                    financeContactName: "Finance & Accounts Dept",
+                    financeContactEmail: "accounts@invictus.edu.my",
+                    financeContactPhone: "+60 7-233 0800",
+                    location: "No. 3, Persiaran Selatan, Horizon Hills, 79100 Iskandar Puteri, Johor",
+                    memo: "영국 캠브리지 커리큘럼(Early Years, Primary, Secondary - IGCSE & A-Levels), 싱가포르 Invictus 계열 Horizon Hills 캠퍼스"
+                };
+                db.ref('commission_schools').push(invictusData);
+            }
+
             updateSchoolDropdowns();
             renderSchools();
             renderAdmissions();
@@ -424,6 +448,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Seed Top Johor Bahru International Schools
     function seedInitialSchools() {
         const initialSchools = [
+            {
+                nameEn: "Invictus International School (HH)",
+                nameKo: "인빅투스 국제학교 (호라이즌힐스)",
+                contractStartDate: "2025-01-01",
+                contractEndDate: "2027-12-31",
+                commissionType: "percentage",
+                defaultRate: 10,
+                defaultSettlement: "1",
+                adminContactName: "Admissions Office / WhatsApp: +60 10-882 8721",
+                adminContactEmail: "admissions@invictus.edu.my",
+                adminContactPhone: "+60 7-233 0800",
+                financeContactName: "Finance & Accounts Dept",
+                financeContactEmail: "accounts@invictus.edu.my",
+                financeContactPhone: "+60 7-233 0800",
+                location: "No. 3, Persiaran Selatan, Horizon Hills, 79100 Iskandar Puteri, Johor",
+                memo: "영국 캠브리지 커리큘럼(Early Years, Primary, Secondary - IGCSE & A-Levels), 싱가포르 Invictus 계열 Horizon Hills 캠퍼스"
+            },
             {
                 nameEn: "Marlborough College Malaysia",
                 nameKo: "말보로 컬리지 말레이시아",
