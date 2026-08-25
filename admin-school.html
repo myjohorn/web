@@ -324,16 +324,24 @@
                         </div>
                     </div>
 
-                    <!-- SUB-TAB 4: Partner International Schools -->
+                    <!-- SUB-TAB 4: Partner International Schools & Camps/Academies -->
                     <div id="tabContentSchools" class="comm-tab-content hidden">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
                             <div>
-                                <h3 style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 0;">조호바루 협력 국제학교 & 커미션 계약 관리</h3>
-                                <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">학교별 계약 기간, 표준 커미션 요율(%), 정산 주기, 어드민 및 회계 담당자 연락처를 통합 관리합니다.</p>
+                                <h3 style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 0;">조호바루 협력 국제학교 & 캠프/어학원 계약 관리</h3>
+                                <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">정규 국제학교, 방학 스쿨캠프, 전문 어학원의 요율(%), 정산 주기, 담당자 연락처를 통합 관리합니다.</p>
                             </div>
-                            <button type="button" id="openAddSchoolBtn" class="btn btn-primary admin-only" style="padding: 9px 20px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
-                                <i class="fa-solid fa-plus"></i> 협력 국제학교 추가
-                            </button>
+                            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                                <select id="schoolCategoryFilter" class="form-control" style="font-size: 13px; width: auto; min-width: 170px; padding: 8px 12px; font-weight: 600;">
+                                    <option value="all">전체 기관 (학교 / 캠프 / 어학원)</option>
+                                    <option value="school">🏛️ 정규 국제학교</option>
+                                    <option value="camp">🏕️ 스쿨캠프 / 어학연수</option>
+                                    <option value="academy">📚 어학원 / 아카데미</option>
+                                </select>
+                                <button type="button" id="openAddSchoolBtn" class="btn btn-primary admin-only" style="padding: 9px 20px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                                    <i class="fa-solid fa-plus"></i> 기관 신규 등록
+                                </button>
+                            </div>
                         </div>
                         <div id="schoolsListGrid" class="school-grid">
                             <!-- JS populates school cards here -->
@@ -705,14 +713,22 @@
 
                 <!-- Section 1: Basic School Info -->
                 <div style="margin-bottom: 16px;">
-                    <h4 style="font-size: 13px; font-weight: 700; color: var(--accent-color); margin-bottom: 10px;">1. 학교 기본 정보 & 캠퍼스</h4>
+                    <h4 style="font-size: 13px; font-weight: 700; color: var(--accent-color); margin-bottom: 10px;">1. 기관 기본 정보 & 분류</h4>
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">기관 분류 (Category) <span style="color: #C62828;">*</span></label>
+                        <select id="schoolCategory" class="form-control" style="font-size: 13px; padding: 10px; font-weight: 600;">
+                            <option value="school">🏛️ 정규 국제학교 (International School)</option>
+                            <option value="camp">🏕️ 스쿨캠프 / 방학캠프 (School Camp)</option>
+                            <option value="academy">📚 어학원 / 아카데미 (Language Academy)</option>
+                        </select>
+                    </div>
                     <div class="form-row" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 15px; margin-bottom: 12px;">
                         <div class="form-group">
-                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">학교명 (영문) <span style="color: #C62828;">*</span></label>
-                            <input type="text" id="schoolNameEn" class="form-control" placeholder="예: Marlborough College Malaysia" required style="font-size: 13px; padding: 10px; font-weight: 600;">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">기관/학교명 (영문) <span style="color: #C62828;">*</span></label>
+                            <input type="text" id="schoolNameEn" class="form-control" placeholder="예: Marlborough College Malaysia / RAS Camp" required style="font-size: 13px; padding: 10px; font-weight: 600;">
                         </div>
                         <div class="form-group">
-                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">학교명 (한글)</label>
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">기관/학교명 (한글)</label>
                             <input type="text" id="schoolNameKo" class="form-control" placeholder="예: 말보로 컬리지 말레이시아" style="font-size: 13px; padding: 10px;">
                         </div>
                     </div>

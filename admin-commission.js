@@ -608,6 +608,60 @@ document.addEventListener('DOMContentLoaded', () => {
                 financeContactPhone: "+60 7-558 8812",
                 location: "7, Jalan Laman Setia 2/1, Setia Eco Gardens, 81550 Gelang Patah, Johor, Malaysia",
                 memo: "영국 IPC 및 캠브리지 IGCSE 커리큘럼, 글로벌 교육그룹 ISP(International Schools Partnership) 소속, 에코 가든스 친환경 명품 단지 내 위치"
+            },
+            {
+                nameEn: "RAS Camp (Raffles American School)",
+                nameKo: "RAS 스쿨캠프 (래플스 아메리칸 스쿨)",
+                category: "camp",
+                contractStartDate: "2025-01-01",
+                contractEndDate: "2027-12-31",
+                commissionType: "percentage",
+                defaultRate: 15,
+                defaultSettlement: "1",
+                adminContactName: "RAS Camp Admissions / WhatsApp: +60 11-1066 7105",
+                adminContactEmail: "camps@rafflesamericanschool.org",
+                adminContactPhone: "+60 11-1066 7105",
+                financeContactName: "RAS Finance Office",
+                financeContactEmail: "finance@rafflesamericanschool.org",
+                financeContactPhone: "+60 7-509 8890",
+                location: "Jalan Raffles, 79050 Iskandar Puteri, Johor, Malaysia",
+                memo: "RAS 미국식 명문 정규 캠퍼스 기숙사 및 최첨단 체육/예술 시설 활용 주니어 및 가족 몰입형 여름/겨울 영어캠프"
+            },
+            {
+                nameEn: "Kepler Academy",
+                nameKo: "케플러 아카데미 (조호바루 어학원)",
+                category: "academy",
+                contractStartDate: "2025-01-01",
+                contractEndDate: "2027-12-31",
+                commissionType: "percentage",
+                defaultRate: 10,
+                defaultSettlement: "1",
+                adminContactName: "Justin (Director) / Admissions Team",
+                adminContactEmail: "admissions@kepler-edu.com",
+                adminContactPhone: "+60 11-3988 5600",
+                financeContactName: "Finance & Admin Dept",
+                financeContactEmail: "accounts@kepler-edu.com",
+                financeContactPhone: "+60 11-3988 5600",
+                location: "Eco Botanic, 79100 Iskandar Puteri, Johor, Malaysia",
+                memo: "말레이시아 교육부(MOE) 공식 인가 어학원, 에코보타닉 소재 국제학교 입학대비반, IGCSE/SAT 특강 및 주니어 영어캠프"
+            },
+            {
+                nameEn: "Hunky Dory Academy",
+                nameKo: "헝키도리 아카데미 (어학원)",
+                category: "academy",
+                contractStartDate: "2025-01-01",
+                contractEndDate: "2027-12-31",
+                commissionType: "percentage",
+                defaultRate: 10,
+                defaultSettlement: "1",
+                adminContactName: "Natalie (Academic Director) / WhatsApp: +60 11-2938 4460 / 카카오톡: Hunky-Dory",
+                adminContactEmail: "natalie@hunkydory.education",
+                adminContactPhone: "+60 11-2938 4460",
+                financeContactName: "Finance & Accounts",
+                financeContactEmail: "accounts@hunkydory.education",
+                financeContactPhone: "+60 11-2938 4460",
+                location: "8-1 & 12-1, Teega Office Tower, Jalan Laksamana 1, Puteri Harbour, 79250 Iskandar Puteri, Johor",
+                memo: "푸테리하버 티가 타워 소재 15년 노하우 원어민 소수정예 주니어 몰입 영어캠프, 국제학교 입학대비 및 스피킹 특화 아카데미"
             }
         ];
 
@@ -738,25 +792,39 @@ document.addEventListener('DOMContentLoaded', () => {
         const invoiceSchoolFilter = document.getElementById('invoiceSchoolFilter');
         const monthlyInvoiceSchoolSelect = document.getElementById('monthlyInvoiceSchoolSelect');
 
-        if (admissionSchoolId) {
-            admissionSchoolId.innerHTML = '<option value="">-- 학교 선택 --</option>' +
-                schools.map(s => `<option value="${s.id}" data-type="${s.commissionType || 'percentage'}" data-rate="${s.defaultRate || 10}" data-settlement="${s.defaultSettlement || '1'}">${s.nameEn} (${s.nameKo || ''})</option>`).join('');
+        const schoolsOnly = schools.filter(s => !s.category || s.category === 'school');
+        const campsOnly = schools.filter(s => s.category === 'camp');
+        const academiesOnly = schools.filter(s => s.category === 'academy');
+
+        const buildOption = s => `<option value="${s.id}" data-category="${s.category || 'school'}" data-type="${s.commissionType || 'percentage'}" data-rate="${s.defaultRate !== undefined ? s.defaultRate : 10}" data-settlement="${s.defaultSettlement || '1'}">${s.nameEn} (${s.nameKo || ''})</option>`;
+
+        let groupedHtml = '<option value="">-- 대상 기관/학교 선택 --</option>';
+        if (schoolsOnly.length > 0) {
+            groupedHtml += `<optgroup label="🏛️ 정규 국제학교">${schoolsOnly.map(buildOption).join('')}</optgroup>`;
         }
+        if (campsOnly.length > 0) {
+            groupedHtml += `<optgroup label="🏕️ 스쿨캠프 / 어학연수">${campsOnly.map(buildOption).join('')}</optgroup>`;
+        }
+        if (academiesOnly.length > 0) {
+            groupedHtml += `<optgroup label="📚 어학원 / 아카데미">${academiesOnly.map(buildOption).join('')}</optgroup>`;
+        }
+
+        if (admissionSchoolId) admissionSchoolId.innerHTML = groupedHtml;
+        if (monthlyInvoiceSchoolSelect) monthlyInvoiceSchoolSelect.innerHTML = groupedHtml;
+
+        const filterOption = s => {
+            const prefix = s.category === 'camp' ? '[캠프] ' : (s.category === 'academy' ? '[어학원] ' : '');
+            return `<option value="${s.nameEn}">${prefix}${s.nameEn}</option>`;
+        };
+
         if (admissionSchoolFilter) {
-            admissionSchoolFilter.innerHTML = '<option value="all">전체 국제학교</option>' +
-                schools.map(s => `<option value="${s.nameEn}">${s.nameEn}</option>`).join('');
+            admissionSchoolFilter.innerHTML = '<option value="all">전체 교육기관 (학교/캠프/어학원)</option>' + schools.map(filterOption).join('');
         }
         if (paymentSchoolFilter) {
-            paymentSchoolFilter.innerHTML = '<option value="all">전체 학교</option>' +
-                schools.map(s => `<option value="${s.nameEn}">${s.nameEn}</option>`).join('');
+            paymentSchoolFilter.innerHTML = '<option value="all">전체 교육기관</option>' + schools.map(filterOption).join('');
         }
         if (invoiceSchoolFilter) {
-            invoiceSchoolFilter.innerHTML = '<option value="all">전체 학교</option>' +
-                schools.map(s => `<option value="${s.nameEn}">${s.nameEn}</option>`).join('');
-        }
-        if (monthlyInvoiceSchoolSelect) {
-            monthlyInvoiceSchoolSelect.innerHTML = '<option value="">-- 대상 국제학교 선택 --</option>' +
-                schools.map(s => `<option value="${s.id}">${s.nameEn} (${s.nameKo || ''})</option>`).join('');
+            invoiceSchoolFilter.innerHTML = '<option value="all">전체 교육기관</option>' + schools.map(filterOption).join('');
         }
     }
 
@@ -2598,25 +2666,36 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         });
     }
 
+    const schoolCategoryFilter = document.getElementById('schoolCategoryFilter');
+    if (schoolCategoryFilter) {
+        schoolCategoryFilter.addEventListener('change', renderSchools);
+    }
+
     function renderSchools() {
         if (!schoolsListGrid) return;
 
-        if (schools.length === 0) {
+        const isEntity = (userRole === 'entity');
+        const curAdmissions = getFilteredAdmissions();
+        const catFilter = schoolCategoryFilter ? schoolCategoryFilter.value : 'all';
+
+        const filteredSchools = schools.filter(sch => {
+            if (catFilter === 'all') return true;
+            return (sch.category || 'school') === catFilter;
+        });
+
+        if (filteredSchools.length === 0) {
             schoolsListGrid.innerHTML = `
                 <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-secondary); background: var(--white); border-radius: 8px; border: 1px solid var(--border-color);">
-                    등록된 협력 국제학교가 없습니다.
+                    해당 분류의 등록된 교육기관이 없습니다.
                 </div>
             `;
             return;
         }
 
-        const isEntity = (userRole === 'entity');
-        const curAdmissions = getFilteredAdmissions();
-
-        schoolsListGrid.innerHTML = schools.map(sch => {
+        schoolsListGrid.innerHTML = filteredSchools.map(sch => {
             const schoolAdmissions = curAdmissions.filter(a => a.schoolName === sch.nameEn || a.schoolName === sch.nameKo || a.schoolId === sch.id);
             const totalCount = schoolAdmissions.length;
-            const settledCount = schoolAdmissions.filter(a => a.status === 'paid').length;
+            const settledCount = schoolAdmissions.filter(a => a.status === 'paid' || a.status === 'completed').length;
             const pendingCount = totalCount - settledCount;
             const totalCommission = schoolAdmissions.reduce((sum, a) => sum + (parseFloat(a.commissionAmount) || 0), 0);
 
@@ -2627,6 +2706,17 @@ Email / Contact: ${ent.contact || '-'}`.trim();
                 rateTag = `<span class="installment-tag" style="background: rgba(2, 136, 209, 0.1); color: #0288D1; font-weight: 700;">고정 ${formatMYR(sch.defaultRate || 0)}</span>`;
             } else {
                 rateTag = `<span class="installment-tag" style="background: rgba(46, 125, 50, 0.1); color: #2E7D32; font-weight: 700;">${sch.defaultRate || 10}%</span>`;
+            }
+
+            // Category Badge
+            const cat = sch.category || 'school';
+            let categoryBadge = '';
+            if (cat === 'camp') {
+                categoryBadge = '<span class="category-badge cat-camp"><i class="fa-solid fa-campground"></i> 스쿨캠프</span>';
+            } else if (cat === 'academy') {
+                categoryBadge = '<span class="category-badge cat-academy"><i class="fa-solid fa-book-open-reader"></i> 어학원</span>';
+            } else {
+                categoryBadge = '<span class="category-badge cat-school"><i class="fa-solid fa-graduation-cap"></i> 정규 학교</span>';
             }
 
             // Contract Status Badge
@@ -2644,10 +2734,10 @@ Email / Contact: ${ent.contact || '-'}`.trim();
             ` : `
                 <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 8px;">
                     <button type="button" class="btn btn-primary btn-view-school-students" data-id="${sch.id}" style="padding: 6px 10px; font-size: 11px;">
-                        <i class="fa-solid fa-users"></i> 등록 학생 명단 (${totalCount}명)
+                        <i class="fa-solid fa-users"></i> 등록 학생 (${totalCount}명)
                     </button>
                     <button type="button" class="btn btn-secondary btn-edit-school" data-id="${sch.id}" style="padding: 6px 10px; font-size: 11px;">
-                        <i class="fa-solid fa-pen"></i> 학교/계약 수정
+                        <i class="fa-solid fa-pen"></i> 정보/계약 수정
                     </button>
                 </div>
             `;
@@ -2655,8 +2745,11 @@ Email / Contact: ${ent.contact || '-'}`.trim();
             return `
                 <div class="school-card">
                     <div>
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
-                            <h4 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; line-height: 1.3;">${sch.nameEn}</h4>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; gap: 8px;">
+                            <div>
+                                <div style="margin-bottom: 4px;">${categoryBadge}</div>
+                                <h4 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; line-height: 1.3;">${sch.nameEn}</h4>
+                            </div>
                             ${rateTag}
                         </div>
                         <div style="font-size: 12px; color: var(--accent-color); font-weight: 500; margin-bottom: 10px;">${sch.nameKo || ''}</div>
@@ -2859,9 +2952,10 @@ Email / Contact: ${ent.contact || '-'}`.trim();
 
     if (openAddSchoolBtn) {
         openAddSchoolBtn.addEventListener('click', () => {
-            document.getElementById('schoolModalTitle').innerHTML = '<i class="fa-solid fa-school" style="color: var(--accent-color);"></i> 협력 국제학교 및 커미션 계약 정책 등록';
+            document.getElementById('schoolModalTitle').innerHTML = '<i class="fa-solid fa-school" style="color: var(--accent-color);"></i> 협력 국제학교 & 캠프/어학원 등록';
             document.getElementById('schoolId').value = '';
             document.getElementById('schoolForm').reset();
+            if (document.getElementById('schoolCategory')) document.getElementById('schoolCategory').value = 'school';
             document.getElementById('schoolCommissionType').value = 'percentage';
             if (schoolValueLabel) schoolValueLabel.innerHTML = '기본 요율 (%) <span style="color: #C62828;">*</span>';
             document.getElementById('schoolDefaultRate').value = '10';
@@ -2877,8 +2971,9 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         const sch = schools.find(s => s.id === id);
         if (!sch) return;
 
-        document.getElementById('schoolModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: var(--accent-color);"></i> 협력 국제학교 및 계약 정책 수정';
+        document.getElementById('schoolModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: var(--accent-color);"></i> 교육기관 및 계약 정책 수정';
         document.getElementById('schoolId').value = sch.id;
+        if (document.getElementById('schoolCategory')) document.getElementById('schoolCategory').value = sch.category || 'school';
         document.getElementById('schoolNameEn').value = sch.nameEn || '';
         document.getElementById('schoolNameKo').value = sch.nameKo || '';
         document.getElementById('schoolLocation').value = sch.location || '';
@@ -2932,6 +3027,7 @@ Email / Contact: ${ent.contact || '-'}`.trim();
             const parsedRate = parseFloat(document.getElementById('schoolDefaultRate').value);
 
             const data = {
+                category: document.getElementById('schoolCategory') ? document.getElementById('schoolCategory').value : 'school',
                 nameEn,
                 nameKo: document.getElementById('schoolNameKo').value.trim(),
                 location: document.getElementById('schoolLocation').value.trim(),
