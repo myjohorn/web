@@ -1489,7 +1489,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td data-label="차량">${escapeHtml(item.carPlate)} <span style="font-size: 11px; color: var(--text-secondary);">(${escapeHtml(item.carModel)})</span></td>
                     <td data-label="상세 내역" style="text-align: left;">${escapeHtml(item.details)}</td>
                     <td data-label="금액" style="font-weight: 700; color: ${amountColor};">${amountPrefix} ${item.amount.toLocaleString()}</td>
-                    <td data-label="공제 여부">${escapeHtml(item.deductibleStr)}</td>
+                    <td data-label="공제 여부">${item.deductibleStr}</td>
                     <td data-label="영수증">${receiptCol}</td>
                     <td data-label="관리">
                         ${actionCol}
@@ -1829,6 +1829,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
+            const isNoActivity = (grossRevenue === 0 && totalExpenses === 0 && carRolloverExpenses === 0);
+
             let statusBadge = '<span class="status-badge status-pending">미정산 (대기)</span>';
             if (isCompleted) {
                 const settledDateFormatted = formatDateTime(existingSettlement.settledAt);
@@ -1838,6 +1840,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${settledDateFormatted ? `<div style="font-size: 11px; color: #2E7D32; margin-top: 3px; font-weight: 500;">(${settledDateFormatted})</div>` : ''}
                     </div>
                 `;
+            } else if (isNoActivity) {
+                statusBadge = '<span class="status-badge" style="background: #F3F4F6; color: #6B7280; border: 1px solid #E5E7EB; font-weight: 500;"><i class="fa-solid fa-minus" style="font-size: 10px; margin-right: 3px;"></i> 실적 없음</span>';
             }
 
             const payoutColor = netOwnerPayout >= 0 ? '#1565C0' : '#C62828';
@@ -1909,9 +1913,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const stmtContentSheet = document.getElementById('stmtContentSheet');
         const confirmStmtBtn = document.getElementById('confirmStmtBtn');
 
-        const settledStatusHtml = isCompleted 
-            ? `<span style="color: #2E7D32; font-weight: 700;"><i class="fa-solid fa-circle-check"></i> 정산 완료 (${formatDateTime(existingSettlement.settledAt)})</span>` 
-            : `<span style="color: #E65100; font-weight: 700;"><i class="fa-solid fa-clock"></i> 정산 대기 (미정산)</span>`;
+        const isNoActivity = (grossRevenue === 0 && totalExpenses === 0);
+        let settledStatusHtml = '';
+        if (isCompleted) {
+            settledStatusHtml = `<span style="color: #2E7D32; font-weight: 700;"><i class="fa-solid fa-circle-check"></i> 정산 완료 (${formatDateTime(existingSettlement.settledAt)})</span>`;
+        } else if (isNoActivity) {
+            settledStatusHtml = `<span style="color: #6B7280; font-weight: 600;"><i class="fa-solid fa-minus"></i> 실적 없음 (정산 대상 없음)</span>`;
+        } else {
+            settledStatusHtml = `<span style="color: #E65100; font-weight: 700;"><i class="fa-solid fa-clock"></i> 정산 대기 (미정산)</span>`;
+        }
 
         if (stmtContentSheet) {
             stmtContentSheet.innerHTML = `
@@ -2056,12 +2066,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 };
             } else {
-                confirmStmtBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> 정산 완료 처리';
-                confirmStmtBtn.style.background = 'var(--accent-color)';
+                confirmStmtBtn.innerHTML = isNoActivity 
+                    ? '<i class="fa-solid fa-circle-check"></i> 무실적 마감 완료' 
+                    : '<i class="fa-solid fa-circle-check"></i> 정산 완료 처리';
+                confirmStmtBtn.style.background = isNoActivity ? '#5C5449' : 'var(--accent-color)';
                 confirmStmtBtn.disabled = (userRole === 'owner');
 
                 confirmStmtBtn.onclick = () => {
-                    if (confirm(`${car.ownerName} 차주님의 ${targetMonth}월 정산을 완료 처리하시겠습니까?\n\n포함된 매출 및 공제 비용이 ${targetMonth}월 정산 완료 상태로 전환됩니다.`)) {
+                    const confirmMsg = isNoActivity 
+                        ? `${car.ownerName} 차주님의 ${targetMonth}월(실적 없음)을 [무실적 마감 완료] 처리하시겠습니까?`
+                        : `${car.ownerName} 차주님의 ${targetMonth}월 정산을 완료 처리하시겠습니까?\n\n포함된 매출 및 공제 비용이 ${targetMonth}월 정산 완료 상태로 전환됩니다.`;
+                    if (confirm(confirmMsg)) {
                         const nowIso = new Date().toISOString();
                         const settlementObj = {
                             id: settleId,
@@ -2257,9 +2272,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 statNetPayout.innerHTML = `${formattedCurrent} <span style="font-size: 16px; font-weight: 600; color: #E65100; margin-left: 4px;">(${formattedUnsettled})</span>`;
             }
             if (statFeeProfit) {
-                statFeeProfit.innerHTML = isSettled 
-                    ? '<span style="color: #8C8782; font-size: 11px; font-weight: 400;"><i class="fa-solid fa-circle-check" style="color: #2E7D32; margin-right: 3px;"></i> 당월 정산 완료</span>' 
-                    : '<span style="color: #8C8782; font-size: 11px; font-weight: 400;"><i class="fa-solid fa-clock" style="color: #E65100; margin-right: 3px;"></i> 당월 미정산(대기)</span>';
+                const isNoActivity = (grossRevenue === 0 && combinedExpenses === 0);
+                let statusSubHtml = '';
+                if (isSettled) {
+                    statusSubHtml = '<span style="color: #8C8782; font-size: 11px; font-weight: 400;"><i class="fa-solid fa-circle-check" style="color: #2E7D32; margin-right: 3px;"></i> 당월 정산 완료</span>';
+                } else if (isNoActivity) {
+                    statusSubHtml = '<span style="color: #8C8782; font-size: 11px; font-weight: 400;"><i class="fa-solid fa-minus" style="color: #9E9E9E; margin-right: 3px;"></i> 해당 월 실적 없음</span>';
+                } else {
+                    statusSubHtml = '<span style="color: #8C8782; font-size: 11px; font-weight: 400;"><i class="fa-solid fa-clock" style="color: #E65100; margin-right: 3px;"></i> 당월 미정산(대기)</span>';
+                }
+                statFeeProfit.innerHTML = statusSubHtml;
                 statFeeProfit.style.fontSize = '11px';
                 statFeeProfit.style.color = '#8C8782';
                 statFeeProfit.style.fontWeight = '400';
