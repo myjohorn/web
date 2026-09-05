@@ -48,7 +48,6 @@ async function getOAuth2Client() {
 
     const possibleCredPaths = [
         CREDENTIALS_PATH,
-        path.join(ROOT_DIR, 'oauth-credentials.json.json'),
         path.join(ROOT_DIR, 'credentials.json')
     ];
 

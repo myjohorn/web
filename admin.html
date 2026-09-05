@@ -58,10 +58,15 @@
                             <span class="section-tag">Management Console</span>
                             <h2>예약 및 상담 신청 내역 관리</h2>
                         </div>
-                        <div class="admin-filters">
-                            <button class="filter-btn active" data-filter="all">전체</button>
-                            <button class="filter-btn" data-filter="stay">숙소 예약</button>
-                            <button class="filter-btn" data-filter="consulting">컨설팅 상담</button>
+                        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                            <div class="admin-filters">
+                                <button class="filter-btn active" data-filter="all">전체</button>
+                                <button class="filter-btn" data-filter="stay">숙소 예약</button>
+                                <button class="filter-btn" data-filter="consulting">컨설팅 상담</button>
+                            </div>
+                            <button type="button" id="logoutBtn" class="btn btn-secondary" style="padding: 7px 14px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-right-from-bracket"></i> 로그아웃
+                            </button>
                         </div>
                     </div>
 

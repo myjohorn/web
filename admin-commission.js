@@ -85,6 +85,17 @@ document.addEventListener('DOMContentLoaded', () => {
         return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
+    // HTML escaping helper to prevent XSS injection
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
     // Currency Formatter (MYR)
     function formatMYR(amount) {
         const num = parseFloat(amount) || 0;
@@ -304,9 +315,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const inputHash = await hashPassword(input);
-            const defaultHash = await hashPassword('10011001');
 
-            if (inputHash === adminPasswordHash || inputHash === defaultHash || input === '10011001') {
+            if (inputHash === adminPasswordHash) {
                 sessionStorage.setItem('johorn_commission_portal_auth', 'true');
                 sessionStorage.setItem('johorn_admin_auth', 'true');
                 sessionStorage.setItem('admin_logged_in', 'true');
@@ -947,15 +957,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 : `<span class="installment-tag">${adm.commissionRate || 10}% (비율)</span>`;
 
             const studentNameDisplay = adm.studentNameEn 
-                ? `<strong style="color: var(--text-primary); font-size: 14px;">${adm.studentNameEn}</strong> <span style="font-size: 11px; color: #888;">(${adm.studentNameKo || ''})</span>`
-                : `<strong style="color: var(--text-primary); font-size: 14px;">${adm.studentName || '-'}</strong>`;
+                ? `<strong style="color: var(--text-primary); font-size: 14px;">${escapeHtml(adm.studentNameEn)}</strong> <span style="font-size: 11px; color: #888;">(${escapeHtml(adm.studentNameKo || '')})</span>`
+                : `<strong style="color: var(--text-primary); font-size: 14px;">${escapeHtml(adm.studentName || '-')}</strong>`;
 
-            const gradeDisplay = adm.gradeEn || adm.grade || '-';
+            const gradeDisplay = escapeHtml(adm.gradeEn || adm.grade || '-');
 
-            const termDisplay = adm.termEn || adm.term || '-';
+            const termDisplay = escapeHtml(adm.termEn || adm.term || '-');
 
             const parentInfoList = [adm.parentName, adm.parentPhone, adm.parentKakaoWhatsapp || adm.parentKakao, adm.parentEmail].filter(Boolean);
-            const parentInfoDisplay = parentInfoList.length > 0 ? parentInfoList.join(' / ') : (adm.parentContact || '-');
+            const parentInfoDisplay = parentInfoList.length > 0 ? escapeHtml(parentInfoList.join(' / ')) : escapeHtml(adm.parentContact || '-');
 
             const actionButtonsHtml = isEntity ? `
                 <div class="table-action-btns">
@@ -974,8 +984,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button type="button" class="btn btn-secondary btn-quick-payment" data-id="${adm.id}" style="padding: 5px 9px; font-size: 11px; color: #2E7D32; border-color: #2E7D32;" title="입금 확인 처리">
                         <i class="fa-solid fa-money-bill-check"></i> 입금
                     </button>
-                    <button type="button" class="btn btn-secondary btn-edit-admission" data-id="${adm.id}" style="padding: 5px 8px; font-size: 11px;" title="수정">
-                        <i class="fa-solid fa-pen-to-square"></i>
+                    <button type="button" class="btn btn-secondary btn-edit-admission" data-id="${adm.id}" style="padding: 5px 9px; font-size: 11px;" title="정보 수정">
+                        <i class="fa-solid fa-pen-to-square"></i> 수정
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-delete-admission" data-id="${adm.id}" style="padding: 5px 9px; font-size: 11px; color: #C62828; border-color: #C62828;" title="삭제">
+                        <i class="fa-solid fa-trash"></i>
                     </button>
                 </div>
             `;
@@ -989,7 +1002,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </td>
                     <td>
-                        <div style="font-weight: 600; color: var(--text-primary);">${adm.schoolName || '-'}</div>
+                        <div style="font-weight: 600; color: var(--text-primary);">${escapeHtml(adm.schoolName || '-')}</div>
                         <div style="font-size: 11px; color: var(--accent-color);">${gradeDisplay}</div>
                     </td>
                     <td>
@@ -1184,14 +1197,31 @@ document.addEventListener('DOMContentLoaded', () => {
         if (existingInstallments && existingInstallments.length === mode) {
             items = existingInstallments;
         } else {
+            let allocatedSum = 0;
             for (let i = 1; i <= mode; i++) {
-                const termAmount = mode === 1 ? totalCommission : Math.round(totalCommission / mode);
+                let termAmount = 0;
+                if (mode === 1) {
+                    termAmount = totalCommission;
+                } else if (i === mode) {
+                    // Last term absorbs rounding remainder to guarantee exact total
+                    termAmount = Math.max(0, totalCommission - allocatedSum);
+                } else {
+                    termAmount = Math.round(totalCommission / mode);
+                    allocatedSum += termAmount;
+                }
                 const termName = mode === 1 ? 'Full 100%' : `Term ${i} (${Math.round(100 / mode)}%)`;
                 
-                // Estimate next term due dates
-                const d = new Date(admDate);
-                if (i > 1) d.setMonth(d.getMonth() + (i - 1) * 4);
-                const dueDateStr = d.toISOString().split('T')[0];
+                // Estimate next term due dates safely avoiding timezone and month overflow
+                const parts = admDate.split('-');
+                let y = parseInt(parts[0], 10) || new Date().getFullYear();
+                let m = (parseInt(parts[1], 10) || 1) - 1 + (i - 1) * 4;
+                let day = parseInt(parts[2], 10) || 1;
+                const targetYear = y + Math.floor(m / 12);
+                const targetMonth = ((m % 12) + 12) % 12;
+                const maxDays = new Date(targetYear, targetMonth + 1, 0).getDate();
+                const targetDay = Math.min(day, maxDays);
+                const d = new Date(targetYear, targetMonth, targetDay);
+                const dueDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
                 items.push({
                     term: termName,

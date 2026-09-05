@@ -1,10 +1,10 @@
 // Application Core State and Logic for JohorN & Teega Residence
 window.onerror = function(message, source, lineno, colno, error) {
-    alert("자바스크립트 오류 발생:\n메시지: " + message + "\n위치: " + source + " (줄 번호: " + lineno + ")");
+    console.error("[JohorN Error]", message, "at", source, "line:", lineno, error);
     return false;
 };
 window.addEventListener('unhandledrejection', function(event) {
-    alert("비동기 오류 발생:\n내용: " + event.reason);
+    console.warn("[JohorN Unhandled Promise]", event.reason);
 });
 document.addEventListener('DOMContentLoaded', () => {
     // Google Calendar API Integration State & cache (declared at top to avoid Temporal Dead Zone)
@@ -294,45 +294,65 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = johornRequests;
         const map = {};
         
+        const approvedRequests = data.filter(item => item.type === 'stay' && item.status === 'approved' && item.checkin && item.checkout);
+        const localGcalIds = new Set();
+        const localBookingsKeys = new Set();
+
         // 1. Merge local storage bookings (Status: approved/완료)
-        data.forEach(item => {
-            if (item.type === 'stay' && item.status === 'approved' && item.checkin && item.checkout) {
-                let start = parseLocalDate(item.checkin);
-                let end = parseLocalDate(item.checkout);
-                while (start <= end) {
-                    const dateStr = getLocalDateString(start);
-                    if (!map[dateStr]) {
-                        map[dateStr] = [];
-                    }
-                    map[dateStr].push({
-                        id: item.id,
-                        name: item.name,
-                        contact: item.contact || '',
-                        notes: item.notes || '',
-                        checkin: item.checkin,
-                        checkout: item.checkout
-                    });
-                    start.setDate(start.getDate() + 1);
+        approvedRequests.forEach(item => {
+            if (item.gcalEventId) {
+                localGcalIds.add(item.gcalEventId);
+            }
+            if (item.name && item.checkin && item.checkout) {
+                localBookingsKeys.add(`${item.name.trim()}_${item.checkin}_${item.checkout}`);
+            }
+
+            let start = parseLocalDate(item.checkin);
+            let end = parseLocalDate(item.checkout);
+            while (start <= end) {
+                const dateStr = getLocalDateString(start);
+                if (!map[dateStr]) {
+                    map[dateStr] = [];
                 }
+                map[dateStr].push({
+                    id: item.id,
+                    name: item.name,
+                    contact: item.contact || '',
+                    notes: item.notes || '',
+                    checkin: item.checkin,
+                    checkout: item.checkout
+                });
+                start.setDate(start.getDate() + 1);
             }
         });
 
-        // 2. Merge Google Calendar events from cache
+        // 2. Merge Google Calendar events from cache (ignoring duplicates)
         gcalEventsCache.forEach(evt => {
+            // Skip GCal event if already added from local reservations by ID
+            if (evt.id && localGcalIds.has(evt.id)) {
+                return;
+            }
+
+            // Extract clean name from GCal event summary (Format: "[숙소예약] 홍길동" or "홍길동")
+            const cleanName = evt.summary ? evt.summary.replace(/^\[숙소예약\]\s*/, '').trim() : '';
+
+            // Skip GCal event if already added from local reservations by name and dates
+            const gcalKey = `${cleanName}_${evt.start}_${evt.end}`;
+            if (localBookingsKeys.has(gcalKey)) {
+                return;
+            }
+
             let start = parseLocalDate(evt.start);
             let end = parseLocalDate(evt.end);
             while (start <= end) {
                 const dateStr = getLocalDateString(start);
-                
-                // Extract clean name from GCal event summary (Format: "[숙소예약] 홍길동" or "홍길동")
-                const name = evt.summary.replace('\[숙소예약\]', '').trim();
                 
                 if (!map[dateStr]) {
                     map[dateStr] = [];
                 }
                 map[dateStr].push({
                     id: evt.id, // String ID from GCal
-                    name: name,
+                    name: cleanName || evt.summary,
                     contact: '',
                     notes: evt.description || '',
                     checkin: evt.start,
@@ -569,7 +589,7 @@ document.addEventListener('DOMContentLoaded', () => {
             contact: contact,
             notes: notes,
             status: 'pending',
-            dateCreated: new Date().toLocaleDateString(),
+            dateCreated: getLocalDateString(new Date()),
             checkin: getLocalDateString(checkinDate),
             checkout: getLocalDateString(checkoutDate)
         };
@@ -593,12 +613,12 @@ document.addEventListener('DOMContentLoaded', () => {
             "접수 일시": new Date().toLocaleString('ko-KR')
         });
 
-        alert('Teega Residence 숙소 예약 신청이 접수되었습니다!\n실시간 상담을 위해 조호엔 카카오톡 채널 창으로 자동 이동합니다.');
+        // Open KakaoTalk channel window before alert to avoid popup blocker on mobile
+        const kakaoWindow = window.open('https://pf.kakao.com/_vPVLb/chat', '_blank');
+
+        alert('Teega Residence 숙소 예약 신청이 접수되었습니다!\n실시간 상담을 위해 조호엔 카카오톡 채널 창으로 연결됩니다.');
 
         isStaySubmitted = true; // Mark as submitted
-
-        // Automatically open KakaoTalk Chat Channel window
-        window.open('https://pf.kakao.com/_vPVLb/chat', '_blank');
 
         // Highlight the KakaoTalk chat button below
         const stayKakaoBtn = document.getElementById('stayKakaoBtn');
@@ -648,7 +668,7 @@ document.addEventListener('DOMContentLoaded', () => {
             contact: contact,
             notes: notes,
             status: 'pending',
-            dateCreated: new Date().toLocaleDateString(),
+            dateCreated: getLocalDateString(new Date()),
             checkin: null,
             checkout: null
         };
@@ -672,12 +692,12 @@ document.addEventListener('DOMContentLoaded', () => {
             "접수 일시": new Date().toLocaleString('ko-KR')
         });
 
-        alert('이주정착 & 학교 상담 신청이 완료되었습니다!\n실시간 상담을 위해 조호엔 카카오톡 채널 창으로 자동 이동합니다.');
+        // Open KakaoTalk channel window before alert to avoid popup blocker on mobile
+        const kakaoWindow = window.open('https://pf.kakao.com/_vPVLb/chat', '_blank');
+
+        alert('이주정착 & 학교 상담 신청이 완료되었습니다!\n실시간 상담을 위해 조호엔 카카오톡 채널 창으로 연결됩니다.');
 
         isConsultSubmitted = true; // Mark as submitted
-
-        // Automatically open KakaoTalk Chat Channel window
-        window.open('https://pf.kakao.com/_vPVLb/chat', '_blank');
 
         // Highlight the KakaoTalk chat button below
         const consultKakaoBtn = document.getElementById('consultKakaoBtn');

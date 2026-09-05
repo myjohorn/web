@@ -1,13 +1,14 @@
 # Script to generate Android Adaptive Icons & Splash Screens with Safe Zone Padding
 Add-Type -AssemblyName System.Drawing
 
-$srcImgPath = "D:\AI\Dev\johorn\temp\JohorN_logo.jpg"
+$rootDir = (Resolve-Path "$PSScriptRoot\..").Path
+$srcImgPath = Join-Path $rootDir "temp\JohorN_logo.jpg"
 if (!(Test-Path $srcImgPath)) {
     Write-Error "Source image not found: $srcImgPath"
     exit 1
 }
 
-$resDir = "D:\AI\Dev\johorn\android\app\src\main\res"
+$resDir = Join-Path $rootDir "android\app\src\main\res"
 $srcImg = [System.Drawing.Image]::FromFile($srcImgPath)
 
 function Draw-Padded-Icon {

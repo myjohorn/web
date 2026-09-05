@@ -84,6 +84,27 @@ document.addEventListener('DOMContentLoaded', () => {
         return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
+    // HTML escaping helper to prevent XSS injection
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    // Helper: Safely resolve car management fee rate (allows 0% commission)
+    function getCarFeeRate(car) {
+        if (!car) return 20;
+        const rate = car.feeRate;
+        if (rate !== undefined && rate !== null && rate !== '' && !isNaN(rate)) {
+            return parseFloat(rate);
+        }
+        return 20;
+    }
+
     // ----------------------------------------------------
     // 2. Authentication Logic
     // ----------------------------------------------------
@@ -210,9 +231,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const inputHash = await hashPassword(input);
-            const defaultHash = await hashPassword('10011001');
 
-            if (inputHash === adminPasswordHash || inputHash === defaultHash || input === '10011001') {
+            if (inputHash === adminPasswordHash) {
                 sessionStorage.setItem('johorn_car_portal_auth', 'true');
                 sessionStorage.setItem('johorn_admin_auth', 'true');
                 sessionStorage.setItem('admin_logged_in', 'true');
@@ -360,6 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
         db.ref('delegated_car_settlements').on('value', (snapshot) => {
             const val = snapshot.val();
             delegatedSettlements = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })) : [];
+            updateDashboardMetrics();
             renderSettlements();
         });
     }
@@ -603,7 +624,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const ownerContact = document.getElementById('carOwnerContact').value.trim();
             const bankName = document.getElementById('carBankName').value.trim();
             const accountNumber = document.getElementById('carAccountNumber').value.trim();
-            const feeRate = parseFloat(document.getElementById('carFeeRate').value) || 20;
+            const feeRateInput = document.getElementById('carFeeRate') ? document.getElementById('carFeeRate').value.trim() : '';
+            const feeRate = (feeRateInput !== '' && !isNaN(feeRateInput)) ? parseFloat(feeRateInput) : 20;
             const status = document.getElementById('carStatus').value;
             const memo = document.getElementById('carMemo').value.trim();
             const color = carColorInput ? carColorInput.value : '#2E7D32';
@@ -810,7 +832,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('carOwnerContact').value = car.ownerContact || '';
                 document.getElementById('carBankName').value = car.bankName || '';
                 document.getElementById('carAccountNumber').value = car.accountNumber || '';
-                document.getElementById('carFeeRate').value = car.feeRate || 20;
+                document.getElementById('carFeeRate').value = (car.feeRate !== undefined && car.feeRate !== null && car.feeRate !== '') ? car.feeRate : 20;
                 document.getElementById('carStatus').value = car.status || 'active';
                 document.getElementById('carMemo').value = car.memo || '';
                 if (carColorInput) carColorInput.value = car.color || '#2E7D32';
@@ -1462,12 +1484,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             return `
                 <tr>
-                    <td data-label="날짜" style="font-weight: 500;">${item.date}</td>
+                    <td data-label="날짜" style="font-weight: 500;">${escapeHtml(item.date)}</td>
                     <td data-label="구분">${typeBadge}</td>
-                    <td data-label="차량">${item.carPlate} <span style="font-size: 11px; color: var(--text-secondary);">(${item.carModel})</span></td>
-                    <td data-label="상세 내역" style="text-align: left;">${item.details}</td>
+                    <td data-label="차량">${escapeHtml(item.carPlate)} <span style="font-size: 11px; color: var(--text-secondary);">(${escapeHtml(item.carModel)})</span></td>
+                    <td data-label="상세 내역" style="text-align: left;">${escapeHtml(item.details)}</td>
                     <td data-label="금액" style="font-weight: 700; color: ${amountColor};">${amountPrefix} ${item.amount.toLocaleString()}</td>
-                    <td data-label="공제 여부">${item.deductibleStr}</td>
+                    <td data-label="공제 여부">${escapeHtml(item.deductibleStr)}</td>
                     <td data-label="영수증">${receiptCol}</td>
                     <td data-label="관리">
                         ${actionCol}
@@ -1577,8 +1599,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Core Business Logic: Determine whether a revenue or expense item belongs to targetMonth
     function isItemAssignedToMonth(item, targetMonth, carId) {
-        const car = delegatedCars.find(c => c.id === carId);
+        const car = delegatedCars.find(c => c.id === carId || (c.plateNumber && c.plateNumber === carId));
         const matchCar = (item.carId === carId) || 
+                         (car && car.id && item.carId === car.id) ||
                          (car && car.plateNumber && item.carId === car.plateNumber) || 
                          (car && car.plateNumber && item.carPlate === car.plateNumber);
         if (!matchCar) return false;
@@ -1708,7 +1731,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const grossRevenue = revs.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
 
             // Management Fee
-            const feeRate = parseFloat(car.feeRate) || 20;
+            const feeRate = getCarFeeRate(car);
             const feeAmount = grossRevenue * (feeRate / 100);
 
             // Deductible Expenses (assigned to targetMonth including rollovers)
@@ -1867,7 +1890,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         const grossRevenue = revs.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
 
-        const feeRate = parseFloat(car.feeRate) || 20;
+        const feeRate = getCarFeeRate(car);
         const feeAmount = grossRevenue * (feeRate / 100);
 
         // Deductible Expenses assigned to targetMonth (including rollovers)
@@ -2108,32 +2131,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Calculate Month Gross Revenue (assigned to targetMonth)
         const monthRevenues = delegatedRevenues.filter(r => {
-            if (r.paymentStatus !== 'completed') return false;
-            const matchCar = (userRole === 'owner' && ownerCarId) ? r.carId === ownerCarId : true;
+            const isValidStatus = !r.paymentStatus || r.paymentStatus === 'completed' || r.paymentStatus === 'paid';
+            if (!isValidStatus) return false;
+            const matchCar = (userRole === 'owner' && ownerCarId) 
+                ? (r.carId === ownerCarId || (ownerCarPlate && r.carId === ownerCarPlate)) 
+                : true;
             return matchCar && isItemAssignedToMonth(r, targetMonth, r.carId);
         });
-        const grossRevenue = monthRevenues.reduce((sum, r) => sum + r.amount, 0);
+        const grossRevenue = monthRevenues.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
 
         // Calculate Month Expenses (assigned to targetMonth)
         const monthExpenses = delegatedExpenses.filter(e => {
-            if (!e.deductibleFromOwner) return false;
-            const matchCar = (userRole === 'owner' && ownerCarId) ? e.carId === ownerCarId : true;
+            const isDeductible = e.deductibleFromOwner === true || e.deductibleFromOwner === 'true';
+            if (!isDeductible) return false;
+            const matchCar = (userRole === 'owner' && ownerCarId) 
+                ? (e.carId === ownerCarId || (ownerCarPlate && e.carId === ownerCarPlate)) 
+                : true;
             return matchCar && isItemAssignedToMonth(e, targetMonth, e.carId);
         });
-        const totalExpenses = monthExpenses.reduce((sum, e) => sum + e.amount, 0);
+        const totalExpenses = monthExpenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
 
         // Calculate Total Company Fee Profit & Net Owner Payouts for targetMonth
         let companyFeeProfit = 0;
         let totalOwnerPayouts = 0;
 
         targetCars.forEach(car => {
-            const carRevs = monthRevenues.filter(r => r.carId === car.id);
-            const carGross = carRevs.reduce((sum, r) => sum + r.amount, 0);
-            const feeRate = car.feeRate || 20;
+            const carRevs = monthRevenues.filter(r => r.carId === car.id || (car.plateNumber && r.carId === car.plateNumber));
+            const carGross = carRevs.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+            const feeRate = getCarFeeRate(car);
             const fee = carGross * (feeRate / 100);
 
-            const carExps = monthExpenses.filter(e => e.carId === car.id);
-            const expSum = carExps.reduce((sum, e) => sum + e.amount, 0);
+            const carExps = monthExpenses.filter(e => e.carId === car.id || (car.plateNumber && e.carId === car.plateNumber));
+            const expSum = carExps.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
 
             const ownerPayout = carGross - fee - expSum;
 
@@ -2145,30 +2174,44 @@ document.addEventListener('DOMContentLoaded', () => {
         let totalUnsettledPayout = 0;
         const allMonthsSet = new Set();
         delegatedRevenues.forEach(r => {
-            const m = r.settledMonth || (r.startDate && r.startDate.substring(0, 7));
-            if (m && m.length >= 7) allMonthsSet.add(m);
+            const matchAnyCar = targetCars.some(c => r.carId === c.id || (c.plateNumber && r.carId === c.plateNumber));
+            if (matchAnyCar) {
+                const m = r.settledMonth || (r.startDate && r.startDate.substring(0, 7));
+                if (m && m.length >= 7 && m <= targetMonth) allMonthsSet.add(m);
+            }
         });
         delegatedExpenses.forEach(e => {
-            const m = e.settledMonth || (e.expenseDate && e.expenseDate.substring(0, 7));
-            if (m && m.length >= 7) allMonthsSet.add(m);
+            const matchAnyCar = targetCars.some(c => e.carId === c.id || (c.plateNumber && e.carId === c.plateNumber));
+            if (matchAnyCar) {
+                const m = e.settledMonth || (e.expenseDate && e.expenseDate.substring(0, 7));
+                if (m && m.length >= 7 && m <= targetMonth) allMonthsSet.add(m);
+            }
         });
         if (targetMonth) allMonthsSet.add(targetMonth);
 
         allMonthsSet.forEach(m => {
+            if (m > targetMonth) return; // Strict: Never include future months in unsettled total
             targetCars.forEach(car => {
-                const settleId = `settle_${m.replace('-', '_')}_${car.id}`;
-                const existingSettlement = delegatedSettlements.find(s => s.id === settleId);
+                const existingSettlement = getSettlementForCarMonth(car.id, m);
                 const isMonthCompleted = existingSettlement && existingSettlement.status === 'completed';
 
                 // If this month is not settled yet, accumulate to totalUnsettledPayout
                 if (!isMonthCompleted) {
-                    const carRevs = delegatedRevenues.filter(r => r.paymentStatus === 'completed' && isItemAssignedToMonth(r, m, car.id));
-                    const carGross = carRevs.reduce((sum, r) => sum + r.amount, 0);
-                    const feeRate = car.feeRate || 20;
+                    const carRevs = delegatedRevenues.filter(r => {
+                        const isValidStatus = !r.paymentStatus || r.paymentStatus === 'completed' || r.paymentStatus === 'paid';
+                        const matchCar = (r.carId === car.id) || (car.plateNumber && r.carId === car.plateNumber);
+                        return isValidStatus && matchCar && isItemAssignedToMonth(r, m, car.id);
+                    });
+                    const carGross = carRevs.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+                    const feeRate = getCarFeeRate(car);
                     const fee = carGross * (feeRate / 100);
 
-                    const carExps = delegatedExpenses.filter(e => e.deductibleFromOwner && isItemAssignedToMonth(e, m, car.id));
-                    const expSum = carExps.reduce((sum, e) => sum + e.amount, 0);
+                    const carExps = delegatedExpenses.filter(e => {
+                        const isDeductible = e.deductibleFromOwner === true || e.deductibleFromOwner === 'true';
+                        const matchCar = (e.carId === car.id) || (car.plateNumber && e.carId === car.plateNumber);
+                        return isDeductible && matchCar && isItemAssignedToMonth(e, m, car.id);
+                    });
+                    const expSum = carExps.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
 
                     const monthOwnerPayout = carGross - fee - expSum;
                     totalUnsettledPayout += monthOwnerPayout;
@@ -2278,7 +2321,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             return '';
         }
-        const target = new Date(y, m + 1, d);
+        const targetYear = y + Math.floor((m + 1) / 12);
+        const targetMonth = (m + 1) % 12;
+        const maxDaysInTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+        const targetDay = Math.min(d, maxDaysInTargetMonth);
+        const target = new Date(targetYear, targetMonth, targetDay);
         return getLocalDateString(target);
     }
 

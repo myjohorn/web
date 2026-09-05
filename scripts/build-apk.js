@@ -5,8 +5,9 @@ const fs = require('fs');
 
 const rootDir = path.resolve(__dirname, '..');
 const androidDir = path.join(rootDir, 'android');
-const jdkPath = 'C:\\Users\\croh\\.jdks\\jdk21';
-const androidSdkPath = path.join(process.env.LOCALAPPDATA || 'C:\\Users\\croh\\AppData\\Local', 'Android', 'Sdk');
+const defaultJdkPath = path.join(process.env.USERPROFILE || 'C:\\Users\\croh', '.jdks', 'jdk21');
+const javaHome = process.env.JAVA_HOME || (fs.existsSync(defaultJdkPath) ? defaultJdkPath : null);
+const androidSdkPath = process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT || path.join(process.env.LOCALAPPDATA || 'C:\\Users\\croh\\AppData\\Local', 'Android', 'Sdk');
 
 console.log('--- Step 1: Building Web Assets ---');
 require('./build-app');
@@ -35,7 +36,7 @@ if (fs.existsSync(logoPath)) {
 console.log('\n--- Step 3: Building Android APK with Gradle ---');
 const env = {
     ...process.env,
-    JAVA_HOME: fs.existsSync(jdkPath) ? jdkPath : process.env.JAVA_HOME,
+    ...(javaHome ? { JAVA_HOME: javaHome } : {}),
     ANDROID_HOME: androidSdkPath
 };
 

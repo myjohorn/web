@@ -87,6 +87,17 @@ document.addEventListener('DOMContentLoaded', () => {
         return dateStr;
     }
 
+    // Helper: HTML escaping to prevent XSS injection
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
     // Helper: secure SHA-256 hash using Web Crypto API
     async function sha256(password) {
         if (!password) return '';
@@ -174,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleAdminLogin() {
         const password = adminPasswordInput.value;
         const typedHash = await sha256(password);
-        if (typedHash === storedPasswordHash || password === '10011001') {
+        if (typedHash === storedPasswordHash) {
             sessionStorage.setItem('admin_logged_in', 'true');
             sessionStorage.setItem('johorn_admin_auth', 'true');
             adminLoginSection.classList.add('hidden');
@@ -185,45 +196,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Admin Unified Tab Switching (Booking vs Car)
-    const tabBtnBooking = document.getElementById('tabBtnBooking');
-    const tabBtnCar = document.getElementById('tabBtnCar');
-    const headerNavBooking = document.getElementById('headerNavBooking');
-    const headerNavCar = document.getElementById('headerNavCar');
-    const sectionBooking = document.getElementById('sectionBooking');
-    const sectionCar = document.getElementById('sectionCar');
-
-    function switchAdminTab(tab) {
-        if (!sectionBooking || !sectionCar) return;
-        if (tab === 'car') {
-            sectionBooking.style.display = 'none';
-            sectionCar.style.display = 'block';
-            if (tabBtnCar) {
-                tabBtnCar.className = 'btn btn-primary';
-                tabBtnCar.style.borderColor = '';
-                tabBtnCar.style.color = '';
-                tabBtnCar.style.background = '';
+    // Logout button handler
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            if (confirm('관리자 모드에서 로그아웃 하시겠습니까?')) {
+                sessionStorage.removeItem('admin_logged_in');
+                sessionStorage.removeItem('johorn_admin_auth');
+                sessionStorage.removeItem('johorn_car_portal_auth');
+                sessionStorage.removeItem('johorn_commission_portal_auth');
+                window.location.reload();
             }
-            if (tabBtnBooking) {
-                tabBtnBooking.className = 'btn btn-secondary';
-            }
-            if (headerNavCar) headerNavCar.classList.add('active');
-            if (headerNavBooking) headerNavBooking.classList.remove('active');
-        } else {
-            sectionBooking.style.display = 'block';
-            sectionCar.style.display = 'none';
-            if (tabBtnBooking) {
-                tabBtnBooking.className = 'btn btn-primary';
-            }
-            if (tabBtnCar) {
-                tabBtnCar.className = 'btn btn-secondary';
-                tabBtnCar.style.borderColor = 'var(--accent-color)';
-                tabBtnCar.style.color = 'var(--accent-color)';
-                tabBtnCar.style.background = 'rgba(197, 168, 128, 0.05)';
-            }
-            if (headerNavBooking) headerNavBooking.classList.add('active');
-            if (headerNavCar) headerNavCar.classList.remove('active');
-        }
+        });
     }
 
     if (window.location.hash === '#car') {
@@ -424,11 +408,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             tr.innerHTML = `
                 <td class="col-num" data-label="번호">${index + 1}</td>
-                <td class="col-type" data-label="구분"><strong>${typeLabel}</strong></td>
-                <td class="col-name" data-label="신청자">${item.name}</td>
-                <td class="col-contact" data-label="연락처">${item.contact}</td>
-                <td class="col-schedule" data-label="일정"><span style="font-size:13px;">${scheduleStr}</span></td>
-                <td class="col-status" data-label="상태"><span class="status-badge ${badgeClass}">${statusLabel}</span></td>
+                <td class="col-type" data-label="구분"><strong>${escapeHtml(typeLabel)}</strong></td>
+                <td class="col-name" data-label="신청자">${escapeHtml(item.name)}</td>
+                <td class="col-contact" data-label="연락처">${escapeHtml(item.contact)}</td>
+                <td class="col-schedule" data-label="일정"><span style="font-size:13px;">${escapeHtml(scheduleStr)}</span></td>
+                <td class="col-status" data-label="상태"><span class="status-badge ${badgeClass}">${escapeHtml(statusLabel)}</span></td>
                 <td class="col-action" data-label="관리">
                     ${selectMarkup}
                 </td>
@@ -488,19 +472,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="detail-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
                     <div>
                         <p style="margin-bottom: 8px;"><strong>구분:</strong> <span style="color: var(--accent-color); font-weight: 600;">숙소 예약 신청</span></p>
-                        <p style="margin-bottom: 8px;"><strong>신청자 성함:</strong> ${item.name}</p>
-                        <p style="margin-bottom: 8px;"><strong>연락처:</strong> ${item.contact}</p>
-                        <p style="margin-bottom: 8px;"><strong>접수일시:</strong> ${item.dateCreated || '-'}</p>
+                        <p style="margin-bottom: 8px;"><strong>신청자 성함:</strong> ${escapeHtml(item.name)}</p>
+                        <p style="margin-bottom: 8px;"><strong>연락처:</strong> ${escapeHtml(item.contact)}</p>
+                        <p style="margin-bottom: 8px;"><strong>접수일시:</strong> ${escapeHtml(item.dateCreated || '-')}</p>
                     </div>
                     <div>
-                        <p style="margin-bottom: 8px;"><strong>체크인 날짜:</strong> ${item.checkin}</p>
-                        <p style="margin-bottom: 8px;"><strong>체크아웃 날짜:</strong> ${item.checkout}</p>
-                        <p style="margin-bottom: 8px;"><strong>현재 상태:</strong> <span class="status-badge ${badgeClass}">${statusLabel}</span></p>
+                        <p style="margin-bottom: 8px;"><strong>체크인 날짜:</strong> ${escapeHtml(item.checkin)}</p>
+                        <p style="margin-bottom: 8px;"><strong>체크아웃 날짜:</strong> ${escapeHtml(item.checkout)}</p>
+                        <p style="margin-bottom: 8px;"><strong>현재 상태:</strong> <span class="status-badge ${badgeClass}">${escapeHtml(statusLabel)}</span></p>
                     </div>
                 </div>
                 <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
                     <strong style="display: block; margin-bottom: 10px; font-size: 14px; color: var(--text-primary);">상세 내역 / 요청 사항:</strong>
-                    <pre style="margin: 0; font-family: inherit; white-space: pre-wrap; font-size: 13px; color: var(--text-secondary); background: #fcfbfa; padding: 15px; border: 1px solid var(--border-color); border-radius: 4px; line-height: 1.6; text-align: left;">${item.notes || '없음'}</pre>
+                    <pre style="margin: 0; font-family: inherit; white-space: pre-wrap; font-size: 13px; color: var(--text-secondary); background: #fcfbfa; padding: 15px; border: 1px solid var(--border-color); border-radius: 4px; line-height: 1.6; text-align: left;">${escapeHtml(item.notes || '없음')}</pre>
                 </div>
             `;
         } else {
@@ -508,17 +492,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="detail-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
                     <div>
                         <p style="margin-bottom: 8px;"><strong>구분:</strong> <span style="color: var(--accent-color); font-weight: 600;">이주정착 & 국제학교 상담 문의</span></p>
-                        <p style="margin-bottom: 8px;"><strong>신청자 성함:</strong> ${item.name}</p>
-                        <p style="margin-bottom: 8px;"><strong>연락처:</strong> ${item.contact}</p>
+                        <p style="margin-bottom: 8px;"><strong>신청자 성함:</strong> ${escapeHtml(item.name)}</p>
+                        <p style="margin-bottom: 8px;"><strong>연락처:</strong> ${escapeHtml(item.contact)}</p>
                     </div>
                     <div>
-                        <p style="margin-bottom: 8px;"><strong>접수일시:</strong> ${item.dateCreated || '-'}</p>
-                        <p style="margin-bottom: 8px;"><strong>현재 상태:</strong> <span class="status-badge ${badgeClass}">${statusLabel}</span></p>
+                        <p style="margin-bottom: 8px;"><strong>접수일시:</strong> ${escapeHtml(item.dateCreated || '-')}</p>
+                        <p style="margin-bottom: 8px;"><strong>현재 상태:</strong> <span class="status-badge ${badgeClass}">${escapeHtml(statusLabel)}</span></p>
                     </div>
                 </div>
                 <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
                     <strong style="display: block; margin-bottom: 10px; font-size: 14px; color: var(--text-primary);">상세 상담 문의 내역:</strong>
-                    <pre style="margin: 0; font-family: inherit; white-space: pre-wrap; font-size: 13px; color: var(--text-secondary); background: #fcfbfa; padding: 15px; border: 1px solid var(--border-color); border-radius: 4px; line-height: 1.6; text-align: left;">${item.notes || '없음'}</pre>
+                    <pre style="margin: 0; font-family: inherit; white-space: pre-wrap; font-size: 13px; color: var(--text-secondary); background: #fcfbfa; padding: 15px; border: 1px solid var(--border-color); border-radius: 4px; line-height: 1.6; text-align: left;">${escapeHtml(item.notes || '없음')}</pre>
                 </div>
             `;
         }
@@ -545,41 +529,64 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = johornRequests;
         const map = {};
         
-        data.forEach(item => {
-            if (item.type === 'stay' && item.status === 'approved' && item.checkin && item.checkout) {
-                let start = parseLocalDate(item.checkin);
-                let end = parseLocalDate(item.checkout);
-                while (start <= end) {
-                    const dateStr = getLocalDateString(start);
-                    if (!map[dateStr]) {
-                        map[dateStr] = [];
-                    }
-                    map[dateStr].push({
-                        id: item.id,
-                        name: item.name,
-                        contact: item.contact || '',
-                        notes: item.notes || '',
-                        checkin: item.checkin,
-                        checkout: item.checkout
-                    });
-                    start.setDate(start.getDate() + 1);
+        const approvedRequests = data.filter(item => item.type === 'stay' && item.status === 'approved' && item.checkin && item.checkout);
+        const localGcalIds = new Set();
+        const localBookingsKeys = new Set();
+
+        approvedRequests.forEach(item => {
+            if (item.gcalEventId) {
+                localGcalIds.add(item.gcalEventId);
+            }
+            if (item.name && item.checkin && item.checkout) {
+                localBookingsKeys.add(`${item.name.trim()}_${item.checkin}_${item.checkout}`);
+            }
+
+            let start = parseLocalDate(item.checkin);
+            let end = parseLocalDate(item.checkout);
+            while (start <= end) {
+                const dateStr = getLocalDateString(start);
+                if (!map[dateStr]) {
+                    map[dateStr] = [];
                 }
+                map[dateStr].push({
+                    id: item.id,
+                    name: item.name,
+                    contact: item.contact || '',
+                    notes: item.notes || '',
+                    checkin: item.checkin,
+                    checkout: item.checkout,
+                    gcalEventId: item.gcalEventId || ''
+                });
+                start.setDate(start.getDate() + 1);
             }
         });
 
         gcalEventsCache.forEach(evt => {
+            // Skip GCal event if already added from local reservations by ID
+            if (evt.id && localGcalIds.has(evt.id)) {
+                return;
+            }
+
+            // Extract clean name from GCal event summary (Format: "[숙소예약] 홍길동" or "홍길동")
+            const cleanName = evt.summary ? evt.summary.replace(/^\[숙소예약\]\s*/, '').trim() : '';
+
+            // Skip GCal event if already added from local reservations by name and dates
+            const gcalKey = `${cleanName}_${evt.start}_${evt.end}`;
+            if (localBookingsKeys.has(gcalKey)) {
+                return;
+            }
+
             let start = parseLocalDate(evt.start);
             let end = parseLocalDate(evt.end);
             while (start <= end) {
                 const dateStr = getLocalDateString(start);
-                const name = evt.summary.replace('\[숙소예약\]', '').trim();
                 
                 if (!map[dateStr]) {
                     map[dateStr] = [];
                 }
                 map[dateStr].push({
                     id: evt.id,
-                    name: name,
+                    name: cleanName || evt.summary,
                     contact: '',
                     notes: evt.description || '',
                     checkin: evt.start,
@@ -833,6 +840,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     alert('구글 캘린더 동기화 중...');
                     bookingObj.gcalEventId = existingItem ? existingItem.gcalEventId : null;
+                    if (!bookingObj.gcalEventId && existingItem) {
+                        const match = gcalEventsCache.find(e => {
+                            const cName = e.summary ? e.summary.replace(/^\[숙소예약\]\s*/, '').trim() : '';
+                            return cName === existingItem.name && e.start === existingItem.checkin && e.end === existingItem.checkout;
+                        });
+                        if (match) {
+                            bookingObj.gcalEventId = match.id;
+                        }
+                    }
                     const syncedGcalId = await saveGcalEvent(bookingObj);
 
                     const updateObj = {
@@ -917,9 +933,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 const targetId = idVal;
                 const targetItem = johornRequests.find(item => item.id.toString() === targetId.toString());
 
-                if (targetItem && targetItem.gcalEventId) {
+                let gcalIdToDelete = targetItem ? targetItem.gcalEventId : null;
+                if (!gcalIdToDelete && targetItem) {
+                    const match = gcalEventsCache.find(e => {
+                        const cName = e.summary ? e.summary.replace(/^\[숙소예약\]\s*/, '').trim() : '';
+                        return cName === targetItem.name && e.start === targetItem.checkin && e.end === targetItem.checkout;
+                    });
+                    if (match) {
+                        gcalIdToDelete = match.id;
+                    }
+                }
+
+                if (gcalIdToDelete) {
                     alert('구글 캘린더 예약 동기화 삭제 중...');
-                    await deleteGcalEvent(targetItem.gcalEventId);
+                    await deleteGcalEvent(gcalIdToDelete);
                 }
 
                 db.ref(`requests/${targetId}`).remove();
