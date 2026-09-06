@@ -302,7 +302,16 @@
                 <!-- Gallery -->
                 <div class="stay-gallery">
                     <div class="gallery-main" id="galleryMain">
+                        <button type="button" class="gallery-nav-btn prev" id="galleryPrevBtn" aria-label="이전 사진">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
                         <img src="assets/stay_balcony.jpg" alt="Teega Residence Balcony View" id="mainGalleryImg" data-cms="stay.main_img">
+                        <button type="button" class="gallery-nav-btn next" id="galleryNextBtn" aria-label="다음 사진">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                        <div class="gallery-counter" id="galleryCounter">
+                            <i class="fa-regular fa-image"></i> <span id="galleryCurrentIdx">1</span> / <span id="galleryTotalIdx">8</span>
+                        </div>
                     </div>
                     <div class="gallery-thumbs">
                         <div class="thumb active" data-img="assets/stay_balcony.jpg">

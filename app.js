@@ -113,19 +113,9 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }).join('');
 
-        const thumbs = thumbsContainer.querySelectorAll('.thumb');
-        thumbs.forEach(thumb => {
-            thumb.addEventListener('click', () => {
-                thumbs.forEach(t => t.classList.remove('active'));
-                thumb.classList.add('active');
-                const newSrc = thumb.getAttribute('data-img');
-                mainImg.style.opacity = 0;
-                setTimeout(() => {
-                    mainImg.setAttribute('src', newSrc);
-                    mainImg.style.opacity = 1;
-                }, 150);
-            });
-        });
+        if (window.stayGalleryController) {
+            window.stayGalleryController.refresh();
+        }
     }
 
     // 1. Listen for live CMS content from Firebase
@@ -368,26 +358,175 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ----------------------------------------------------
-    // 2. Stay Gallery Thumbnail Handler
+    // 2. Stay Gallery Interactive Controller
     // ----------------------------------------------------
-    const galleryMainImg = document.getElementById('mainGalleryImg');
-    const thumbnails = document.querySelectorAll('.thumb');
+    function initStayGallery() {
+        const mainContainer = document.getElementById('galleryMain');
+        const mainImg = document.getElementById('mainGalleryImg');
+        const thumbsContainer = document.querySelector('.stay-gallery .gallery-thumbs');
+        const prevBtn = document.getElementById('galleryPrevBtn');
+        const nextBtn = document.getElementById('galleryNextBtn');
+        const currentIdxEl = document.getElementById('galleryCurrentIdx');
+        const totalIdxEl = document.getElementById('galleryTotalIdx');
 
-    thumbnails.forEach(thumb => {
-        thumb.addEventListener('click', () => {
-            // Remove active style from all thumbs
-            thumbnails.forEach(t => t.classList.remove('active'));
-            // Set clicked thumb active
-            thumb.classList.add('active');
-            // Change main image source with smooth transition
-            const newSrc = thumb.getAttribute('data-img');
-            galleryMainImg.style.opacity = 0;
+        if (!mainContainer || !mainImg || !thumbsContainer) return null;
+
+        let currentIndex = 0;
+
+        function getThumbs() {
+            return Array.from(thumbsContainer.querySelectorAll('.thumb'));
+        }
+
+        function updateCounter(idx, total) {
+            if (currentIdxEl) currentIdxEl.textContent = (idx + 1);
+            if (totalIdxEl) totalIdxEl.textContent = total;
+        }
+
+        function goToIndex(newIndex, scrollThumb = true) {
+            const thumbs = getThumbs();
+            if (thumbs.length === 0) return;
+
+            currentIndex = (newIndex + thumbs.length) % thumbs.length;
+            const activeThumb = thumbs[currentIndex];
+            const newSrc = activeThumb ? activeThumb.getAttribute('data-img') : null;
+
+            thumbs.forEach((t, i) => {
+                t.classList.toggle('active', i === currentIndex);
+            });
+
+            mainImg.style.opacity = 0;
             setTimeout(() => {
-                galleryMainImg.setAttribute('src', newSrc);
-                galleryMainImg.style.opacity = 1;
-            }, 150);
+                if (newSrc) mainImg.setAttribute('src', newSrc);
+                mainImg.style.opacity = 1;
+            }, 120);
+
+            updateCounter(currentIndex, thumbs.length);
+
+            if (scrollThumb && activeThumb) {
+                activeThumb.scrollIntoView({
+                    behavior: 'smooth',
+                    inline: 'center',
+                    block: 'nearest'
+                });
+            }
+        }
+
+        // Navigation button events
+        if (prevBtn) {
+            prevBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                goToIndex(currentIndex - 1, true);
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                goToIndex(currentIndex + 1, true);
+            });
+        }
+
+        // Drag & scroll state variables
+        let isMouseDown = false;
+        let isDragging = false;
+        let startX = 0;
+        let scrollStartLeft = 0;
+
+        function bindThumbEvents() {
+            const thumbs = getThumbs();
+            const activeIdx = thumbs.findIndex(t => t.classList.contains('active'));
+            currentIndex = activeIdx >= 0 ? activeIdx : 0;
+            updateCounter(currentIndex, thumbs.length);
+
+            thumbs.forEach((thumb, idx) => {
+                thumb.onclick = (e) => {
+                    if (isDragging) return;
+                    goToIndex(idx, true);
+                };
+            });
+        }
+
+        // 1. Mouse wheel horizontal scrolling on thumbnail track
+        thumbsContainer.addEventListener('wheel', (e) => {
+            if (e.deltaY !== 0) {
+                e.preventDefault();
+                thumbsContainer.scrollLeft += (e.deltaY * 1.2);
+            }
+        }, { passive: false });
+
+        // 2. Grab & Drag scrolling on thumbnail track
+        thumbsContainer.addEventListener('mousedown', (e) => {
+            isMouseDown = true;
+            isDragging = false;
+            startX = e.pageX - thumbsContainer.offsetLeft;
+            scrollStartLeft = thumbsContainer.scrollLeft;
+            thumbsContainer.classList.add('is-dragging');
         });
-    });
+
+        window.addEventListener('mouseup', () => {
+            if (isMouseDown) {
+                isMouseDown = false;
+                setTimeout(() => { isDragging = false; }, 50);
+                thumbsContainer.classList.remove('is-dragging');
+            }
+        });
+
+        thumbsContainer.addEventListener('mousemove', (e) => {
+            if (!isMouseDown) return;
+            e.preventDefault();
+            const x = e.pageX - thumbsContainer.offsetLeft;
+            const walk = (x - startX) * 1.5;
+            if (Math.abs(walk) > 4) {
+                isDragging = true;
+            }
+            thumbsContainer.scrollLeft = scrollStartLeft - walk;
+        });
+
+        // 3. Touch swipe gestures on main image
+        let touchStartX = 0;
+        let touchStartY = 0;
+        mainContainer.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        mainContainer.addEventListener('touchend', (e) => {
+            const diffX = e.changedTouches[0].clientX - touchStartX;
+            const diffY = e.changedTouches[0].clientY - touchStartY;
+            if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
+                if (diffX < 0) {
+                    goToIndex(currentIndex + 1, true);
+                } else {
+                    goToIndex(currentIndex - 1, true);
+                }
+            }
+        }, { passive: true });
+
+        // 4. Keyboard Arrow Left/Right when gallery is in viewport
+        window.addEventListener('keydown', (e) => {
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+            const rect = mainContainer.getBoundingClientRect();
+            const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+            if (!isVisible) return;
+
+            if (e.key === 'ArrowLeft') {
+                goToIndex(currentIndex - 1, true);
+            } else if (e.key === 'ArrowRight') {
+                goToIndex(currentIndex + 1, true);
+            }
+        });
+
+        bindThumbEvents();
+
+        return {
+            refresh: bindThumbEvents,
+            goToIndex
+        };
+    }
+
+    window.stayGalleryController = initStayGallery();
 
 
     // ----------------------------------------------------

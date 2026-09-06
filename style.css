@@ -476,55 +476,124 @@ section {
 .gallery-main {
     height: 500px;
     overflow: hidden;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     position: relative;
+    border-radius: 12px;
+    background: #0f172a;
+    user-select: none;
 }
 
 .gallery-main img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: var(--transition);
+    transition: opacity 0.2s ease-in-out;
 }
 
+/* Floating Navigation Buttons */
+.gallery-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 5;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.gallery-nav-btn:hover {
+    background: rgba(15, 23, 42, 0.92);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-50%) scale(1.08);
+    color: var(--accent-color, #d4af37);
+}
+
+.gallery-nav-btn:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.gallery-nav-btn.prev {
+    left: 18px;
+}
+
+.gallery-nav-btn.next {
+    right: 18px;
+}
+
+/* Photo Counter Badge */
+.gallery-counter {
+    position: absolute;
+    bottom: 18px;
+    right: 18px;
+    background: rgba(15, 23, 42, 0.72);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #f8fafc;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    z-index: 5;
+    pointer-events: none;
+}
+
+/* Thumbs Track */
 .gallery-thumbs {
     display: flex;
-    gap: 15px;
+    gap: 12px;
     overflow-x: auto;
-    padding-bottom: 12px;
+    padding: 4px 2px 8px 2px;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Hide scrollbar Firefox */
+    -ms-overflow-style: none; /* Hide scrollbar IE/Edge */
+    cursor: grab;
+    user-select: none;
 }
 
-/* Custom scrollbar for modern design */
+.gallery-thumbs.is-dragging {
+    cursor: grabbing;
+    scroll-behavior: auto; /* Instant tracking while dragging */
+}
+
+/* Completely hide native scrollbar on WebKit */
 .gallery-thumbs::-webkit-scrollbar {
-    height: 4px;
-}
-
-.gallery-thumbs::-webkit-scrollbar-track {
-    background: var(--bg-secondary);
-}
-
-.gallery-thumbs::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 2px;
-}
-
-.gallery-thumbs::-webkit-scrollbar-thumb:hover {
-    background: var(--accent-color);
+    display: none;
+    width: 0;
+    height: 0;
 }
 
 .thumb {
-    flex: 0 0 160px;
-    height: 100px;
+    flex: 0 0 145px;
+    height: 95px;
     overflow: hidden;
     cursor: pointer;
+    border-radius: 8px;
     border: 2px solid transparent;
-    transition: var(--transition);
+    transition: all 0.2s ease;
+    position: relative;
 }
 
 .thumb.active {
-    border-color: var(--accent-color);
+    border-color: var(--accent-color, #d4af37);
+    box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.35);
 }
 
 .thumb img {
@@ -532,12 +601,17 @@ section {
     height: 100%;
     object-fit: cover;
     opacity: 0.6;
-    transition: var(--transition);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
 }
 
 .thumb:hover img,
 .thumb.active img {
     opacity: 1;
+}
+
+.thumb:hover {
+    transform: translateY(-2px);
 }
 
 .stay-info-grid {
@@ -1373,11 +1447,29 @@ footer {
 
     /* Stay Gallery adjustments */
     .gallery-main {
-        height: 250px !important;
+        height: 260px !important;
+    }
+    .gallery-nav-btn {
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 14px !important;
+    }
+    .gallery-nav-btn.prev {
+        left: 10px !important;
+    }
+    .gallery-nav-btn.next {
+        right: 10px !important;
+    }
+    .gallery-counter {
+        bottom: 10px !important;
+        right: 10px !important;
+        font-size: 11px !important;
+        padding: 4px 10px !important;
     }
     .gallery-thumbs .thumb {
-        min-width: 75px !important;
-        height: 55px !important;
+        flex: 0 0 95px !important;
+        min-width: 95px !important;
+        height: 65px !important;
     }
 
     /* Calendar adjustments for mobile */
