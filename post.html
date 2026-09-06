@@ -216,7 +216,7 @@
                 }
 
                 // Body content
-                document.getElementById('postBody').innerHTML = post.contentHtml || `<p>${escapeHtml(post.summary || '')}</p>`;
+                document.getElementById('postBody').innerHTML = post.contentHtml || post.content || `<p>${escapeHtml(post.summary || '')}</p>`;
 
                 postLoader.style.display = 'none';
                 postContentArea.style.display = 'block';
