@@ -638,20 +638,29 @@
     <!-- Modal 4: Monthly Settlement Statement Sheet Modal (`#settlementModal`) -->
     <div class="admin-modal" id="settlementModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center;">
         <div style="background: var(--white); width: 95%; max-width: 680px; border-radius: 8px; padding: 35px; box-shadow: 0 15px 40px rgba(0,0,0,0.3); max-height: 92vh; overflow-y: auto;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--accent-color); padding-bottom: 15px;">
-                <div>
-                    <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: var(--accent-color); text-transform: uppercase;">JohorN Consignment Care</span>
-                    <h3 id="stmtModalTitle" style="font-size: 20px; font-weight: 700; margin: 2px 0 0 0; color: var(--text-primary);">렌트카 정산 명세서</h3>
+            <!-- Printable Statement Area -->
+            <div id="printableStatementArea" style="background: #ffffff; color: var(--text-primary); padding: 5px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; border-bottom: 2px solid var(--accent-color); padding-bottom: 15px;">
+                    <div>
+                        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: var(--accent-color); text-transform: uppercase;">JohorN Consignment Care</span>
+                        <h3 id="stmtModalTitle" style="font-size: 20px; font-weight: 700; margin: 2px 0 0 0; color: var(--text-primary);">렌트카 정산 명세서</h3>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div style="text-align: right; font-size: 11px; color: var(--text-secondary);">
+                            <div id="stmtPrintDate"></div>
+                            <div style="font-weight: 600; color: var(--accent-color); margin-top: 2px;">JohorN 조호엔 (johorn.kr)</div>
+                        </div>
+                        <button type="button" class="close-modal-btn" data-modal="settlementModal" data-html2canvas-ignore="true" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary); line-height: 1;">&times;</button>
+                    </div>
                 </div>
-                <button type="button" class="close-modal-btn" data-modal="settlementModal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary);">&times;</button>
+
+                <!-- Statement Content Sheet -->
+                <div id="stmtContentSheet" style="font-size: 13px; color: var(--text-primary); line-height: 1.6;">
+                    <!-- JS will inject statement markup -->
+                </div>
             </div>
 
-            <!-- Statement Content Sheet -->
-            <div id="stmtContentSheet" style="font-size: 13px; color: var(--text-primary); line-height: 1.6;">
-                <!-- JS will inject statement markup -->
-            </div>
-
-            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 25px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 25px; border-top: 1px solid var(--border-color); padding-top: 20px;" data-html2canvas-ignore="true">
                 <button type="button" id="printStmtBtn" class="btn btn-secondary" style="padding: 10px 20px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
                     <i class="fa-solid fa-file-pdf"></i> PDF 다운로드
                 </button>

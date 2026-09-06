@@ -1929,6 +1929,11 @@ document.addEventListener('DOMContentLoaded', () => {
             settledStatusHtml = `<span style="color: #E65100; font-weight: 700;"><i class="fa-solid fa-clock"></i> 정산 대기 (미정산)</span>`;
         }
 
+        const stmtPrintDate = document.getElementById('stmtPrintDate');
+        if (stmtPrintDate) {
+            stmtPrintDate.textContent = `발행일: ${getLocalDateString(new Date())}`;
+        }
+
         if (stmtContentSheet) {
             stmtContentSheet.innerHTML = `
                 <div style="background: rgba(197, 168, 128, 0.05); padding: 15px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 20px;">
@@ -1988,7 +1993,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <td style="padding: 6px;">
                                         ${expRolloverBadge}${e.description || e.category}
                                         ${(e.hasReceipt || e.receiptImage) ? `
-                                            <button type="button" class="stmt-view-receipt-btn" data-id="${e.id}" style="border: 1px solid #90CAF9; background: #E3F2FD; color: #1565C0; font-size: 11px; padding: 2px 6px; border-radius: 4px; cursor: pointer; margin-left: 6px; display: inline-flex; align-items: center; gap: 3px;">
+                                            <button type="button" class="stmt-view-receipt-btn" data-html2canvas-ignore="true" data-id="${e.id}" style="border: 1px solid #90CAF9; background: #E3F2FD; color: #1565C0; font-size: 11px; padding: 2px 6px; border-radius: 4px; cursor: pointer; margin-left: 6px; display: inline-flex; align-items: center; gap: 3px;">
                                                 <i class="fa-solid fa-receipt"></i> 영수증
                                             </button>
                                         ` : ''}
@@ -2132,8 +2137,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const printStmtBtn = document.getElementById('printStmtBtn');
     if (printStmtBtn) {
         printStmtBtn.addEventListener('click', () => {
-            const stmtContentSheet = document.getElementById('stmtContentSheet');
-            if (!stmtContentSheet) return;
+            const printArea = document.getElementById('printableStatementArea');
+            if (!printArea) return;
 
             // Filename format: "JohorN_렌트카정산_<차량번호>_<**년**월>.pdf"
             const carPlate = (currentStmtCar && currentStmtCar.plateNumber)
@@ -2160,58 +2165,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 printStmtBtn.disabled = true;
                 printStmtBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> PDF 다운로드 중...';
 
-                // Build clean printable container
-                const printContainer = document.createElement('div');
-                printContainer.style.padding = '30px';
-                printContainer.style.background = '#ffffff';
-                printContainer.style.color = '#1f2937';
-                printContainer.style.fontFamily = "'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-                printContainer.style.lineHeight = '1.6';
-                printContainer.style.fontSize = '12px';
-                printContainer.style.width = '700px';
-
-                printContainer.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #C5A880; padding-bottom: 12px; margin-bottom: 18px;">
-                        <div>
-                            <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: #C5A880; text-transform: uppercase;">JohorN Consignment Care</div>
-                            <h2 style="font-size: 20px; font-weight: 700; margin: 3px 0 0 0; color: #111827;">렌트카 정산 명세서</h2>
-                        </div>
-                        <div style="text-align: right; font-size: 11px; color: #6b7280;">
-                            <div>발행일: ${getLocalDateString(new Date())}</div>
-                            <div style="font-weight: 600; color: #C5A880; margin-top: 2px;">JohorN 조호엔 (johorn.kr)</div>
-                        </div>
-                    </div>
-                    ${stmtContentSheet.innerHTML}
-                `;
-
-                // Remove interactive receipt preview buttons from PDF output
-                printContainer.querySelectorAll('.stmt-view-receipt-btn').forEach(btn => btn.remove());
-
-                // Mount offscreen
-                printContainer.style.position = 'fixed';
-                printContainer.style.left = '-9999px';
-                printContainer.style.top = '0';
-                printContainer.style.zIndex = '-9999';
-                document.body.appendChild(printContainer);
+                // Scroll modal container to top to prevent canvas offset clipping
+                const modalScrollBox = document.querySelector('#settlementModal > div');
+                const prevScrollTop = modalScrollBox ? modalScrollBox.scrollTop : 0;
+                if (modalScrollBox) modalScrollBox.scrollTop = 0;
 
                 const opt = {
-                    margin: [10, 10, 10, 10],
+                    margin: [8, 8, 8, 8],
                     filename: fileName,
                     image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true, letterRendering: true, logging: false },
+                    html2canvas: {
+                        scale: 2,
+                        useCORS: true,
+                        letterRendering: true,
+                        scrollY: 0,
+                        scrollX: 0,
+                        backgroundColor: '#ffffff'
+                    },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 };
 
-                html2pdf().set(opt).from(printContainer).save().then(() => {
-                    if (document.body.contains(printContainer)) {
-                        document.body.removeChild(printContainer);
-                    }
+                html2pdf().set(opt).from(printArea).save().then(() => {
+                    if (modalScrollBox) modalScrollBox.scrollTop = prevScrollTop;
                     printStmtBtn.disabled = false;
                     printStmtBtn.innerHTML = originalBtnHtml;
                 }).catch(err => {
-                    if (document.body.contains(printContainer)) {
-                        document.body.removeChild(printContainer);
-                    }
+                    if (modalScrollBox) modalScrollBox.scrollTop = prevScrollTop;
                     console.error('PDF export failed, falling back to print:', err);
                     printStmtBtn.disabled = false;
                     printStmtBtn.innerHTML = originalBtnHtml;
