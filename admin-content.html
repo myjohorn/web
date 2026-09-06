@@ -151,7 +151,13 @@
                                         </div>
                                         <div class="form-group" style="margin-bottom: 0;">
                                             <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">비디오 포스터 이미지 경로 / URL</label>
-                                            <input type="text" class="form-control cms-input" data-key="hero.video_poster" value="assets/video_poster.jpg?v=4" style="font-size: 13px;">
+                                            <div style="display: flex; gap: 8px;">
+                                                <input type="text" class="form-control cms-input" id="heroPosterInput" data-key="hero.video_poster" value="assets/video_poster.jpg?v=4" style="font-size: 13px; flex: 1;">
+                                                <input type="file" id="heroPosterFileInput" accept="image/*" style="display: none;">
+                                                <button type="button" id="heroPosterUploadBtn" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; font-weight: 600;">
+                                                    <i class="fa-solid fa-cloud-arrow-up"></i> 이미지 지정
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

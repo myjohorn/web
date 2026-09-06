@@ -200,6 +200,33 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
+        // Hero Video Poster upload with automatic web optimization
+        const heroPosterUploadBtn = document.getElementById('heroPosterUploadBtn');
+        const heroPosterFileInput = document.getElementById('heroPosterFileInput');
+        const heroPosterInput = document.getElementById('heroPosterInput');
+        if (heroPosterUploadBtn && heroPosterFileInput) {
+            heroPosterUploadBtn.addEventListener('click', () => heroPosterFileInput.click());
+            heroPosterFileInput.addEventListener('change', async () => {
+                const file = heroPosterFileInput.files[0];
+                if (file) {
+                    const originalHtml = heroPosterUploadBtn.innerHTML;
+                    heroPosterUploadBtn.disabled = true;
+                    heroPosterUploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 최적화 중...';
+                    try {
+                        const optimized = await optimizeImageForWeb(file, { maxDim: 1600, quality: 0.82 });
+                        if (heroPosterInput) heroPosterInput.value = optimized.dataUrl;
+                        setNestedValue(currentCmsDraft, 'hero.video_poster', optimized.dataUrl);
+                        dispatchPreviewUpdate();
+                    } catch (err) {
+                        alert('이미지 최적화 처리 중 오류가 발생했습니다: ' + err.message);
+                    } finally {
+                        heroPosterUploadBtn.disabled = false;
+                        heroPosterUploadBtn.innerHTML = originalHtml;
+                    }
+                }
+            });
+        }
+
         // Device Toggle Buttons (Desktop / Tablet / Mobile)
         document.querySelectorAll('.cms-device-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -273,6 +300,89 @@ document.addEventListener('DOMContentLoaded', () => {
                 content: currentCmsDraft
             }, '*');
         }
+    }
+
+    // ── Universal Web Image Optimization Pipeline ──
+    /**
+     * Automatically converts and compresses all uploaded images for optimal web delivery:
+     * - Constrains maximum dimension (maxDim, default 1400px) preserving aspect ratio
+     * - Encodes to WebP (with automatic progressive JPEG fallback)
+     * - Quality tuning with secondary compression if payload exceeds 350KB
+     * - Strips unneeded metadata and ensures fast rendering on mobile & desktop
+     */
+    function optimizeImageForWeb(file, options = {}) {
+        return new Promise((resolve, reject) => {
+            if (!file) return reject(new Error('No file provided'));
+            if (!file.type || !file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = e => resolve({ dataUrl: e.target.result, fileName: file.name, format: 'raw' });
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+                return;
+            }
+
+            const maxDim = options.maxDim || 1400;
+            const quality = options.quality !== undefined ? options.quality : 0.82;
+            const preferWebp = options.preferWebp !== false;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    let width = img.naturalWidth || img.width;
+                    let height = img.naturalHeight || img.height;
+
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) {
+                            height = Math.round((height * maxDim) / width);
+                            width = maxDim;
+                        } else {
+                            width = Math.round((width * maxDim) / height);
+                            height = maxDim;
+                        }
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    let mimeType = 'image/jpeg';
+                    let format = 'jpg';
+                    if (preferWebp) {
+                        const testUrl = canvas.toDataURL('image/webp', 0.1);
+                        if (testUrl.startsWith('data:image/webp')) {
+                            mimeType = 'image/webp';
+                            format = 'webp';
+                        }
+                    }
+
+                    let dataUrl = canvas.toDataURL(mimeType, quality);
+
+                    // Additional compression if dataURL is still large (> 350KB)
+                    if (dataUrl.length > 350 * 1024) {
+                        dataUrl = canvas.toDataURL(mimeType, 0.72);
+                    }
+
+                    const cleanName = file.name.replace(/\.[^/.]+$/, '') + '.' + format;
+                    resolve({
+                        dataUrl,
+                        fileName: cleanName,
+                        format,
+                        width,
+                        height
+                    });
+                };
+                img.onerror = () => reject(new Error('Image decoding failed'));
+                img.src = e.target.result;
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
     }
 
     // ── Stay Gallery Admin Editor Handlers ──
@@ -412,22 +522,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 for (const file of files) {
-                    await new Promise(resolve => {
-                        readAndCompressThumbnail(file, (dataUrl) => {
-                            const isFirstImage = currentCmsDraft.stay.gallery.length === 0;
-                            currentCmsDraft.stay.gallery.push({
-                                src: dataUrl,
-                                alt: file.name.replace(/\.[^/.]+$/, ''),
-                                isMain: isFirstImage
-                            });
-                            if (isFirstImage) {
-                                currentCmsDraft.stay.main_img = dataUrl;
-                                const mainInput = document.getElementById('stayMainImgInput');
-                                if (mainInput) mainInput.value = dataUrl;
-                            }
-                            resolve();
+                    try {
+                        const optimized = await optimizeImageForWeb(file, { maxDim: 1400, quality: 0.82 });
+                        const isFirstImage = currentCmsDraft.stay.gallery.length === 0;
+                        currentCmsDraft.stay.gallery.push({
+                            src: optimized.dataUrl,
+                            alt: file.name.replace(/\.[^/.]+$/, ''),
+                            isMain: isFirstImage
                         });
-                    });
+                        if (isFirstImage) {
+                            currentCmsDraft.stay.main_img = optimized.dataUrl;
+                            const mainInput = document.getElementById('stayMainImgInput');
+                            if (mainInput) mainInput.value = optimized.dataUrl;
+                        }
+                    } catch (err) {
+                        console.error('Stay gallery image optimization failed:', err);
+                    }
                 }
 
                 fileInput.value = '';
@@ -501,42 +611,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminBlogCatFilter = document.getElementById('adminBlogCatFilter');
     const adminBlogStatusFilter = document.getElementById('adminBlogStatusFilter');
 
-    // Helper: Read and compress image to dataURL using HTML5 Canvas
-    function readAndCompressThumbnail(file, callback) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            if (file.type && file.type.startsWith('image/')) {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-                    const maxDim = 1200;
-                    const quality = 0.82;
-                    if (width > maxDim || height > maxDim) {
-                        if (width > height) {
-                            height = Math.round((height * maxDim) / width);
-                            width = maxDim;
-                        } else {
-                            width = Math.round((width * maxDim) / height);
-                            height = maxDim;
-                        }
-                    }
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    const compressedData = canvas.toDataURL('image/jpeg', quality);
-                    callback(compressedData, file.name);
-                };
-                img.src = e.target.result;
-            } else {
-                callback(e.target.result, file.name);
-            }
-        };
-        reader.readAsDataURL(file);
-    }
-
     // Helper: Update thumbnail live preview box
     function updateThumbPreview(val, label) {
         const wrapper = document.getElementById('postThumbPreviewWrapper');
@@ -548,7 +622,7 @@ document.addEventListener('DOMContentLoaded', () => {
             img.src = val.trim();
             img.onerror = () => { wrapper.style.display = 'none'; };
             img.onload = () => { wrapper.style.display = 'flex'; };
-            if (name) name.textContent = label || (val.startsWith('data:') ? '업로드된 이미지' : val.split('/').pop());
+            if (name) name.textContent = label || (val.startsWith('data:') ? '웹 최적화 완료 이미지' : val.split('/').pop());
             wrapper.style.display = 'flex';
         } else {
             wrapper.style.display = 'none';
@@ -571,6 +645,48 @@ document.addEventListener('DOMContentLoaded', () => {
                         ['link', 'image'],
                         ['clean']
                     ]
+                }
+            });
+
+            // Intercept Quill Image Toolbar Button for Automatic Web Optimization
+            const toolbar = quill.getModule('toolbar');
+            if (toolbar) {
+                toolbar.addHandler('image', () => {
+                    const fileInput = document.createElement('input');
+                    fileInput.type = 'file';
+                    fileInput.accept = 'image/*';
+                    fileInput.click();
+                    fileInput.onchange = async () => {
+                        const file = fileInput.files[0];
+                        if (file) {
+                            try {
+                                const optimized = await optimizeImageForWeb(file, { maxDim: 1200, quality: 0.80 });
+                                const range = quill.getSelection(true) || { index: quill.getLength() };
+                                quill.insertEmbed(range.index, 'image', optimized.dataUrl);
+                                quill.setSelection(range.index + 1);
+                            } catch (err) {
+                                alert('본문 이미지 변환 중 오류: ' + err.message);
+                            }
+                        }
+                    };
+                });
+            }
+
+            // Intercept Drag & Drop images into editor for Automatic Web Optimization
+            quill.root.addEventListener('drop', async (e) => {
+                if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    const file = e.dataTransfer.files[0];
+                    if (file && file.type && file.type.startsWith('image/')) {
+                        e.preventDefault();
+                        try {
+                            const optimized = await optimizeImageForWeb(file, { maxDim: 1200, quality: 0.80 });
+                            const range = quill.getSelection(true) || { index: quill.getLength() };
+                            quill.insertEmbed(range.index, 'image', optimized.dataUrl);
+                            quill.setSelection(range.index + 1);
+                        } catch (err) {
+                            console.error('Drop image optimization error:', err);
+                        }
+                    }
                 }
             });
         }
@@ -621,18 +737,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 postThumbFileInput.click();
             });
 
-            postThumbFileInput.addEventListener('change', () => {
+            postThumbFileInput.addEventListener('change', async () => {
                 const file = postThumbFileInput.files[0];
                 if (file) {
                     const originalHtml = postThumbUploadBtn.innerHTML;
                     postThumbUploadBtn.disabled = true;
-                    postThumbUploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 압축 중...';
-                    readAndCompressThumbnail(file, (dataUrl, fileName) => {
-                        postThumbInput.value = dataUrl;
-                        updateThumbPreview(dataUrl, fileName);
+                    postThumbUploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 최적화 중...';
+                    try {
+                        const optimized = await optimizeImageForWeb(file, { maxDim: 1000, quality: 0.82 });
+                        postThumbInput.value = optimized.dataUrl;
+                        updateThumbPreview(optimized.dataUrl, optimized.fileName);
+                    } catch (err) {
+                        alert('이미지 최적화 중 오류가 발생했습니다: ' + err.message);
+                    } finally {
                         postThumbUploadBtn.disabled = false;
                         postThumbUploadBtn.innerHTML = originalHtml;
-                    });
+                    }
                 }
             });
         }
