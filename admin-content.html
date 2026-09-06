@@ -419,10 +419,23 @@
                 </div>
 
                 <div class="form-group" style="margin-bottom: 14px;">
-                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">대표 썸네일 이미지 URL</label>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="text" id="postThumbInput" class="form-control" placeholder="https://... 또는 assets/stay_balcony.jpg" style="font-size: 13px; padding: 9px; flex: 1;">
-                        <button type="button" id="postThumbPresetBtn" class="btn btn-secondary" style="font-size: 12px; padding: 8px 14px; white-space: nowrap;">기본 이미지</button>
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">대표 썸네일 이미지</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="postThumbInput" class="form-control" placeholder="이미지 파일 선택 또는 URL (https://...)" style="font-size: 13px; padding: 9px; flex: 1;">
+                        <input type="file" id="postThumbFileInput" accept="image/*" style="display: none;">
+                        <button type="button" id="postThumbUploadBtn" class="btn btn-secondary" style="font-size: 12px; padding: 8px 16px; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> 이미지지정
+                        </button>
+                    </div>
+                    <div id="postThumbPreviewWrapper" style="margin-top: 8px; display: none; align-items: center; gap: 12px; background: #F8F9FA; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <img id="postThumbPreviewImg" src="" alt="썸네일 미리보기" style="width: 70px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd;">
+                        <div style="flex: 1; min-width: 0;">
+                            <div id="postThumbPreviewName" style="font-size: 12px; font-weight: 500; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">미리보기</div>
+                            <span style="font-size: 11px; color: var(--text-secondary);">선택된 대표 썸네일</span>
+                        </div>
+                        <button type="button" id="postThumbRemoveBtn" style="background: none; border: none; color: #DC2626; cursor: pointer; font-size: 13px; padding: 4px 8px;" title="이미지 지우기">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
                     </div>
                 </div>
 

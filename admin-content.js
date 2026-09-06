@@ -293,7 +293,60 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminBlogSearchInput = document.getElementById('adminBlogSearchInput');
     const adminBlogCatFilter = document.getElementById('adminBlogCatFilter');
     const adminBlogStatusFilter = document.getElementById('adminBlogStatusFilter');
-    const postThumbPresetBtn = document.getElementById('postThumbPresetBtn');
+
+    // Helper: Read and compress image to dataURL using HTML5 Canvas
+    function readAndCompressThumbnail(file, callback) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            if (file.type && file.type.startsWith('image/')) {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDim = 1200;
+                    const quality = 0.82;
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) {
+                            height = Math.round((height * maxDim) / width);
+                            width = maxDim;
+                        } else {
+                            width = Math.round((width * maxDim) / height);
+                            height = maxDim;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const compressedData = canvas.toDataURL('image/jpeg', quality);
+                    callback(compressedData, file.name);
+                };
+                img.src = e.target.result;
+            } else {
+                callback(e.target.result, file.name);
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Helper: Update thumbnail live preview box
+    function updateThumbPreview(val, label) {
+        const wrapper = document.getElementById('postThumbPreviewWrapper');
+        const img = document.getElementById('postThumbPreviewImg');
+        const name = document.getElementById('postThumbPreviewName');
+        if (!wrapper || !img) return;
+
+        if (val && val.trim()) {
+            img.src = val.trim();
+            img.onerror = () => { wrapper.style.display = 'none'; };
+            img.onload = () => { wrapper.style.display = 'flex'; };
+            if (name) name.textContent = label || (val.startsWith('data:') ? '업로드된 이미지' : val.split('/').pop());
+            wrapper.style.display = 'flex';
+        } else {
+            wrapper.style.display = 'none';
+        }
+    }
 
     function initBlog() {
         // Initialize Quill.js
@@ -340,6 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('postThumbInput').value = 'assets/stay_balcony.jpg';
                 document.getElementById('postSummaryInput').value = '';
                 if (quill) quill.root.innerHTML = '';
+                updateThumbPreview('assets/stay_balcony.jpg');
                 postModal.style.display = 'flex';
             });
         }
@@ -349,20 +403,44 @@ document.addEventListener('DOMContentLoaded', () => {
         if (closePostModalBtn) closePostModalBtn.addEventListener('click', closeModal);
         if (cancelPostBtn) cancelPostBtn.addEventListener('click', closeModal);
 
-        // Thumbnail preset button
-        if (postThumbPresetBtn) {
-            postThumbPresetBtn.addEventListener('click', () => {
-                const presets = [
-                    'assets/stay_balcony.jpg',
-                    'assets/stay_bedroom.jpg',
-                    'assets/stay_room1.jpg',
-                    'assets/stay_room2.jpg',
-                    'assets/stay_room4.jpg',
-                    'assets/stay_room6.jpg'
-                ];
-                const current = document.getElementById('postThumbInput').value;
-                const nextIdx = (presets.indexOf(current) + 1) % presets.length;
-                document.getElementById('postThumbInput').value = presets[nextIdx];
+        // Thumbnail file upload and preview events
+        const postThumbUploadBtn = document.getElementById('postThumbUploadBtn');
+        const postThumbFileInput = document.getElementById('postThumbFileInput');
+        const postThumbInput = document.getElementById('postThumbInput');
+        const postThumbRemoveBtn = document.getElementById('postThumbRemoveBtn');
+
+        if (postThumbUploadBtn && postThumbFileInput) {
+            postThumbUploadBtn.addEventListener('click', () => {
+                postThumbFileInput.click();
+            });
+
+            postThumbFileInput.addEventListener('change', () => {
+                const file = postThumbFileInput.files[0];
+                if (file) {
+                    const originalHtml = postThumbUploadBtn.innerHTML;
+                    postThumbUploadBtn.disabled = true;
+                    postThumbUploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 압축 중...';
+                    readAndCompressThumbnail(file, (dataUrl, fileName) => {
+                        postThumbInput.value = dataUrl;
+                        updateThumbPreview(dataUrl, fileName);
+                        postThumbUploadBtn.disabled = false;
+                        postThumbUploadBtn.innerHTML = originalHtml;
+                    });
+                }
+            });
+        }
+
+        if (postThumbInput) {
+            postThumbInput.addEventListener('input', () => {
+                updateThumbPreview(postThumbInput.value);
+            });
+        }
+
+        if (postThumbRemoveBtn && postThumbInput) {
+            postThumbRemoveBtn.addEventListener('click', () => {
+                postThumbInput.value = '';
+                if (postThumbFileInput) postThumbFileInput.value = '';
+                updateThumbPreview('');
             });
         }
 
@@ -514,6 +592,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('postThumbInput').value = post.thumbnail || 'assets/stay_balcony.jpg';
                 document.getElementById('postSummaryInput').value = post.summary || '';
                 if (quill) quill.root.innerHTML = post.contentHtml || '';
+                updateThumbPreview(post.thumbnail || 'assets/stay_balcony.jpg');
                 postModal.style.display = 'flex';
             });
         });
