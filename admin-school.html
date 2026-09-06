@@ -11,7 +11,7 @@
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="style.css?v=20260817_03">
+    <link rel="stylesheet" href="style.css?v=20260906_01">
 </head>
 <body>
 
@@ -28,6 +28,7 @@
                 <li><a href="admin.html" id="headerNavBooking" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-list-check" style="margin-right: 4px;"></i> 예약/상담 관리</a></li>
                 <li><a href="admin-car.html" id="headerNavCar" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-car" style="margin-right: 4px;"></i> 렌트카 관리</a></li>
                 <li><a href="admin-school.html" id="headerNavCommission" class="nav-link active" style="color: var(--accent-color); font-weight: 600;"><i class="fa-solid fa-graduation-cap" style="margin-right: 4px;"></i> 국제학교 입학</a></li>
+                <li><a href="admin-content.html" id="headerNavContent" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-pen-nib" style="margin-right: 4px;"></i> 콘텐츠/블로그</a></li>
                 <li><a href="admin-analytics.html" id="headerNavAnalytics" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-chart-line" style="margin-right: 4px;"></i> 방문자 통계</a></li>
                 <li><a href="index.html" class="nav-link">메인 페이지로 이동</a></li>
             </ul>
@@ -219,15 +220,15 @@
                             <table class="admin-table">
                                 <thead>
                                     <tr>
-                                        <th>학생(영문/한글) / 학부모</th>
-                                        <th>대상 학교 / 학년</th>
-                                        <th>입학 학기 / 입학일</th>
-                                        <th>등록 학비 (MYR)</th>
-                                        <th>학교 계약 요율 / 조건</th>
-                                        <th>정산 방식 / 수금 진척</th>
-                                        <th>산정 커미션 / 수금액</th>
-                                        <th>진행 상태</th>
-                                        <th>인보이스 / 정산 관리</th>
+                                        <th style="min-width: 175px;">학생(영문/한글) / 학부모</th>
+                                        <th style="min-width: 145px;">대상 학교 / 학년</th>
+                                        <th style="min-width: 120px;">입학 학기 / 입학일</th>
+                                        <th style="min-width: 110px; text-align: right;">등록 학비 (MYR)</th>
+                                        <th style="min-width: 105px; text-align: center;">학교 요율 / 조건</th>
+                                        <th style="min-width: 140px;">정산 방식 / 수금 진척</th>
+                                        <th style="min-width: 125px; text-align: right;">산정 커미션 / 수금액</th>
+                                        <th style="min-width: 105px; text-align: center;">진행 상태</th>
+                                        <th style="min-width: 165px; text-align: center;">인보이스 / 정산 관리</th>
                                     </tr>
                                 </thead>
                                 <tbody id="admissionTableBody">
@@ -268,14 +269,14 @@
                             <table class="admin-table">
                                 <thead>
                                     <tr>
-                                        <th>인보이스 번호</th>
-                                        <th>청구 대상 학교</th>
-                                        <th>청구 월 / 포함 학생 명단</th>
-                                        <th>발행 법인</th>
-                                        <th>발행일 / 지급 기한</th>
-                                        <th>총 청구 금액 (MYR)</th>
-                                        <th>결제 상태</th>
-                                        <th>관리 / 인쇄</th>
+                                        <th style="min-width: 130px;">인보이스 번호</th>
+                                        <th style="min-width: 150px;">청구 대상 학교</th>
+                                        <th style="min-width: 180px;">청구 월 / 포함 학생 명단</th>
+                                        <th style="min-width: 120px;">발행 법인</th>
+                                        <th style="min-width: 130px;">발행일 / 지급 기한</th>
+                                        <th style="min-width: 125px; text-align: right;">총 청구 금액 (MYR)</th>
+                                        <th style="min-width: 105px; text-align: center;">결제 상태</th>
+                                        <th style="min-width: 135px; text-align: center;">관리 / 인쇄</th>
                                     </tr>
                                 </thead>
                                 <tbody id="invoiceTableBody">
@@ -307,15 +308,15 @@
                             <table class="admin-table">
                                 <thead>
                                     <tr>
-                                        <th>입금 일자</th>
-                                        <th>국제학교</th>
-                                        <th>학생명(영문/한글) / 회차</th>
-                                        <th>인보이스 번호</th>
-                                        <th>실제 수령액 (MYR)</th>
-                                        <th>수취 계좌 / 수단</th>
-                                        <th>거래 번호 (Ref ID)</th>
-                                        <th>메모</th>
-                                        <th>상세보기 / 관리</th>
+                                        <th style="min-width: 110px;">입금 일자</th>
+                                        <th style="min-width: 150px;">국제학교</th>
+                                        <th style="min-width: 160px;">학생명(영문/한글) / 회차</th>
+                                        <th style="min-width: 125px;">인보이스 번호</th>
+                                        <th style="min-width: 125px; text-align: right;">실제 수령액 (MYR)</th>
+                                        <th style="min-width: 120px;">수취 계좌 / 수단</th>
+                                        <th style="min-width: 120px;">거래 번호 (Ref ID)</th>
+                                        <th style="min-width: 110px;">메모</th>
+                                        <th style="min-width: 130px; text-align: center;">상세보기 / 관리</th>
                                     </tr>
                                 </thead>
                                 <tbody id="paymentTableBody">

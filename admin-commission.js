@@ -995,36 +995,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
             return `
                 <tr>
-                    <td>
+                    <td style="min-width: 175px;">
                         <div>${studentNameDisplay}</div>
-                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">
-                            <i class="fa-solid fa-user-group" style="font-size: 10px;"></i> ${parentInfoDisplay}
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 3px; word-break: break-all;">
+                            <i class="fa-solid fa-user-group" style="font-size: 10px; color: var(--accent-color);"></i> ${parentInfoDisplay}
                         </div>
                     </td>
-                    <td>
+                    <td style="min-width: 145px;">
                         <div style="font-weight: 600; color: var(--text-primary);">${escapeHtml(adm.schoolName || '-')}</div>
-                        <div style="font-size: 11px; color: var(--accent-color);">${gradeDisplay}</div>
+                        <div style="font-size: 11px; color: var(--accent-color); font-weight: 500;">${gradeDisplay}</div>
                     </td>
-                    <td>
-                        <div style="font-size: 12px; font-weight: 500;">${termDisplay}</div>
+                    <td style="min-width: 120px; white-space: nowrap;">
+                        <div style="font-size: 12px; font-weight: 600;">${termDisplay}</div>
                         <div style="font-size: 11px; color: var(--text-secondary);">입학일: ${formatDate(adm.admissionDate)}</div>
                     </td>
-                    <td style="font-weight: 600;">${adm.tuitionFee ? formatMYR(adm.tuitionFee) : '-'}</td>
-                    <td>${commissionTag}</td>
-                    <td>
+                    <td style="min-width: 110px; text-align: right; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums;">${adm.tuitionFee ? formatMYR(adm.tuitionFee) : '-'}</td>
+                    <td style="min-width: 105px; text-align: center; white-space: nowrap;">${commissionTag}</td>
+                    <td style="min-width: 140px; white-space: nowrap;">
                         <div style="font-size: 12px; font-weight: 600;">
                             ${installmentModeLabel} (${paidInstallments.length}/${installments.length || 1}회 완납)
                         </div>
-                        <div class="comm-progress-bar-container">
+                        <div class="comm-progress-bar-container" style="margin-top: 5px;">
                             <div class="comm-progress-bar-fill" style="width: ${progressPercent}%;"></div>
                         </div>
                     </td>
-                    <td>
-                        <div style="font-weight: 700; color: #2E7D32;">${formatMYR(totalCommission)}</div>
-                        <div style="font-size: 11px; color: #8C8782;">수금: ${formatMYR(paidAmount)}</div>
+                    <td style="min-width: 125px; text-align: right; white-space: nowrap;">
+                        <div style="font-weight: 700; color: #2E7D32; font-variant-numeric: tabular-nums;">${formatMYR(totalCommission)}</div>
+                        <div style="font-size: 11px; color: #8C8782; font-variant-numeric: tabular-nums;">수금: ${formatMYR(paidAmount)}</div>
                     </td>
-                    <td>${statusBadge}</td>
-                    <td>
+                    <td style="min-width: 105px; text-align: center; white-space: nowrap;">${statusBadge}</td>
+                    <td style="min-width: 165px; text-align: center; white-space: nowrap;">
                         ${actionButtonsHtml}
                     </td>
                 </tr>
@@ -1569,20 +1569,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
             return `
                 <tr>
-                    <td>
+                    <td style="min-width: 130px; white-space: nowrap;">
                         <strong style="color: var(--accent-color); font-family: monospace; font-size: 13px;">${inv.invoiceNo}</strong>
                         ${monthDisplay}
                     </td>
-                    <td style="font-weight: 600;">${inv.schoolName || '-'}</td>
-                    <td>${studentTargetDisplay}</td>
-                    <td style="font-size: 12px; color: var(--text-secondary);">${inv.entityName || 'GLOBAL EDU'}</td>
-                    <td>
+                    <td style="min-width: 150px; font-weight: 600;">${inv.schoolName || '-'}</td>
+                    <td style="min-width: 180px;">${studentTargetDisplay}</td>
+                    <td style="min-width: 120px; font-size: 12px; color: var(--text-secondary); white-space: nowrap;">${inv.entityName || 'GLOBAL EDU'}</td>
+                    <td style="min-width: 130px; white-space: nowrap;">
                         <div style="font-size: 12px;">발행: ${formatDate(inv.issueDate)}</div>
                         <div style="font-size: 11px; color: #C62828;">기한: ${formatDate(inv.dueDate)}</div>
                     </td>
-                    <td style="font-weight: 700; color: #2E7D32; font-size: 14px;">${formatMYR(inv.amount)}</td>
-                    <td>${statusBadge}</td>
-                    <td>
+                    <td style="min-width: 125px; text-align: right; font-weight: 700; color: #2E7D32; font-size: 14px; white-space: nowrap; font-variant-numeric: tabular-nums;">${formatMYR(inv.amount)}</td>
+                    <td style="min-width: 105px; text-align: center; white-space: nowrap;">${statusBadge}</td>
+                    <td style="min-width: 135px; text-align: center; white-space: nowrap;">
                         ${invoiceActionsHtml}
                     </td>
                 </tr>
@@ -2319,18 +2319,18 @@ Email / Contact: ${ent.contact || '-'}`.trim();
 
             return `
                 <tr class="payment-row-clickable" data-id="${p.id}" title="클릭하여 상세 입금/정산 정보 보기">
-                    <td style="font-weight: 600;">${formatDate(p.paymentDate)}</td>
-                    <td style="font-weight: 600; color: var(--text-primary);">${p.schoolName || '-'}</td>
-                    <td>
+                    <td style="min-width: 110px; font-weight: 600; white-space: nowrap;">${formatDate(p.paymentDate)}</td>
+                    <td style="min-width: 150px; font-weight: 600; color: var(--text-primary);">${p.schoolName || '-'}</td>
+                    <td style="min-width: 160px;">
                         <div>${p.studentName || (p.studentListSummary || '-')}</div>
                         <span class="installment-tag" style="font-size: 10px;">${p.termName || '정산완료'}</span>
                     </td>
-                    <td style="font-family: monospace; font-size: 12px; color: var(--accent-color);">${p.invoiceNo || '-'}</td>
-                    <td style="font-weight: 700; color: #2E7D32; font-size: 14px;">${formatMYR(p.amount)}</td>
-                    <td style="font-size: 12px;">${p.bank || 'Maybank'}</td>
-                    <td style="font-family: monospace; font-size: 11px;">${p.refNo || '-'}</td>
-                    <td style="font-size: 12px; color: var(--text-secondary);">${p.memo || '-'}</td>
-                    <td>
+                    <td style="min-width: 125px; font-family: monospace; font-size: 12px; color: var(--accent-color); white-space: nowrap;">${p.invoiceNo || '-'}</td>
+                    <td style="min-width: 125px; text-align: right; font-weight: 700; color: #2E7D32; font-size: 14px; white-space: nowrap; font-variant-numeric: tabular-nums;">${formatMYR(p.amount)}</td>
+                    <td style="min-width: 120px; font-size: 12px; white-space: nowrap;">${p.bank || 'Maybank'}</td>
+                    <td style="min-width: 120px; font-family: monospace; font-size: 11px; white-space: nowrap;">${p.refNo || '-'}</td>
+                    <td style="min-width: 110px; font-size: 12px; color: var(--text-secondary);">${p.memo || '-'}</td>
+                    <td style="min-width: 130px; text-align: center; white-space: nowrap;">
                         ${paymentActionsHtml}
                     </td>
                 </tr>

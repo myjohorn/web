@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JohorN 조호엔 | 조호바루 소식 & 정착 가이드</title>
+    <meta name="description" content="조호바루 국제학교 최신 전형, 생활 정착 꿀팁, 푸테리 하버 티가 레지던스 숙소 소식을 조호엔 공식 블로그에서 확인하세요.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Style -->
+    <link rel="stylesheet" href="style.css?v=20260906_01">
+</head>
+<body>
+
+    <!-- Header / Navigation -->
+    <header>
+        <div class="container header-container">
+            <div class="logo">
+                <a href="index.html">JohorN</a>
+            </div>
+            <button class="nav-toggle" id="navToggle" aria-label="메뉴 열기">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html#about" class="nav-link">조호엔?</a></li>
+                <li><a href="index.html#settlement" class="nav-link">이주정착</a></li>
+                <li><a href="index.html#tour" class="nav-link">국제학교답사</a></li>
+                <li><a href="index.html#admission" class="nav-link">입학대행</a></li>
+                <li><a href="index.html#stay" class="nav-link">숙소임대</a></li>
+                <li><a href="index.html#booking" class="nav-link">상담(예약)신청</a></li>
+                <li><a href="blog.html" class="nav-link active" style="color: var(--accent-color); font-weight: 600;"><i class="fa-solid fa-newspaper" style="font-size: 11px; margin-right: 4px;"></i>블로그</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <main>
+        <!-- Blog Hero Section -->
+        <section class="blog-hero">
+            <div class="container">
+                <span class="section-tag">JohorN Blog & Insights</span>
+                <h1 style="font-size: 38px; font-weight: 700; margin: 12px 0 16px; color: var(--text-primary);">
+                    조호바루 정착 & 교육 인사이트
+                </h1>
+                <p style="max-width: 600px; margin: 0 auto; color: var(--text-secondary); font-size: 15px; line-height: 1.6;">
+                    조호엔 현지 전문가들이 전해드리는 국제학교 실시간 입학 정보와 생생한 조호바루 생활 꿀팁을 전해드립니다.
+                </p>
+
+                <!-- Category Navigation -->
+                <div class="blog-category-nav" id="blogCategoryNav">
+                    <button type="button" class="blog-cat-btn active" data-category="all">전체보기</button>
+                    <button type="button" class="blog-cat-btn" data-category="국제학교">국제학교 소식</button>
+                    <button type="button" class="blog-cat-btn" data-category="이주정착">이주정착 가이드</button>
+                    <button type="button" class="blog-cat-btn" data-category="생활정보">조호바루 생활정보</button>
+                    <button type="button" class="blog-cat-btn" data-category="숙소여행">숙소 & 여행</button>
+                    <button type="button" class="blog-cat-btn" data-category="공지사항">공지사항</button>
+                </div>
+
+                <!-- Search Input -->
+                <div style="max-width: 440px; margin: 0 auto; position: relative;">
+                    <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #8C8782;"></i>
+                    <input type="text" id="blogSearchInput" class="form-control" placeholder="궁금한 키워드를 검색해 보세요 (예: 래플스, 비자, 티가)" style="padding-left: 42px; border-radius: 30px; font-size: 14px; background: var(--white); box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                </div>
+            </div>
+        </section>
+
+        <!-- Blog Posts Grid Section -->
+        <section style="padding: 40px 0 80px;">
+            <div class="container">
+                <div id="blogGridContainer" class="blog-grid">
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 60px 0; color: var(--text-secondary);">
+                        <i class="fa-solid fa-spinner fa-spin" style="font-size: 28px; margin-bottom: 15px; color: var(--accent-color);"></i>
+                        <p>소식을 불러오는 중입니다...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-grid">
+            <div>
+                <a href="index.html#home" class="footer-logo">JohorN</a>
+                <p class="footer-desc">조호바루 현지 정착 전문가들이 제공하는 가장 촘촘하고 믿을 수 있는 케어 서비스.</p>
+            </div>
+            <div class="footer-contact">
+                <h4>CONTACT</h4>
+                <p><i class="fa-solid fa-location-dot" style="margin-right: 8px;"></i> Teega Residence, Puteri Harbour, Malaysia</p>
+                <p><i class="fa-solid fa-envelope" style="margin-right: 8px;"></i> <a href="mailto:myjohorn@gmail.com">myjohorn@gmail.com</a></p>
+                <p><i class="fa-solid fa-comment" style="margin-right: 8px;"></i> <a href="https://pf.kakao.com/_vPVLb/chat" target="_blank">조호엔 카카오 채널 실시간 상담</a></p>
+            </div>
+        </div>
+        <div class="container footer-bottom">
+            <p>&copy; 2026 JohorN. All Rights Reserved. Custom domain setup: johorn.kr</p>
+            <p>
+                <a href="admin.html" id="footerAdminLink" style="color: #8C8782; text-decoration: none; font-size: 12px; opacity: 0.6; transition: all 0.3s;">Admin (관리자 모드)</a>
+                | Designed with Clean & Aesthetics
+            </p>
+        </div>
+    </footer>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAgWQBqwEF_qWBLPmvoUsDEqB_gFbRH2xw",
+            authDomain: "johorn-booking.firebaseapp.com",
+            databaseURL: "https://johorn-booking-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "johorn-booking",
+            storageBucket: "johorn-booking.firebasestorage.app",
+            messagingSenderId: "872157980397",
+            appId: "1:872157980397:web:f5518fa42bd79835338ee4"
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        let allPosts = [];
+        let activeCategory = 'all';
+        let searchQuery = '';
+
+        const gridContainer = document.getElementById('blogGridContainer');
+        const searchInput = document.getElementById('blogSearchInput');
+        const catButtons = document.querySelectorAll('.blog-cat-btn');
+
+        // Nav Toggle
+        const navToggle = document.getElementById('navToggle');
+        const navLinks = document.getElementById('navLinks');
+        if (navToggle && navLinks) {
+            navToggle.addEventListener('click', () => {
+                navLinks.classList.toggle('active');
+            });
+        }
+
+        // Fetch Posts from Firebase
+        db.ref('posts').on('value', snapshot => {
+            const data = snapshot.val();
+            allPosts = [];
+            if (data) {
+                Object.keys(data).forEach(id => {
+                    const p = data[id];
+                    // Only show published posts to public
+                    if (p && (p.status === 'published' || !p.status)) {
+                        allPosts.push({ id, ...p });
+                    }
+                });
+                allPosts.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            }
+            renderPosts();
+        });
+
+        function renderPosts() {
+            let filtered = allPosts;
+
+            if (activeCategory !== 'all') {
+                filtered = filtered.filter(p => p.category === activeCategory);
+            }
+
+            if (searchQuery.trim() !== '') {
+                const q = searchQuery.trim().toLowerCase();
+                filtered = filtered.filter(p => 
+                    (p.title && p.title.toLowerCase().includes(q)) || 
+                    (p.summary && p.summary.toLowerCase().includes(q)) ||
+                    (p.category && p.category.toLowerCase().includes(q))
+                );
+            }
+
+            if (filtered.length === 0) {
+                gridContainer.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 70px 20px; background: var(--white); border: 1px solid var(--border-color); border-radius: 12px;">
+                        <i class="fa-regular fa-folder-open" style="font-size: 38px; color: #B0A89F; margin-bottom: 14px;"></i>
+                        <h3 style="font-size: 18px; margin-bottom: 6px; color: var(--text-primary);">해당하는 게시글이 없습니다</h3>
+                        <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">다른 카테고리를 선택하거나 검색어를 변경해 보세요.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            gridContainer.innerHTML = filtered.map(post => {
+                const thumb = post.thumbnail || 'assets/stay_balcony.jpg';
+                const cat = post.category || '생활정보';
+                const dateStr = post.createdAt ? new Date(post.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+                return `
+                    <a href="post.html?id=${post.id}" class="blog-card">
+                        <div class="blog-card-img-wrap">
+                            <img src="${thumb}" alt="${escapeHtml(post.title)}" class="blog-card-thumb" onerror="this.src='assets/stay_balcony.jpg'">
+                            <span class="blog-card-cat-badge">${escapeHtml(cat)}</span>
+                        </div>
+                        <div class="blog-card-body">
+                            <h2 class="blog-card-title">${escapeHtml(post.title)}</h2>
+                            <p class="blog-card-summary">${escapeHtml(post.summary || '')}</p>
+                            <div class="blog-card-footer">
+                                <span><i class="fa-regular fa-calendar"></i> ${dateStr}</span>
+                                <span><i class="fa-regular fa-eye"></i> ${post.views || 1}</span>
+                            </div>
+                        </div>
+                    </a>
+                `;
+            }).join('');
+        }
+
+        // Category filter buttons
+        catButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                catButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeCategory = btn.getAttribute('data-category');
+                renderPosts();
+            });
+        });
+
+        // Search Input
+        if (searchInput) {
+            searchInput.addEventListener('input', e => {
+                searchQuery = e.target.value;
+                renderPosts();
+            });
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return String(text).replace(/[&<>"']/g, m => map[m]);
+        }
+    </script>
+</body>
+</html>

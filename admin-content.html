@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JohorN 조호엔 | 웹사이트 콘텐츠 & 블로그 관리</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Quill Rich Text Editor CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <!-- Main Style -->
+    <link rel="stylesheet" href="style.css?v=20260906_01">
+</head>
+<body>
+
+    <!-- Header / Navigation -->
+    <header>
+        <div class="container header-container">
+            <div class="logo">
+                <a href="index.html">JohorN <span style="font-size: 13px; font-weight: 500; letter-spacing: 0.1em; color: var(--accent-color); margin-left: 6px;">CONTENT ADMIN</span></a>
+            </div>
+            <button class="nav-toggle" id="navToggle" aria-label="메뉴">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="admin.html" id="headerNavBooking" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-list-check" style="margin-right: 4px;"></i> 예약/상담 관리</a></li>
+                <li><a href="admin-car.html" id="headerNavCar" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-car" style="margin-right: 4px;"></i> 렌트카 관리</a></li>
+                <li><a href="admin-school.html" id="headerNavCommission" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-graduation-cap" style="margin-right: 4px;"></i> 국제학교 입학</a></li>
+                <li><a href="admin-content.html" id="headerNavContent" class="nav-link active" style="color: var(--accent-color); font-weight: 600;"><i class="fa-solid fa-pen-nib" style="margin-right: 4px;"></i> 콘텐츠/블로그</a></li>
+                <li><a href="admin-analytics.html" id="headerNavAnalytics" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-chart-line" style="margin-right: 4px;"></i> 방문자 통계</a></li>
+                <li><a href="index.html" class="nav-link">메인 페이지로 이동</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <main style="padding-top: 80px;">
+        <section id="admin">
+            <div class="container">
+                <!-- Admin Login Section -->
+                <div class="admin-login-wrapper" id="adminLogin" style="max-width: 440px; margin: 50px auto; background: var(--white); border: 1px solid var(--border-color); border-radius: 8px; padding: 35px 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.04);">
+                    <div style="text-align: center; margin-bottom: 25px;">
+                        <i class="fa-solid fa-pen-nib" style="font-size: 32px; color: var(--accent-color); margin-bottom: 10px;"></i>
+                        <h2 style="font-size: 22px; font-weight: 700; margin: 0 0 6px 0;">콘텐츠 & 블로그 관리</h2>
+                        <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">관리자 비밀번호를 입력해 주세요.</p>
+                    </div>
+                    <form id="adminLoginForm">
+                        <div class="form-group">
+                            <label for="adminPassword" style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px;">비밀번호</label>
+                            <input type="password" id="adminPassword" class="form-control" placeholder="비밀번호 입력" required style="font-size: 14px; padding: 10px 12px;">
+                        </div>
+                        <div id="loginError" style="display: none; color: #C62828; font-size: 12px; margin-bottom: 12px; font-weight: 500;">
+                            <i class="fa-solid fa-circle-exclamation"></i> 비밀번호가 올바르지 않습니다.
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 11px; font-size: 14px; font-weight: 600;">로그인</button>
+                    </form>
+                </div>
+
+                <!-- Admin Dashboard (After Login) -->
+                <div id="adminDashboard" style="display: none;">
+                    <!-- Top Page Title & Sub-Tabs -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                        <div>
+                            <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: var(--accent-color); text-transform: uppercase;">Content Management System</span>
+                            <h2 style="font-size: 24px; font-weight: 700; margin: 4px 0 0 0; color: var(--text-primary);">
+                                웹사이트 콘텐츠 & 블로그 관리
+                            </h2>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <span id="cmsSyncIndicator" style="font-size: 12px; color: #2E7D32; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; background: #E8F5E9; padding: 5px 12px; border-radius: 20px;">
+                                <i class="fa-solid fa-circle-check"></i> 실시간 연동 준비됨
+                            </span>
+                            <button type="button" id="adminLogoutBtn" class="btn btn-secondary" style="padding: 7px 14px; font-size: 12px;">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i> 로그아웃
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sub-Tab Navigation -->
+                    <div class="comm-tab-nav" style="margin-bottom: 22px;">
+                        <button type="button" class="comm-tab-btn active" id="subTabCmsBtn" data-tab="cms">
+                            <i class="fa-solid fa-laptop-code"></i>
+                            <span class="tab-label-full">홈페이지 문구 & 이미지 편집 (실시간 미리보기)</span>
+                            <span class="tab-label-short">홈페이지 편집</span>
+                        </button>
+                        <button type="button" class="comm-tab-btn" id="subTabBlogBtn" data-tab="blog">
+                            <i class="fa-solid fa-newspaper"></i>
+                            <span class="tab-label-full">블로그 & 소식 게시판 관리</span>
+                            <span class="tab-label-short">블로그 관리</span>
+                        </button>
+                    </div>
+
+                    <!-- SUB-TAB 1: Visual Front Page Editor -->
+                    <div id="tabContentCms" class="comm-tab-content">
+                        <!-- CMS Action Controls Header -->
+                        <div style="background: var(--white); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+                            <div style="font-size: 13px; color: var(--text-secondary);">
+                                <i class="fa-solid fa-circle-info" style="color: var(--accent-color);"></i>
+                                좌측에서 문구나 이미지를 수정하면 우측 화면에 <strong>즉시 실시간 반영</strong>됩니다.
+                            </div>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <button type="button" id="cmsResetDefaultsBtn" class="btn btn-secondary" style="padding: 8px 14px; font-size: 12px;" title="저장되지 않은 변경사항을 버리고 기본값 복구">
+                                    <i class="fa-solid fa-rotate-left"></i> 기본값 복구
+                                </button>
+                                <button type="button" id="cmsPublishBtn" class="btn btn-primary" style="padding: 9px 22px; font-size: 13px; font-weight: 700; background: #2E7D32; border-color: #2E7D32; display: flex; align-items: center; gap: 6px;">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i> 사이트 즉시 발행 (Publish)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Split Screen Layout -->
+                        <div class="cms-split-container">
+                            <!-- Left: Editor Controls -->
+                            <div class="cms-editor-panel">
+                                <h3 style="font-size: 16px; font-weight: 700; margin: 0 0 18px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+                                    <span><i class="fa-solid fa-sliders" style="color: var(--accent-color);"></i> 섹션별 콘텐츠 편집</span>
+                                    <span style="font-size: 11px; font-weight: 500; color: #8C8782;">자동 임시 반영 중</span>
+                                </h3>
+
+                                <!-- Section 1: Hero -->
+                                <div class="cms-section-card active">
+                                    <div class="cms-section-header">
+                                        <span><i class="fa-solid fa-sparkles" style="color: #F59E0B; margin-right: 6px;"></i> 1. 메인 히어로 (Hero)</span>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </div>
+                                    <div class="cms-section-body">
+                                        <div class="form-group" style="margin-bottom: 12px;">
+                                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">상단 영문 태그 (Tagline)</label>
+                                            <input type="text" class="form-control cms-input" data-key="hero.tag" value="Good Neighbors in Johor Bahru" style="font-size: 13px;">
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 12px;">
+                                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">메인 헤드라인 (HTML 허용)</label>
+                                            <textarea class="form-control cms-input" data-key="hero.title" rows="2" style="font-size: 13px;">조호바루 정착, &lt;br&gt; A부터 Z까지 함께 합니다.</textarea>
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 12px;">
+                                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">메인 소개 설명문</label>
+                                            <textarea class="form-control cms-input" data-key="hero.desc" rows="3" style="font-size: 13px;">조호바루 생활 각 분야의 전문가들이 만든 촘촘하고 믿을 수 있는 케어 서비스와 푸테리 하버 티가 레지던스(Teega Residence) 3베드룸 오션뷰 유닛 단기 임대 서비스를 소개합니다.</textarea>
+                                        </div>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                                            <div class="form-group" style="margin: 0;">
+                                                <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">버튼 1 문구</label>
+                                                <input type="text" class="form-control cms-input" data-key="hero.btn1_text" value="이주정착 안내" style="font-size: 13px;">
+                                            </div>
+                                            <div class="form-group" style="margin: 0;">
+                                                <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">버튼 2 문구</label>
+                                                <input type="text" class="form-control cms-input" data-key="hero.btn2_text" value="숙소임대 안내" style="font-size: 13px;">
+                                            </div>
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0;">
+                                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">비디오 포스터 이미지 경로 / URL</label>
+                                            <input type="text" class="form-control cms-input" data-key="hero.video_poster" value="assets/video_poster.jpg?v=4" style="font-size: 13px;">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Section 2: About JohorN -->
+                                <div class="cms-section-card">
+                                    <div class="cms-section-header">
+                                        <span><i class="fa-solid fa-users" style="color: #0288D1; margin-right: 6px;"></i> 2. 조호엔 소개 (About)</span>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </div>
+                                    <div class="cms-section-body">
+                                        <div class="form-group" style="margin-bottom: 12px;">
+                                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">소개 대제목</label>
+                                            <input type="text" class="form-control cms-input" data-key="about.title" value="조호바루 좋은 이웃, 조호엔!" style="font-size: 13px;">
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 12px;">
+                                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">헤더 서브설명</label>
+                                            <textarea class="form-control cms-input" data-key="about.desc" rows="2" style="font-size: 13px;">저희 조호엔은 조호바루 정착을 희망하시는 가족분들에게 믿음직하고 따뜻한 이웃(Good Neighbors)이 되어 드립니다.</textarea>
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 12px;">
+                                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">강조 문구 (H3)</label>
+                                            <input type="text" class="form-control cms-input" data-key="about.intro_h3" value='"어느 곳과 비교해도 자신 있습니다."' style="font-size: 13px;">
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 12px;">
+                                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">상세 소개 첫 번째 단락</label>
+                                            <textarea class="form-control cms-input" data-key="about.intro_p1" rows="3" style="font-size: 13px;">낯선 타국에서의 새로운 출발은 설렘과 함께 두려움을 동반합니다. 특히 자녀의 국제학교 입학, 안전하고 쾌적한 주거 공간 확보, 생활 전반의 행정 처리는 정확한 정보와 현지 네트워크 없이는 큰 시행착오를 겪기 쉽습니다.</textarea>
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 14px;">
+                                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">상세 소개 두 번째 단락</label>
+                                            <textarea class="form-control cms-input" data-key="about.intro_p2" rows="3" style="font-size: 13px;">조호엔은 다년간의 현지 경험과 신뢰할 수 있는 파트너십을 바탕으로, 이주 준비 단계부터 현지 안착 이후까지 빈틈없는 케어를 제공합니다. 고객님 한 분 한 분의 상황과 예산에 맞춘 커스텀 정착 플랜을 제안합니다.</textarea>
+                                        </div>
+                                        <label style="font-size: 12px; font-weight: 700; display: block; margin-bottom: 8px; color: var(--text-primary);">성과 및 메타 수치 4종</label>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                            <div class="form-group" style="margin: 0;">
+                                                <label style="font-size: 11px; color: var(--text-secondary);">정착 경력</label>
+                                                <input type="text" class="form-control cms-input" data-key="about.meta_exp" value="6+ Year" style="font-size: 13px;">
+                                            </div>
+                                            <div class="form-group" style="margin: 0;">
+                                                <label style="font-size: 11px; color: var(--text-secondary);">정착 성공 세대</label>
+                                                <input type="text" class="form-control cms-input" data-key="about.meta_households" value="50+ 세대" style="font-size: 13px;">
+                                            </div>
+                                            <div class="form-group" style="margin: 0;">
+                                                <label style="font-size: 11px; color: var(--text-secondary);">연계 국제학교</label>
+                                                <input type="text" class="form-control cms-input" data-key="about.meta_schools" value="조호바루 전 지역" style="font-size: 13px;">
+                                            </div>
+                                            <div class="form-group" style="margin: 0;">
+                                                <label style="font-size: 11px; color: var(--text-secondary);">주요 서비스 지역</label>
+                                                <input type="text" class="form-control cms-input" data-key="about.meta_areas" value="Puteri Harbour, Medini" style="font-size: 13px;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Section 3: Teega Residence Stay -->
+                                <div class="cms-section-card">
+                                    <div class="cms-section-header">
+                                        <span><i class="fa-solid fa-hotel" style="color: #7B1FA2; margin-right: 6px;"></i> 3. 티가 레지던스 숙소 (Teega)</span>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </div>
+                                    <div class="cms-section-body">
+                                        <div class="form-group" style="margin-bottom: 12px;">
+                                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">숙소 섹션 제목</label>
+                                            <input type="text" class="form-control cms-input" data-key="stay.title" value="Teega Residence 3-Bedroom Unit" style="font-size: 13px;">
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 12px;">
+                                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">숙소 소개 요약</label>
+                                            <textarea class="form-control cms-input" data-key="stay.desc" rows="2" style="font-size: 13px;">오션뷰를 품은 최고의 숙소에서 보다 여유롭고 편안하게 조호바루 생활을 경험해 보세요.</textarea>
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 12px;">
+                                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">객실 상세 강조 제목</label>
+                                            <input type="text" class="form-control cms-input" data-key="stay.intro_title" value="티가 레지던스 Sea view 3베드룸 (상태 최상)" style="font-size: 13px;">
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 12px;">
+                                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">객실 상세 설명글</label>
+                                            <textarea class="form-control cms-input" data-key="stay.intro_desc" rows="3" style="font-size: 13px;">말라카 해협의 시원한 오션뷰(Sea View)가 가슴 탁 트이게 넓은 테라스 너머로 펼쳐집니다. 가족 답사나 한달살기 시 내 집처럼 지내실 수 있도록 구석구석 깨끗하고 아늑하게 구성되어 있습니다.</textarea>
+                                        </div>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                                            <div class="form-group" style="margin: 0;">
+                                                <label style="font-size: 11px; color: var(--text-secondary);">객실 크기</label>
+                                                <input type="text" class="form-control cms-input" data-key="stay.rate_room" value="3 Bedroom / 3 Bathroom (오션뷰)" style="font-size: 13px;">
+                                            </div>
+                                            <div class="form-group" style="margin: 0;">
+                                                <label style="font-size: 11px; color: var(--text-secondary);">수용 인원</label>
+                                                <input type="text" class="form-control cms-input" data-key="stay.rate_capacity" value="기준 6명 (최대 8명)" style="font-size: 13px;">
+                                            </div>
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0;">
+                                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">대표 이미지 경로 / URL</label>
+                                            <input type="text" class="form-control cms-input" data-key="stay.main_img" value="assets/stay_balcony.jpg" style="font-size: 13px;">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Section 4: Blog Banner on Front -->
+                                <div class="cms-section-card">
+                                    <div class="cms-section-header">
+                                        <span><i class="fa-solid fa-newspaper" style="color: #2E7D32; margin-right: 6px;"></i> 4. 메인 최신 소식 섹션</span>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </div>
+                                    <div class="cms-section-body">
+                                        <div class="form-group" style="margin-bottom: 12px;">
+                                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">섹션 태그</label>
+                                            <input type="text" class="form-control cms-input" data-key="blog.tag" value="JohorN Insights & News" style="font-size: 13px;">
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 12px;">
+                                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">섹션 제목</label>
+                                            <input type="text" class="form-control cms-input" data-key="blog.title" value="조호엔 최신 소식 & 칼럼" style="font-size: 13px;">
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0;">
+                                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">섹션 설명문</label>
+                                            <textarea class="form-control cms-input" data-key="blog.desc" rows="2" style="font-size: 13px;">조호바루 국제학교 입학 동향과 생활 정착 꿀팁을 전해드립니다.</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Section 5: Footer & Contact -->
+                                <div class="cms-section-card">
+                                    <div class="cms-section-header">
+                                        <span><i class="fa-solid fa-address-book" style="color: #C62828; margin-right: 6px;"></i> 5. 연락처 & 푸터 (Footer)</span>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </div>
+                                    <div class="cms-section-body">
+                                        <div class="form-group" style="margin-bottom: 12px;">
+                                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">푸터 소개글</label>
+                                            <textarea class="form-control cms-input" data-key="footer.desc" rows="2" style="font-size: 13px;">조호바루 현지 정착 전문가들이 제공하는 가장 촘촘하고 믿을 수 있는 케어 서비스.</textarea>
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 12px;">
+                                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">위치/주소</label>
+                                            <input type="text" class="form-control cms-input" data-key="footer.address" value="Teega Residence, Puteri Harbour, Malaysia" style="font-size: 13px;">
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 12px;">
+                                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">대표 이메일</label>
+                                            <input type="email" class="form-control cms-input" data-key="footer.email" value="myjohorn@gmail.com" style="font-size: 13px;">
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0;">
+                                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">카카오톡 채널 링크 텍스트</label>
+                                            <input type="text" class="form-control cms-input" data-key="footer.kakao" value="조호엔 카카오 채널 실시간 상담" style="font-size: 13px;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right: Live Preview Panel -->
+                            <div class="cms-preview-panel">
+                                <div class="cms-preview-toolbar">
+                                    <div class="cms-device-toggle">
+                                        <button type="button" class="cms-device-btn active" data-mode="desktop">
+                                            <i class="fa-solid fa-desktop"></i> PC
+                                        </button>
+                                        <button type="button" class="cms-device-btn" data-mode="tablet">
+                                            <i class="fa-solid fa-tablet-screen-button"></i> 태블릿 (768px)
+                                        </button>
+                                        <button type="button" class="cms-device-btn" data-mode="mobile">
+                                            <i class="fa-solid fa-mobile-screen-button"></i> 모바일 (390px)
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <a href="index.html" target="_blank" class="btn btn-secondary" style="padding: 5px 12px; font-size: 12px;">
+                                            <i class="fa-solid fa-arrow-up-right-from-square"></i> 실제 사이트 보기
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div class="cms-preview-frame-wrapper mode-desktop" id="previewFrameWrapper">
+                                    <iframe id="cmsPreviewIframe" src="index.html?preview=true" class="cms-preview-iframe" title="Front Page Preview"></iframe>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SUB-TAB 2: Blog & Notice Board Management -->
+                    <div id="tabContentBlog" class="comm-tab-content hidden">
+                        <!-- Blog Toolbar -->
+                        <div style="background: var(--white); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+                            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1;">
+                                <div style="position: relative; min-width: 220px; flex: 1;">
+                                    <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #8C8782; font-size: 13px;"></i>
+                                    <input type="text" id="adminBlogSearchInput" class="form-control" placeholder="게시글 제목 / 요약 검색" style="padding-left: 34px; font-size: 13px; padding-top: 8px; padding-bottom: 8px;">
+                                </div>
+                                <select id="adminBlogCatFilter" class="form-control" style="font-size: 13px; width: auto; min-width: 150px; padding: 8px 12px;">
+                                    <option value="all">전체 카테고리</option>
+                                    <option value="국제학교">국제학교 소식</option>
+                                    <option value="이주정착">이주정착 가이드</option>
+                                    <option value="생활정보">조호바루 생활정보</option>
+                                    <option value="숙소여행">숙소 & 여행</option>
+                                    <option value="공지사항">공지사항</option>
+                                </select>
+                                <select id="adminBlogStatusFilter" class="form-control" style="font-size: 13px; width: auto; min-width: 130px; padding: 8px 12px;">
+                                    <option value="all">전체 상태</option>
+                                    <option value="published">발행됨 (공개)</option>
+                                    <option value="draft">임시저장 (비공개)</option>
+                                </select>
+                            </div>
+                            <button type="button" id="openNewPostModalBtn" class="btn btn-primary" style="padding: 9px 20px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-plus"></i> 신규 게시글 작성
+                            </button>
+                        </div>
+
+                        <!-- Blog Table -->
+                        <div class="admin-table-wrapper">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th style="min-width: 80px; text-align: center;">썸네일</th>
+                                        <th style="min-width: 110px; text-align: center;">카테고리</th>
+                                        <th style="min-width: 250px;">제목</th>
+                                        <th style="min-width: 100px;">작성자</th>
+                                        <th style="min-width: 110px;">작성일</th>
+                                        <th style="min-width: 80px; text-align: center;">조회수</th>
+                                        <th style="min-width: 100px; text-align: center;">상태</th>
+                                        <th style="min-width: 140px; text-align: center;">관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminBlogTableBody">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Post Editor Modal (Rich Text WYSIWYG) -->
+    <div class="admin-modal" id="postModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: var(--white); width: 95%; max-width: 840px; border-radius: 8px; padding: 28px; box-shadow: 0 15px 40px rgba(0,0,0,0.3); max-height: 92vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <h3 style="font-size: 19px; font-weight: 700; margin: 0; color: var(--text-primary);" id="postModalTitle">
+                    <i class="fa-solid fa-pen-to-square" style="color: var(--accent-color);"></i> 신규 게시글 작성
+                </h3>
+                <button type="button" id="closePostModalBtn" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary);">&times;</button>
+            </div>
+
+            <form id="postEditForm">
+                <input type="hidden" id="editPostId" value="">
+
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">게시글 제목 <span style="color: #C62828;">*</span></label>
+                    <input type="text" id="postTitleInput" class="form-control" placeholder="제목을 입력해 주세요 (예: 2026년 조호바루 국제학교 입학 전형 총정리)" required style="font-size: 14px; padding: 10px;">
+                </div>
+
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    <div class="form-group" style="margin: 0;">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">카테고리 <span style="color: #C62828;">*</span></label>
+                        <select id="postCatInput" class="form-control" style="font-size: 13px; padding: 9px;">
+                            <option value="국제학교">국제학교 소식</option>
+                            <option value="이주정착">이주정착 가이드</option>
+                            <option value="생활정보">조호바루 생활정보</option>
+                            <option value="숙소여행">숙소 & 여행</option>
+                            <option value="공지사항">공지사항</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">작성자</label>
+                        <input type="text" id="postAuthorInput" class="form-control" value="조호엔" style="font-size: 13px; padding: 9px;">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">발행 상태 <span style="color: #C62828;">*</span></label>
+                        <select id="postStatusInput" class="form-control" style="font-size: 13px; padding: 9px; font-weight: 600;">
+                            <option value="published">공개 발행 (Published)</option>
+                            <option value="draft">임시저장 (Draft)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">대표 썸네일 이미지 URL</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="postThumbInput" class="form-control" placeholder="https://... 또는 assets/stay_balcony.jpg" style="font-size: 13px; padding: 9px; flex: 1;">
+                        <button type="button" id="postThumbPresetBtn" class="btn btn-secondary" style="font-size: 12px; padding: 8px 14px; white-space: nowrap;">기본 이미지</button>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">요약문 (카드 및 SNS 공유용 1~2줄 설명)</label>
+                    <textarea id="postSummaryInput" class="form-control" rows="2" placeholder="독자의 흥미를 끄는 핵심 요약 문장을 입력해 주세요." style="font-size: 13px;"></textarea>
+                </div>
+
+                <!-- Quill.js Rich Text WYSIWYG Editor Container -->
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">게시글 본문 (서식 및 이미지 삽입 가능)</label>
+                    <div id="quillEditor" style="min-height: 280px; font-size: 14px; background: var(--white);"></div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                    <button type="button" id="cancelPostBtn" class="btn btn-secondary" style="padding: 9px 18px; font-size: 13px;">취소</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 9px 24px; font-size: 13px; font-weight: 700;">
+                        <i class="fa-solid fa-floppy-disk"></i> 저장하기
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <!-- Quill.js Library -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <!-- Admin Content & Blog Logic -->
+    <script src="admin-content.js?v=20260906_01"></script>
+</body>
+</html>

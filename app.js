@@ -57,6 +57,108 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // ── Site Content CMS Hydration & Live Preview ──
+    function applyCmsContent(contentData) {
+        if (!contentData || typeof contentData !== 'object') return;
+        
+        document.querySelectorAll('[data-cms]').forEach(el => {
+            const keyPath = el.getAttribute('data-cms');
+            if (!keyPath) return;
+            const parts = keyPath.split('.');
+            let val = contentData;
+            for (const part of parts) {
+                if (val && typeof val === 'object' && part in val) {
+                    val = val[part];
+                } else {
+                    val = undefined;
+                    break;
+                }
+            }
+            if (val !== undefined && val !== null && val !== '') {
+                if (el.tagName === 'IMG') {
+                    el.src = val;
+                } else if (el.tagName === 'VIDEO') {
+                    el.poster = val;
+                } else if (el.tagName === 'A' && keyPath.endsWith('_link')) {
+                    el.href = val;
+                } else {
+                    el.innerHTML = val;
+                }
+            }
+        });
+    }
+
+    // 1. Listen for live CMS content from Firebase
+    db.ref('site_content/live').on('value', (snapshot) => {
+        const liveData = snapshot.val();
+        if (liveData) {
+            applyCmsContent(liveData);
+        }
+    });
+
+    // 2. Listen for preview postMessage when embedded in Admin CMS Editor iframe
+    window.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'CMS_PREVIEW') {
+            applyCmsContent(event.data.content);
+        }
+    });
+
+    // ── Recent Blog Posts Loader on index.html ──
+    const recentBlogPostsEl = document.getElementById('recentBlogPosts');
+    if (recentBlogPostsEl) {
+        db.ref('posts').on('value', (snapshot) => {
+            const data = snapshot.val();
+            const posts = [];
+            if (data) {
+                Object.keys(data).forEach(id => {
+                    if (data[id] && (data[id].status === 'published' || !data[id].status)) {
+                        posts.push({ id, ...data[id] });
+                    }
+                });
+                posts.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            }
+
+            if (posts.length === 0) {
+                recentBlogPostsEl.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; background: var(--white); border: 1px solid var(--border-color); border-radius: 10px;">
+                        <i class="fa-regular fa-newspaper" style="font-size: 32px; color: #8C8782; margin-bottom: 12px;"></i>
+                        <h4 style="margin-bottom: 6px; font-size: 16px;">등록된 소식이 준비 중입니다</h4>
+                        <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">조호바루 국제학교 및 정착 정보를 곧 업로드할 예정입니다.</p>
+                    </div>
+                `;
+            } else {
+                const recentThree = posts.slice(0, 3);
+                recentBlogPostsEl.innerHTML = recentThree.map(post => {
+                    const thumb = post.thumbnail || 'assets/stay_balcony.jpg';
+                    const category = post.category || '생활정보';
+                    const dateStr = post.createdAt ? new Date(post.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+                    return `
+                        <a href="post.html?id=${post.id}" class="blog-card">
+                            <div class="blog-card-img-wrap">
+                                <img src="${thumb}" alt="${escapeCmsHtml(post.title)}" class="blog-card-thumb" onerror="this.src='assets/stay_balcony.jpg'">
+                                <span class="blog-card-cat-badge">${escapeCmsHtml(category)}</span>
+                            </div>
+                            <div class="blog-card-body">
+                                <h3 class="blog-card-title">${escapeCmsHtml(post.title)}</h3>
+                                <p class="blog-card-summary">${escapeCmsHtml(post.summary || '')}</p>
+                                <div class="blog-card-footer">
+                                    <span><i class="fa-regular fa-calendar"></i> ${dateStr}</span>
+                                    <span style="color: var(--accent-color); font-weight: 600;">자세히 보기 <i class="fa-solid fa-arrow-right"></i></span>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                }).join('');
+            }
+        });
+    }
+
+    function escapeCmsHtml(text) {
+        if (!text) return '';
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+        return String(text).replace(/[&<>"']/g, m => map[m]);
+    }
+
     // loadGcalEventsForCurrentMonth: On the public site, GCal events are loaded
     // via the Firebase listener above. This function is a no-op for guests.
     // (Admin page has its own full OAuth-based implementation.)

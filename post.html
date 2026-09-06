@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">JohorN 조호엔 | 소식 상세</title>
+    <meta id="metaDesc" name="description" content="조호바루 소식과 정착 정보">
+    <!-- Open Graph for SNS Sharing -->
+    <meta id="ogTitle" property="og:title" content="조호엔 소식">
+    <meta id="ogDesc" property="og:description" content="조호바루 소식과 정착 정보">
+    <meta id="ogImg" property="og:image" content="assets/stay_balcony.jpg">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Style -->
+    <link rel="stylesheet" href="style.css?v=20260906_01">
+</head>
+<body style="background-color: #FAF8F5;">
+
+    <!-- Header / Navigation -->
+    <header>
+        <div class="container header-container">
+            <div class="logo">
+                <a href="index.html">JohorN</a>
+            </div>
+            <button class="nav-toggle" id="navToggle" aria-label="메뉴 열기">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html#about" class="nav-link">조호엔?</a></li>
+                <li><a href="index.html#settlement" class="nav-link">이주정착</a></li>
+                <li><a href="index.html#tour" class="nav-link">국제학교답사</a></li>
+                <li><a href="index.html#admission" class="nav-link">입학대행</a></li>
+                <li><a href="index.html#stay" class="nav-link">숙소임대</a></li>
+                <li><a href="index.html#booking" class="nav-link">상담(예약)신청</a></li>
+                <li><a href="blog.html" class="nav-link" style="color: var(--accent-color); font-weight: 600;"><i class="fa-solid fa-newspaper" style="font-size: 11px; margin-right: 4px;"></i>블로그</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <main style="padding-top: 100px;">
+        <div class="container">
+            <!-- Breadcrumbs -->
+            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                <a href="index.html" style="color: inherit; text-decoration: none;">홈</a>
+                <i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i>
+                <a href="blog.html" style="color: inherit; text-decoration: none;">블로그</a>
+                <i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i>
+                <span id="breadcrumbCategory" style="color: var(--accent-color); font-weight: 600;">소식</span>
+            </div>
+
+            <article class="post-article-wrap" id="articleCard">
+                <!-- Loader -->
+                <div id="postLoader" style="text-align: center; padding: 100px 0; color: var(--text-secondary);">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 32px; margin-bottom: 15px; color: var(--accent-color);"></i>
+                    <p>글을 불러오는 중입니다...</p>
+                </div>
+
+                <div id="postContentArea" style="display: none;">
+                    <div class="post-article-header">
+                        <span class="blog-card-cat-badge" id="postCategoryBadge" style="position: static; display: inline-block; margin-bottom: 12px; background: var(--accent-color); color: #fff;">카테고리</span>
+                        <h1 class="post-article-title" id="postTitle">게시글 제목</h1>
+                        <div class="post-article-meta">
+                            <span><i class="fa-regular fa-user"></i> <strong id="postAuthor" style="color: var(--text-primary);">조호엔</strong></span>
+                            <span><i class="fa-regular fa-calendar"></i> <span id="postDate">2026.01.01</span></span>
+                            <span><i class="fa-regular fa-eye"></i> 조회 <span id="postViews">1</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Featured Image Banner -->
+                    <div id="featuredImgWrapper" style="display: none;">
+                        <img src="" alt="Featured image" id="postFeaturedImg" class="post-article-featured-img">
+                    </div>
+
+                    <!-- Main Article Body -->
+                    <div class="post-article-content" id="postBody">
+                        <!-- Quill rendered HTML content -->
+                    </div>
+
+                    <!-- Social Sharing Bar -->
+                    <div class="post-share-bar">
+                        <div style="font-size: 13px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-share-nodes" style="color: var(--accent-color);"></i> 이 글 공유하기
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" id="copyUrlBtn" class="btn btn-secondary" style="padding: 7px 14px; font-size: 12px;">
+                                <i class="fa-solid fa-link"></i> 링크 복사
+                            </button>
+                            <a href="blog.html" class="btn btn-secondary" style="padding: 7px 14px; font-size: 12px;">
+                                <i class="fa-solid fa-list"></i> 목록으로
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Consulting CTA Banner -->
+                    <div style="background: #FAF8F5; border: 1px solid #E8DFD0; border-radius: 10px; padding: 25px 30px; margin-top: 40px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+                        <div>
+                            <h4 style="font-size: 17px; font-weight: 700; margin: 0 0 6px 0; color: var(--text-primary);">조호바루 국제학교 및 정착 상담이 필요하신가요?</h4>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">조호엔 전문가 팀이 가족 맞춤형 정착 솔루션을 친절히 안내해 드립니다.</p>
+                        </div>
+                        <a href="index.html#booking" class="btn btn-primary" style="padding: 10px 22px; font-size: 13px; white-space: nowrap;">
+                            <i class="fa-solid fa-paper-plane" style="margin-right: 6px;"></i> 맞춤 상담 신청하기
+                        </a>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Related Articles in same category -->
+            <div id="relatedSection" style="max-width: 820px; margin: 0 auto 60px; display: none;">
+                <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 20px; color: var(--text-primary);">함께 읽으면 좋은 소식</h3>
+                <div class="blog-grid-recent" id="relatedPostsGrid">
+                    <!-- Dynamic related posts -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-grid">
+            <div>
+                <a href="index.html#home" class="footer-logo">JohorN</a>
+                <p class="footer-desc">조호바루 현지 정착 전문가들이 제공하는 가장 촘촘하고 믿을 수 있는 케어 서비스.</p>
+            </div>
+            <div class="footer-contact">
+                <h4>CONTACT</h4>
+                <p><i class="fa-solid fa-location-dot" style="margin-right: 8px;"></i> Teega Residence, Puteri Harbour, Malaysia</p>
+                <p><i class="fa-solid fa-envelope" style="margin-right: 8px;"></i> <a href="mailto:myjohorn@gmail.com">myjohorn@gmail.com</a></p>
+                <p><i class="fa-solid fa-comment" style="margin-right: 8px;"></i> <a href="https://pf.kakao.com/_vPVLb/chat" target="_blank">조호엔 카카오 채널 실시간 상담</a></p>
+            </div>
+        </div>
+        <div class="container footer-bottom">
+            <p>&copy; 2026 JohorN. All Rights Reserved. Custom domain setup: johorn.kr</p>
+            <p>
+                <a href="admin.html" id="footerAdminLink" style="color: #8C8782; text-decoration: none; font-size: 12px; opacity: 0.6; transition: all 0.3s;">Admin (관리자 모드)</a>
+                | Designed with Clean & Aesthetics
+            </p>
+        </div>
+    </footer>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAgWQBqwEF_qWBLPmvoUsDEqB_gFbRH2xw",
+            authDomain: "johorn-booking.firebaseapp.com",
+            databaseURL: "https://johorn-booking-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "johorn-booking",
+            storageBucket: "johorn-booking.firebasestorage.app",
+            messagingSenderId: "872157980397",
+            appId: "1:872157980397:web:f5518fa42bd79835338ee4"
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        // Nav Toggle
+        const navToggle = document.getElementById('navToggle');
+        const navLinks = document.getElementById('navLinks');
+        if (navToggle && navLinks) {
+            navToggle.addEventListener('click', () => {
+                navLinks.classList.toggle('active');
+            });
+        }
+
+        // Get Post ID from URL Query (?id=...)
+        const urlParams = new URLSearchParams(window.location.search);
+        const postId = urlParams.get('id');
+
+        const postLoader = document.getElementById('postLoader');
+        const postContentArea = document.getElementById('postContentArea');
+
+        if (!postId) {
+            showNotFound();
+        } else {
+            loadPost(postId);
+        }
+
+        function loadPost(id) {
+            db.ref('posts/' + id).once('value', snapshot => {
+                const post = snapshot.val();
+                if (!post) {
+                    showNotFound();
+                    return;
+                }
+
+                // Increment View Count in background
+                const newViews = (post.views || 0) + 1;
+                db.ref('posts/' + id + '/views').set(newViews);
+
+                // Populate Meta & Header
+                const cat = post.category || '생활정보';
+                document.getElementById('pageTitle').innerText = `${post.title} | JohorN 조호엔`;
+                document.getElementById('metaDesc').content = post.summary || post.title;
+                document.getElementById('ogTitle').content = post.title;
+                document.getElementById('ogDesc').content = post.summary || post.title;
+
+                document.getElementById('breadcrumbCategory').innerText = cat;
+                document.getElementById('postCategoryBadge').innerText = cat;
+                document.getElementById('postTitle').innerText = post.title;
+                document.getElementById('postAuthor').innerText = post.author || '조호엔 에디터';
+                document.getElementById('postDate').innerText = post.createdAt ? new Date(post.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+                document.getElementById('postViews').innerText = newViews;
+
+                if (post.thumbnail) {
+                    const featImg = document.getElementById('postFeaturedImg');
+                    featImg.src = post.thumbnail;
+                    document.getElementById('featuredImgWrapper').style.display = 'block';
+                    document.getElementById('ogImg').content = post.thumbnail;
+                }
+
+                // Body content
+                document.getElementById('postBody').innerHTML = post.contentHtml || `<p>${escapeHtml(post.summary || '')}</p>`;
+
+                postLoader.style.display = 'none';
+                postContentArea.style.display = 'block';
+
+                // Load Related Posts
+                loadRelatedPosts(cat, id);
+            });
+        }
+
+        function showNotFound() {
+            postLoader.innerHTML = `
+                <i class="fa-solid fa-triangle-exclamation" style="font-size: 38px; color: #BA3C3C; margin-bottom: 14px;"></i>
+                <h3 style="font-size: 20px; margin-bottom: 8px; color: var(--text-primary);">게시글을 찾을 수 없습니다</h3>
+                <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 25px;">삭제되었거나 주소가 올바르지 않습니다.</p>
+                <a href="blog.html" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> 블로그 목록으로 이동</a>
+            `;
+        }
+
+        function loadRelatedPosts(category, currentId) {
+            db.ref('posts').once('value', snapshot => {
+                const data = snapshot.val();
+                if (!data) return;
+                const related = [];
+                Object.keys(data).forEach(k => {
+                    if (k !== currentId && data[k].status === 'published' && data[k].category === category) {
+                        related.push({ id: k, ...data[k] });
+                    }
+                });
+                if (related.length > 0) {
+                    const relatedGrid = document.getElementById('relatedPostsGrid');
+                    relatedGrid.innerHTML = related.slice(0, 3).map(p => `
+                        <a href="post.html?id=${p.id}" class="blog-card">
+                            <div class="blog-card-img-wrap" style="height: 160px;">
+                                <img src="${p.thumbnail || 'assets/stay_balcony.jpg'}" alt="${escapeHtml(p.title)}" class="blog-card-thumb" onerror="this.src='assets/stay_balcony.jpg'">
+                            </div>
+                            <div class="blog-card-body" style="padding: 16px;">
+                                <h4 class="blog-card-title" style="font-size: 15px;">${escapeHtml(p.title)}</h4>
+                                <div class="blog-card-footer" style="padding-top: 10px;">
+                                    <span>${p.createdAt ? new Date(p.createdAt).toLocaleDateString('ko-KR') : ''}</span>
+                                </div>
+                            </div>
+                        </a>
+                    `).join('');
+                    document.getElementById('relatedSection').style.display = 'block';
+                }
+            });
+        }
+
+        // Copy URL Button
+        const copyUrlBtn = document.getElementById('copyUrlBtn');
+        if (copyUrlBtn) {
+            copyUrlBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    copyUrlBtn.innerHTML = '<i class="fa-solid fa-check" style="color: #2E7D32;"></i> 복사 완료!';
+                    setTimeout(() => {
+                        copyUrlBtn.innerHTML = '<i class="fa-solid fa-link"></i> 링크 복사';
+                    }, 2000);
+                });
+            });
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return String(text).replace(/[&<>"']/g, m => map[m]);
+        }
+    </script>
+</body>
+</html>
