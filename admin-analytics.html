@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JohorN 조호엔 | 방문자 통계 분석</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Style -->
+    <link rel="stylesheet" href="style.css?v=20260817_03">
+    <style>
+        .analytics-container {
+            width: 100%;
+            margin-top: 25px;
+        }
+        .analytics-top-bar {
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        }
+        .analytics-metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .analytics-metric-card {
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        }
+        .analytics-metric-card .label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .analytics-metric-card .val {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .iframe-wrapper {
+            position: relative;
+            width: 100%;
+            min-height: 850px;
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+        }
+        .iframe-wrapper iframe {
+            width: 100%;
+            height: 900px;
+            border: none;
+            display: block;
+        }
+        .guide-card {
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 35px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+        }
+        .guide-step {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            align-items: flex-start;
+        }
+        .step-badge {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .step-text h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+        .step-text p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        /* Settings Modal */
+        .analytics-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .analytics-modal.active {
+            display: flex;
+        }
+        .analytics-modal-content {
+            background: var(--white);
+            border-radius: 8px;
+            max-width: 550px;
+            width: 100%;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header / Navigation -->
+    <header>
+        <div class="container header-container">
+            <div class="logo">
+                <a href="index.html">JohorN <span style="font-size: 13px; font-weight: 500; letter-spacing: 0.1em; color: var(--accent-color); margin-left: 6px;">ANALYTICS</span></a>
+            </div>
+            <button class="nav-toggle" id="navToggle" aria-label="메뉴">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="admin.html" id="headerNavBooking" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-list-check" style="margin-right: 4px;"></i> 예약/상담 관리</a></li>
+                <li><a href="admin-car.html" id="headerNavCar" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-car" style="margin-right: 4px;"></i> 렌트카 관리</a></li>
+                <li><a href="admin-school.html" id="headerNavCommission" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-graduation-cap" style="margin-right: 4px;"></i> 국제학교 입학</a></li>
+                <li><a href="admin-analytics.html" id="headerNavAnalytics" class="nav-link active" style="color: var(--accent-color); font-weight: 600;"><i class="fa-solid fa-chart-line" style="margin-right: 4px;"></i> 방문자 통계</a></li>
+                <li><a href="index.html" class="nav-link">메인 페이지로 이동</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <main style="padding-top: 80px;">
+        <section id="admin">
+            <div class="container">
+                <!-- Admin Login Section -->
+                <div class="admin-login-wrapper" id="adminLogin">
+                    <span class="section-tag">Authentication</span>
+                    <h2 style="font-size: 28px; margin-bottom: 25px;">관리자 로그인</h2>
+                    <div class="form-group">
+                        <input type="password" id="adminPassword" class="form-control" placeholder="비밀번호를 입력하세요." style="text-align: center;">
+                    </div>
+                    <button id="adminLoginBtn" class="btn btn-primary" style="width: 100%;">로그인</button>
+                </div>
+
+                <!-- Admin Dashboard (Hidden initially) -->
+                <div class="admin-dashboard" id="adminDashboard" style="display: none;">
+                    <div class="admin-header-actions" style="margin-bottom: 20px;">
+                        <div>
+                            <span class="section-tag">Traffic & Audience Analytics</span>
+                            <h2>웹사이트 방문자 및 유입 통계 분석</h2>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button type="button" id="openSettingsModalBtn" class="btn btn-secondary" style="font-size: 13px; padding: 10px 16px;">
+                                <i class="fa-solid fa-gear"></i> 대시보드 URL 설정
+                            </button>
+                            <a href="https://analytics.google.com/analytics/web/" target="_blank" class="btn btn-primary" style="font-size: 13px; padding: 10px 16px; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fa-brands fa-google"></i> GA4 공식 콘솔 열기
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Top Bar Info & Status -->
+                    <div class="analytics-top-bar">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span class="status-badge status-approved" style="font-size: 12px; padding: 6px 14px;">
+                                <i class="fa-solid fa-signal" style="margin-right: 4px;"></i> GA4 활성 상태
+                            </span>
+                            <span style="font-size: 14px; font-weight: 600; color: var(--text-primary);">
+                                측정 ID: <code>G-69ZXT2F4LY</code>
+                            </span>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <button type="button" id="refreshFrameBtn" class="btn btn-secondary" style="padding: 8px 14px; font-size: 12px;">
+                                <i class="fa-solid fa-arrows-rotate"></i> 새로고침
+                            </button>
+                            <button type="button" id="logoutBtn" class="btn btn-secondary" style="padding: 8px 14px; font-size: 12px; color: #E24C4C; border-color: #E24C4C;">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i> 로그아웃
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Metric Highlights Summary -->
+                    <div class="analytics-metric-grid">
+                        <div class="analytics-metric-card">
+                            <div class="label"><i class="fa-solid fa-bullseye" style="color: var(--accent-color);"></i> 분석 속성</div>
+                            <div class="val" style="font-size: 16px; margin-top: 4px;">JohorN (johorn.kr)</div>
+                            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Google Analytics 4 스트림 연동</p>
+                        </div>
+                        <div class="analytics-metric-card">
+                            <div class="label"><i class="fa-solid fa-share-nodes" style="color: var(--accent-color);"></i> 주요 유입 추적 대상</div>
+                            <div class="val" style="font-size: 16px; margin-top: 4px;">네이버 카페 / 블로그 / 인스타</div>
+                            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">포털 검색 및 소셜 링크 유입 실시간 분석</p>
+                        </div>
+                        <div class="analytics-metric-card">
+                            <div class="label"><i class="fa-solid fa-chart-pie" style="color: var(--accent-color);"></i> 대시보드 엔진</div>
+                            <div class="val" style="font-size: 16px; margin-top: 4px;">Google Looker Studio</div>
+                            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">인터랙티브 실시간 시각화 리포트</p>
+                        </div>
+                    </div>
+
+                    <!-- Setup Guide (Shown when no Looker Studio URL is registered) -->
+                    <div id="setupGuideCard" class="guide-card" style="display: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
+                            <h3 style="font-size: 20px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-brands fa-google" style="color: #4285F4;"></i> Looker Studio 대시보드 1분 연결 안내
+                            </h3>
+                            <span class="status-badge status-pending">URL 등록 대기</span>
+                        </div>
+                        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 25px; line-height: 1.6;">
+                            구글의 공식 무료 시각화 도구인 <strong>Google Looker Studio</strong>에서 GA4(<code>G-69ZXT2F4LY</code>) 보고서를 생성한 후 삽입 URL을 등록하시면, 어드민에서 실시간 방문자 차트를 바로 확인하실 수 있습니다.
+                        </p>
+                        
+                        <div class="guide-step">
+                            <div class="step-badge">1</div>
+                            <div class="step-text">
+                                <h4>Looker Studio 접속 및 보고서 만들기</h4>
+                                <p><a href="https://lookerstudio.google.com/" target="_blank" style="color: var(--accent-color); font-weight: 600; text-decoration: underline;">lookerstudio.google.com</a>에 로그인한 뒤 <strong>[만들기] &gt; [보고서]</strong>를 클릭합니다.</p>
+                            </div>
+                        </div>
+
+                        <div class="guide-step">
+                            <div class="step-badge">2</div>
+                            <div class="step-text">
+                                <h4>Google Analytics 데이터 소스 연결</h4>
+                                <p>데이터 소스에서 <strong>Google Analytics</strong>를 선택하고 속성(<code>G-69ZXT2F4LY</code> 또는 조호엔 웹사이트)을 지정하여 보고서를 생성합니다.</p>
+                            </div>
+                        </div>
+
+                        <div class="guide-step">
+                            <div class="step-badge">3</div>
+                            <div class="step-text">
+                                <h4>보고서 삽입(Embed) URL 복사</h4>
+                                <p>상단 메뉴의 <strong>[파일] &gt; [보고서 삽입]</strong>을 누르고 <strong>[삽입 사용 설정]</strong>을 체크한 후 <strong>삽입 URL</strong>(<code>https://lookerstudio.google.com/embed/reporting/...</code>)을 복사합니다.</p>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 30px; background: var(--bg-primary); padding: 25px; border-radius: 8px; border: 1px solid var(--border-color);">
+                            <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 8px;">Looker Studio 삽입 URL 입력</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="url" id="initialLookerUrlInput" class="form-control" placeholder="https://lookerstudio.google.com/embed/reporting/..." style="flex: 1;">
+                                <button type="button" id="saveInitialUrlBtn" class="btn btn-primary" style="padding: 10px 24px; white-space: nowrap;">
+                                    <i class="fa-solid fa-check"></i> 저장 및 대시보드 띄우기
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Looker Studio Iframe Container (Shown when URL exists) -->
+                    <div id="lookerFrameContainer" class="iframe-wrapper" style="display: none;">
+                        <iframe id="lookerIframe" src="" allowfullscreen></iframe>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="urlSettingsModal" class="analytics-modal">
+        <div class="analytics-modal-content">
+            <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 12px;">Looker Studio 대시보드 URL 설정</h3>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">
+                Looker Studio의 [파일] &gt; [보고서 삽입]에서 복사한 삽입 URL을 입력해 주세요. 등록된 URL은 클라우드 DB에 동기화되어 모든 기기에서 공유됩니다.
+            </p>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px;">보고서 삽입 URL</label>
+                <input type="url" id="modalLookerUrlInput" class="form-control" placeholder="https://lookerstudio.google.com/embed/reporting/...">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" id="cancelModalBtn" class="btn btn-secondary">취소</button>
+                <button type="button" id="saveModalBtn" class="btn btn-primary">저장하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-grid">
+            <div>
+                <a href="index.html" class="footer-logo">JohorN</a>
+                <p class="footer-desc">조호바루 현지 정착 전문가들이 제공하는 가장 촘촘하고 믿을 수 있는 케어 서비스.</p>
+            </div>
+            <div class="footer-contact">
+                <h4>CONTACT</h4>
+                <p><i class="fa-solid fa-location-dot" style="margin-right: 8px;"></i> Teega Residence, Puteri Harbour, Malaysia</p>
+                <p><i class="fa-solid fa-envelope" style="margin-right: 8px;"></i> <a href="mailto:myjohorn@gmail.com">myjohorn@gmail.com</a></p>
+                <p><i class="fa-solid fa-comment" style="margin-right: 8px;"></i> <a href="https://pf.kakao.com/_vPVLb/chat" target="_blank">조호엔 카카오 채널 실시간 상담</a></p>
+            </div>
+        </div>
+        <div class="container footer-bottom">
+            <p>&copy; 2026 JohorN. All Rights Reserved. Custom domain setup: johorn.kr</p>
+            <p>Designed with Clean & Aesthetics</p>
+        </div>
+    </footer>
+
+    <!-- Firebase Compatibility SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+    <!-- Core Script -->
+    <script src="admin-analytics.js?v=20260906_01"></script>
+    <script src="mobile-bridge.js"></script>
+</body>
+</html>
