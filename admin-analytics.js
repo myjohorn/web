@@ -188,7 +188,21 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Basic validation for Looker Studio embed URL
+        // If user pasted an iframe tag, extract the src
+        const srcMatch = trimmed.match(/src=["']([^"']+)["']/i);
+        if (srcMatch) {
+            trimmed = srcMatch[1];
+        }
+
+        // If user pasted a regular reporting URL, auto-convert to embed URL
+        if (trimmed.includes('lookerstudio.google.com/reporting/') && !trimmed.includes('/embed/reporting/')) {
+            trimmed = trimmed.replace('lookerstudio.google.com/reporting/', 'lookerstudio.google.com/embed/reporting/');
+        }
+        if (trimmed.includes('datastudio.google.com/reporting/') && !trimmed.includes('/embed/reporting/')) {
+            trimmed = trimmed.replace('datastudio.google.com/reporting/', 'datastudio.google.com/embed/reporting/');
+        }
+
+        // Basic validation for URL
         if (!trimmed.startsWith('https://')) {
             alert('올바른 https:// URL을 입력해 주세요.');
             return;
