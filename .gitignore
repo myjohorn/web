@@ -29,3 +29,7 @@ android/local.properties
 
 .vercel
 .env*
+.clawhub/
+backup_pre_ui/
+skills/
+.github/

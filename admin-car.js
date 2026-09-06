@@ -1883,9 +1883,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
     // 8. Statement Modal Sheet & Print Handler
     // ----------------------------------------------------
+    let currentStmtCar = null;
+    let currentStmtMonth = null;
+
     function openSettlementStatementModal(carId, targetMonth) {
         const car = delegatedCars.find(c => c.id === carId);
         if (!car) return;
+
+        currentStmtCar = car;
+        currentStmtMonth = targetMonth;
 
         // Gross Revenue assigned to targetMonth
         const revs = delegatedRevenues.filter(r => {
@@ -1951,7 +1957,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             return `
                                 <tr style="border-bottom: 1px solid #EEE;">
                                     <td style="padding: 6px;">${revRolloverBadge}${r.startDate} ~ ${r.endDate}</td>
-                                    <td style="padding: 6px;">${(userRole === 'owner') ? maskRenterName(r.renterName) : (r.renterName || '-')}</td>
+                                    <td style="padding: 6px;">${maskRenterName(r.renterName)}</td>
                                     <td style="padding: 6px; text-align: right;">${(parseFloat(r.amount) || 0).toLocaleString()}</td>
                                 </tr>
                             `;
@@ -2126,7 +2132,94 @@ document.addEventListener('DOMContentLoaded', () => {
     const printStmtBtn = document.getElementById('printStmtBtn');
     if (printStmtBtn) {
         printStmtBtn.addEventListener('click', () => {
-            window.print();
+            const stmtContentSheet = document.getElementById('stmtContentSheet');
+            if (!stmtContentSheet) return;
+
+            // Filename format: "JohorN_렌트카정산_<차량번호>_<**년**월>.pdf"
+            const carPlate = (currentStmtCar && currentStmtCar.plateNumber)
+                ? currentStmtCar.plateNumber.replace(/[\/\\:*?"<>|\s]/g, '')
+                : '차량';
+
+            let yearMonthStr = '';
+            if (currentStmtMonth) {
+                const parts = currentStmtMonth.split('-');
+                const yy = (parts[0] || '').slice(-2);
+                const mm = (parts[1] || '').padStart(2, '0');
+                yearMonthStr = `${yy}년${mm}월`;
+            } else {
+                const now = new Date();
+                const yy = String(now.getFullYear()).slice(-2);
+                const mm = String(now.getMonth() + 1).padStart(2, '0');
+                yearMonthStr = `${yy}년${mm}월`;
+            }
+
+            const fileName = `JohorN_렌트카정산_${carPlate}_${yearMonthStr}.pdf`;
+
+            if (typeof html2pdf !== 'undefined') {
+                const originalBtnHtml = printStmtBtn.innerHTML;
+                printStmtBtn.disabled = true;
+                printStmtBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> PDF 다운로드 중...';
+
+                // Build clean printable container
+                const printContainer = document.createElement('div');
+                printContainer.style.padding = '30px';
+                printContainer.style.background = '#ffffff';
+                printContainer.style.color = '#1f2937';
+                printContainer.style.fontFamily = "'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+                printContainer.style.lineHeight = '1.6';
+                printContainer.style.fontSize = '12px';
+                printContainer.style.width = '700px';
+
+                printContainer.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #C5A880; padding-bottom: 12px; margin-bottom: 18px;">
+                        <div>
+                            <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: #C5A880; text-transform: uppercase;">JohorN Consignment Care</div>
+                            <h2 style="font-size: 20px; font-weight: 700; margin: 3px 0 0 0; color: #111827;">렌트카 정산 명세서</h2>
+                        </div>
+                        <div style="text-align: right; font-size: 11px; color: #6b7280;">
+                            <div>발행일: ${getLocalDateString(new Date())}</div>
+                            <div style="font-weight: 600; color: #C5A880; margin-top: 2px;">JohorN 조호엔 (johorn.kr)</div>
+                        </div>
+                    </div>
+                    ${stmtContentSheet.innerHTML}
+                `;
+
+                // Remove interactive receipt preview buttons from PDF output
+                printContainer.querySelectorAll('.stmt-view-receipt-btn').forEach(btn => btn.remove());
+
+                // Mount offscreen
+                printContainer.style.position = 'fixed';
+                printContainer.style.left = '-9999px';
+                printContainer.style.top = '0';
+                printContainer.style.zIndex = '-9999';
+                document.body.appendChild(printContainer);
+
+                const opt = {
+                    margin: [10, 10, 10, 10],
+                    filename: fileName,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true, letterRendering: true, logging: false },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                html2pdf().set(opt).from(printContainer).save().then(() => {
+                    if (document.body.contains(printContainer)) {
+                        document.body.removeChild(printContainer);
+                    }
+                    printStmtBtn.disabled = false;
+                    printStmtBtn.innerHTML = originalBtnHtml;
+                }).catch(err => {
+                    if (document.body.contains(printContainer)) {
+                        document.body.removeChild(printContainer);
+                    }
+                    console.error('PDF export failed, falling back to print:', err);
+                    printStmtBtn.disabled = false;
+                    printStmtBtn.innerHTML = originalBtnHtml;
+                    window.print();
+                });
+            } else {
+                window.print();
+            }
         });
     }
 
@@ -2351,11 +2444,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return getLocalDateString(target);
     }
 
-    // Helper: mask renter name for privacy in owner portal (keep first char, replace rest with *)
+    // Helper: mask renter name for privacy (keep first char, replace rest with *, e.g. 김**)
     function maskRenterName(name) {
-        if (!name) return '예약자';
+        if (!name || name === '-') return '-';
         const str = String(name).trim();
         if (str.length <= 1) return str + '**';
+        if (str.length === 2) return str.charAt(0) + '**';
         return str.charAt(0) + '*'.repeat(str.length - 1);
     }
 
