@@ -86,6 +86,46 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+
+        // Dynamic Stay Gallery Hydration
+        if (contentData.stay && Array.isArray(contentData.stay.gallery) && contentData.stay.gallery.length > 0) {
+            updateStayGallery(contentData.stay.gallery);
+        }
+    }
+
+    function updateStayGallery(galleryItems) {
+        const thumbsContainer = document.querySelector('.stay-gallery .gallery-thumbs');
+        const mainImg = document.getElementById('mainGalleryImg');
+        if (!thumbsContainer || !mainImg) return;
+
+        const mainItem = galleryItems.find(item => item.isMain) || galleryItems[0];
+        if (mainItem && mainItem.src) {
+            mainImg.src = mainItem.src;
+            mainImg.alt = mainItem.alt || 'Teega Residence';
+        }
+
+        thumbsContainer.innerHTML = galleryItems.map(item => {
+            const isActive = (item.src === (mainItem ? mainItem.src : ''));
+            return `
+                <div class="thumb ${isActive ? 'active' : ''}" data-img="${item.src}">
+                    <img src="${item.src}" alt="${escapeCmsHtml(item.alt || 'Teega')}">
+                </div>
+            `;
+        }).join('');
+
+        const thumbs = thumbsContainer.querySelectorAll('.thumb');
+        thumbs.forEach(thumb => {
+            thumb.addEventListener('click', () => {
+                thumbs.forEach(t => t.classList.remove('active'));
+                thumb.classList.add('active');
+                const newSrc = thumb.getAttribute('data-img');
+                mainImg.style.opacity = 0;
+                setTimeout(() => {
+                    mainImg.setAttribute('src', newSrc);
+                    mainImg.style.opacity = 1;
+                }, 150);
+            });
+        });
     }
 
     // 1. Listen for live CMS content from Firebase

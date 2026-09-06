@@ -129,8 +129,17 @@ document.addEventListener('DOMContentLoaded', () => {
             rate_room: "3 Bedroom / 3 Bathroom (오션뷰)",
             rate_capacity: "기준 6명 (최대 8명)",
             service_care: "정기 방역 & 주 1회 전문 청소(3시간)",
-            booking_info: "카카오톡 채널 실시간 상담 및 하단 예약 신청 작성",
-            main_img: "assets/stay_balcony.jpg"
+            main_img: "assets/stay_balcony.jpg",
+            gallery: [
+                { src: "assets/stay_balcony.jpg", alt: "Teega Balcony Sea View", isMain: true },
+                { src: "assets/stay_bedroom.jpg", alt: "Teega Bedroom", isMain: false },
+                { src: "assets/stay_room1.jpg", alt: "Teega Room 1", isMain: false },
+                { src: "assets/stay_room2.jpg", alt: "Teega Room 2", isMain: false },
+                { src: "assets/stay_room3.jpg", alt: "Teega Room 3", isMain: false },
+                { src: "assets/stay_room4.jpg", alt: "Teega View 1", isMain: false },
+                { src: "assets/stay_room6.jpg", alt: "Teega Pool View Night", isMain: false },
+                { src: "assets/stay_room7.jpg", alt: "Teega Inside 2", isMain: false }
+            ]
         },
         blog: {
             tag: "JohorN Insights & News",
@@ -159,9 +168,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Merge live data with defaults
                 mergeDeep(currentCmsDraft, liveData);
             }
+            if (!currentCmsDraft.stay) currentCmsDraft.stay = {};
+            if (!Array.isArray(currentCmsDraft.stay.gallery) || currentCmsDraft.stay.gallery.length === 0) {
+                currentCmsDraft.stay.gallery = JSON.parse(JSON.stringify(DEFAULT_CMS.stay.gallery));
+            }
             populateFormFromDraft();
+            renderStayGalleryAdmin();
             dispatchPreviewUpdate();
         });
+
+        // Initialize stay gallery upload and URL handlers
+        setupStayGalleryUploadHandlers();
 
         // Setup Accordion toggles
         document.querySelectorAll('.cms-section-header').forEach(header => {
@@ -223,6 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (confirm('모든 문구와 설정을 기본값으로 되돌리시겠습니까? (사이트에 즉시 반영하려면 복구 후 [발행]을 눌러야 합니다)')) {
                     currentCmsDraft = JSON.parse(JSON.stringify(DEFAULT_CMS));
                     populateFormFromDraft();
+                    renderStayGalleryAdmin();
                     dispatchPreviewUpdate();
                 }
             });
@@ -254,6 +272,195 @@ document.addEventListener('DOMContentLoaded', () => {
                 type: 'CMS_PREVIEW',
                 content: currentCmsDraft
             }, '*');
+        }
+    }
+
+    // ── Stay Gallery Admin Editor Handlers ──
+    function renderStayGalleryAdmin() {
+        const container = document.getElementById('stayGalleryCardsContainer');
+        if (!container) return;
+        if (!currentCmsDraft.stay) currentCmsDraft.stay = {};
+        if (!Array.isArray(currentCmsDraft.stay.gallery)) {
+            currentCmsDraft.stay.gallery = JSON.parse(JSON.stringify(DEFAULT_CMS.stay.gallery));
+        }
+        const gallery = currentCmsDraft.stay.gallery;
+
+        if (gallery.length === 0) {
+            container.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 25px 15px; background: #F8F9FA; border: 1px dashed #CCC; border-radius: 8px;">
+                    <i class="fa-regular fa-images" style="font-size: 28px; color: #B0A89F; margin-bottom: 8px;"></i>
+                    <p style="font-size: 12px; color: var(--text-secondary); margin: 0 0 8px;">등록된 숙소 이미지가 없습니다.</p>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('stayGalleryFileInput').click()" style="font-size: 12px;">
+                        <i class="fa-solid fa-plus"></i> 이미지 업로드하기
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = gallery.map((item, idx) => {
+            const isMain = !!item.isMain;
+            const isFirst = idx === 0;
+            const isLast = idx === gallery.length - 1;
+            return `
+                <div class="stay-gallery-admin-card ${isMain ? 'is-main' : ''}" data-idx="${idx}">
+                    <div class="stay-gallery-card-img-wrap">
+                        <img src="${item.src}" alt="${escapeCmsHtml(item.alt || '')}" onerror="this.src='assets/stay_balcony.jpg'">
+                        ${isMain ? '<span class="stay-gallery-card-badge"><i class="fa-solid fa-star"></i> 메인</span>' : ''}
+                    </div>
+                    <div class="stay-gallery-card-actions">
+                        <button type="button" class="stay-gallery-btn-main ${isMain ? 'active' : ''}" data-action="main" data-idx="${idx}" title="${isMain ? '현재 대표 메인 이미지' : '이 이미지를 대표로 지정'}">
+                            ${isMain ? '★ 메인' : '메인 지정'}
+                        </button>
+                        <div style="display: flex; gap: 3px;">
+                            <button type="button" class="stay-gallery-btn-action" data-action="move-left" data-idx="${idx}" ${isFirst ? 'disabled' : ''} title="앞으로 이동">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <button type="button" class="stay-gallery-btn-action" data-action="move-right" data-idx="${idx}" ${isLast ? 'disabled' : ''} title="뒤로 이동">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                            <button type="button" class="stay-gallery-btn-action stay-gallery-btn-del" data-action="del" data-idx="${idx}" title="삭제">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Event delegation for gallery action buttons
+        container.querySelectorAll('[data-action]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const action = btn.getAttribute('data-action');
+                const idx = parseInt(btn.getAttribute('data-idx'), 10);
+                if (action === 'main') {
+                    setMainStayGalleryItem(idx);
+                } else if (action === 'move-left') {
+                    moveStayGalleryItem(idx, -1);
+                } else if (action === 'move-right') {
+                    moveStayGalleryItem(idx, 1);
+                } else if (action === 'del') {
+                    deleteStayGalleryItem(idx);
+                }
+            });
+        });
+    }
+
+    function setMainStayGalleryItem(idx) {
+        const gallery = currentCmsDraft.stay.gallery;
+        if (!gallery || !gallery[idx]) return;
+        gallery.forEach((item, i) => {
+            item.isMain = (i === idx);
+        });
+        currentCmsDraft.stay.main_img = gallery[idx].src;
+        const mainInput = document.getElementById('stayMainImgInput');
+        if (mainInput) mainInput.value = gallery[idx].src;
+        renderStayGalleryAdmin();
+        dispatchPreviewUpdate();
+    }
+
+    function moveStayGalleryItem(idx, direction) {
+        const gallery = currentCmsDraft.stay.gallery;
+        if (!gallery) return;
+        const targetIdx = idx + direction;
+        if (targetIdx < 0 || targetIdx >= gallery.length) return;
+        const temp = gallery[idx];
+        gallery[idx] = gallery[targetIdx];
+        gallery[targetIdx] = temp;
+        renderStayGalleryAdmin();
+        dispatchPreviewUpdate();
+    }
+
+    function deleteStayGalleryItem(idx) {
+        const gallery = currentCmsDraft.stay.gallery;
+        if (!gallery || !gallery[idx]) return;
+        if (!confirm('이 숙소 이미지를 갤러리에서 삭제하시겠습니까?')) return;
+        const wasMain = gallery[idx].isMain;
+        gallery.splice(idx, 1);
+        if (wasMain && gallery.length > 0) {
+            gallery[0].isMain = true;
+            currentCmsDraft.stay.main_img = gallery[0].src;
+            const mainInput = document.getElementById('stayMainImgInput');
+            if (mainInput) mainInput.value = gallery[0].src;
+        }
+        renderStayGalleryAdmin();
+        dispatchPreviewUpdate();
+    }
+
+    function setupStayGalleryUploadHandlers() {
+        const uploadBtn = document.getElementById('stayGalleryUploadBtn');
+        const fileInput = document.getElementById('stayGalleryFileInput');
+        const addUrlBtn = document.getElementById('stayGalleryAddUrlBtn');
+
+        if (uploadBtn && fileInput) {
+            uploadBtn.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', async () => {
+                const files = Array.from(fileInput.files);
+                if (files.length === 0) return;
+
+                const originalText = uploadBtn.innerHTML;
+                uploadBtn.disabled = true;
+                uploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 업로드 중...';
+
+                if (!currentCmsDraft.stay) currentCmsDraft.stay = {};
+                if (!Array.isArray(currentCmsDraft.stay.gallery)) {
+                    currentCmsDraft.stay.gallery = JSON.parse(JSON.stringify(DEFAULT_CMS.stay.gallery));
+                }
+
+                for (const file of files) {
+                    await new Promise(resolve => {
+                        readAndCompressThumbnail(file, (dataUrl) => {
+                            const isFirstImage = currentCmsDraft.stay.gallery.length === 0;
+                            currentCmsDraft.stay.gallery.push({
+                                src: dataUrl,
+                                alt: file.name.replace(/\.[^/.]+$/, ''),
+                                isMain: isFirstImage
+                            });
+                            if (isFirstImage) {
+                                currentCmsDraft.stay.main_img = dataUrl;
+                                const mainInput = document.getElementById('stayMainImgInput');
+                                if (mainInput) mainInput.value = dataUrl;
+                            }
+                            resolve();
+                        });
+                    });
+                }
+
+                fileInput.value = '';
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = originalText;
+                renderStayGalleryAdmin();
+                dispatchPreviewUpdate();
+            });
+        }
+
+        if (addUrlBtn) {
+            addUrlBtn.addEventListener('click', () => {
+                const url = prompt('추가할 숙소 이미지 경로 또는 URL을 입력하세요 (예: assets/stay_room1.jpg 또는 https://...):');
+                if (url && url.trim()) {
+                    if (!currentCmsDraft.stay) currentCmsDraft.stay = {};
+                    if (!Array.isArray(currentCmsDraft.stay.gallery)) {
+                        currentCmsDraft.stay.gallery = JSON.parse(JSON.stringify(DEFAULT_CMS.stay.gallery));
+                    }
+                    const isFirst = currentCmsDraft.stay.gallery.length === 0;
+                    currentCmsDraft.stay.gallery.push({
+                        src: url.trim(),
+                        alt: 'Teega Residence',
+                        isMain: isFirst
+                    });
+                    if (isFirst) {
+                        currentCmsDraft.stay.main_img = url.trim();
+                        const mainInput = document.getElementById('stayMainImgInput');
+                        if (mainInput) mainInput.value = url.trim();
+                    }
+                    renderStayGalleryAdmin();
+                    dispatchPreviewUpdate();
+                }
+            });
         }
     }
 

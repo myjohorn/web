@@ -238,9 +238,30 @@
                                                 <input type="text" class="form-control cms-input" data-key="stay.rate_capacity" value="기준 6명 (최대 8명)" style="font-size: 13px;">
                                             </div>
                                         </div>
-                                        <div class="form-group" style="margin-bottom: 0;">
-                                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">대표 이미지 경로 / URL</label>
-                                            <input type="text" class="form-control cms-input" data-key="stay.main_img" value="assets/stay_balcony.jpg" style="font-size: 13px;">
+                                        <input type="hidden" class="cms-input" data-key="stay.main_img" id="stayMainImgInput" value="assets/stay_balcony.jpg">
+
+                                        <!-- Stay Gallery Image Manager -->
+                                        <div class="form-group" style="margin-top: 18px; border-top: 1px solid var(--border-color); padding-top: 16px; margin-bottom: 0;">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">
+                                                <label style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin: 0;">
+                                                    <i class="fa-solid fa-images" style="color: #7B1FA2; margin-right: 5px;"></i> 숙소 갤러리 이미지 관리
+                                                </label>
+                                                <div style="display: flex; gap: 8px;">
+                                                    <input type="file" id="stayGalleryFileInput" multiple accept="image/*" style="display: none;">
+                                                    <button type="button" id="stayGalleryUploadBtn" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 5px; font-weight: 600;">
+                                                        <i class="fa-solid fa-cloud-arrow-up"></i> 이미지 업로드
+                                                    </button>
+                                                    <button type="button" id="stayGalleryAddUrlBtn" class="btn btn-secondary" style="font-size: 12px; padding: 6px 10px; display: inline-flex; align-items: center; gap: 4px;">
+                                                        <i class="fa-solid fa-link"></i> URL 추가
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <p style="font-size: 11.5px; color: var(--text-secondary); margin-bottom: 12px;">
+                                                * 순서 이동(◀, ▶), 대표 메인 이미지 지정, 삭제를 관리할 수 있습니다. (PC/모바일 사진 여러 장 동시 업로드 가능)
+                                            </p>
+                                            <div id="stayGalleryCardsContainer" class="stay-gallery-admin-grid">
+                                                <!-- Populated by admin-content.js -->
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
