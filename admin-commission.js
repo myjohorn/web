@@ -7,13 +7,31 @@ window.onerror = function(message, source, lineno, colno, error) {
 
 document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
-    // 1. Initial State & Variables
+    // 1. Initial State & High-Speed LocalStorage Cache
     // ----------------------------------------------------
-    let admissions = [];
-    let invoices = [];
-    let payments = [];
-    let schools = [];
-    let entities = [];
+    function getStoredCache(key, fallback = []) {
+        try {
+            const raw = localStorage.getItem('johorn_cache_' + key);
+            return raw ? JSON.parse(raw) : fallback;
+        } catch (e) {
+            return fallback;
+        }
+    }
+
+    function setStoredCache(key, data) {
+        try {
+            localStorage.setItem('johorn_cache_' + key, JSON.stringify(data));
+        } catch (e) {
+            // Ignore quota errors if storage full
+        }
+    }
+
+    // Load instantly from localStorage before network handshake (0ms startup)
+    let admissions = getStoredCache('admissions', []);
+    let invoices = getStoredCache('invoices', []);
+    let payments = getStoredCache('payments', []);
+    let schools = getStoredCache('schools', []);
+    let entities = getStoredCache('entities', []);
 
     let activeTab = 'admissions';
     let adminPasswordHash = null;
@@ -373,80 +391,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
     checkAuth();
 
+    let isDataListenersInitialized = false;
+
+    function renderInitialCacheData() {
+        if (schools && schools.length > 0) {
+            updateSchoolDropdowns();
+            renderSchools();
+        }
+        if (entities && entities.length > 0) {
+            updateEntityDropdowns();
+            renderEntities();
+        }
+        if (admissions && admissions.length > 0) {
+            updateDashboardMetrics();
+            renderAdmissions();
+        }
+        if (invoices && invoices.length > 0) {
+            renderInvoices();
+        }
+        if (payments && payments.length > 0) {
+            renderPayments();
+        }
+    }
+
     // ----------------------------------------------------
-    // 4. Realtime Database Listeners & Seeding
+    // 4. Realtime Database Listeners & High-Speed Cache Sync
     // ----------------------------------------------------
     function initDataListeners() {
-        // Seed default schools if empty
-        db.ref('commission_schools').once('value', (snapshot) => {
-            if (!snapshot.exists()) {
-                seedInitialSchools();
-            }
-        });
+        if (isDataListenersInitialized) return;
+        isDataListenersInitialized = true;
 
-        // Seed default corporate entity if empty
-        db.ref('commission_entities').once('value', (snapshot) => {
-            if (!snapshot.exists()) {
-                seedInitialEntities();
-            }
-        });
+        // Render cached data immediately (0ms) so user never waits
+        renderInitialCacheData();
 
         // Listen for Partner Schools
         db.ref('commission_schools').on('value', (snapshot) => {
             const val = snapshot.val();
-            schools = val ? Object.keys(val).filter(k => !k.startsWith('_')).map(k => ({ id: k, ...val[k] })) : [];
-            
-            // Auto ensure Invictus International School (HH) & Tenby Schools are seeded if missing
-            const hasInvictus = schools.some(s => s.nameEn && (s.nameEn.includes('Invictus') || s.nameEn.includes('HH')));
-            if (!hasInvictus && userRole === 'admin') {
-                const invictusData = {
-                    nameEn: "Invictus International School (HH)",
-                    nameKo: "인빅투스 국제학교 (호라이즌힐스)",
-                    contractStartDate: "2024-10-17",
-                    contractEndDate: "2026-10-16",
-                    commissionType: "percentage",
-                    defaultRate: 10,
-                    defaultSettlement: "3",
-                    settlementCycle: "학기별 학비 수납 시점 연동 분할 정산 (Termly basis - 학기 완료 후 정산)",
-                    settlementMethod: "학생 학비 완납 대조 후 Kepler 법인 인보이스 발행 및 CES Horizon Sdn Bhd 은행 송금",
-                    contractFileName: "IHH_Agent_Service_Agreement_2024.pdf",
-                    contractFileUrl: "assets/contracts/IHH_Agent_Service_Agreement_2024.pdf",
-                    adminContactName: "Admissions Office / WhatsApp: +60 10-882 8721",
-                    adminContactEmail: "admissions@invictus.edu.my",
-                    adminContactPhone: "+60 7-233 0800",
-                    financeContactName: "Finance & Accounts Dept",
-                    financeContactEmail: "accounts@invictus.edu.my",
-                    financeContactPhone: "+60 7-233 0800",
-                    location: "No. 3, Jalan Persiaran Selatan, Horizon Hills, 79100 Iskandar Puteri, Johor",
-                    memo: "CES HORIZON SDN. BHD. (Invictus Horizon Hills)와 KEPLER CONSULTING & TRAINING SDN. BHD. 간 정식 체결 계약서 (1년차 순학비의 10% 커미션, 학기별 Term 정산)"
-                };
-                db.ref('commission_schools').push(invictusData);
+            if (!val) {
+                seedInitialSchools();
+                return;
             }
-
-            const hasTenby = schools.some(s => s.nameEn && s.nameEn.toLowerCase().includes('tenby'));
-            if (!hasTenby && userRole === 'admin') {
-                const tenbyData = {
-                    nameEn: "Tenby Schools Setia Eco Gardens",
-                    nameKo: "텐비 국제학교 (세티아 에코 가든스)",
-                    contractStartDate: "2024-08-01",
-                    contractEndDate: "2027-07-31",
-                    commissionType: "percentage",
-                    defaultRate: 10,
-                    defaultSettlement: "1",
-                    settlementCycle: "학기 시작 및 학비 완납 후 연 3회 (Term 1 / Term 2 / Term 3 분할 또는 신규 1회 일괄)",
-                    settlementMethod: "ISP Malaysia 본부 승인 후 Tenby Southern Sdn. Bhd. 회계팀으로 공식 인보이스 청구 및 TT 계좌 입금",
-                    adminContactName: "Ra Na Choi (ISP) / Admissions Department",
-                    adminContactEmail: "rchoi@ispschools.com",
-                    adminContactPhone: "+60 7-558 8812",
-                    financeContactName: "Pui Yi Kuan / Finance & Accounts (Tenby Southern Sdn. Bhd.)",
-                    financeContactEmail: "puiyi.kuan@tenby.edu.my",
-                    financeContactPhone: "+60 7-558 8812",
-                    location: "7, Jalan Laman Setia 2/1, Setia Eco Gardens, 81550 Gelang Patah, Johor, Malaysia",
-                    memo: "ISP Malaysia Agent Agreement 2027-07-31까지 연장 완료 (Tenby, Straits, Asia Pacific Schools 적용, 10% 커미션)"
-                };
-                db.ref('commission_schools').push(tenbyData);
-            }
-
+            schools = Object.keys(val).filter(k => !k.startsWith('_')).map(k => ({ id: k, ...val[k] }));
+            setStoredCache('schools', schools);
             updateSchoolDropdowns();
             renderSchools();
             renderAdmissions();
@@ -455,7 +441,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Listen for Corporate Entities
         db.ref('commission_entities').on('value', (snapshot) => {
             const val = snapshot.val();
-            entities = val ? Object.keys(val).filter(k => !k.startsWith('_')).map(k => ({ id: k, ...val[k] })) : [];
+            if (!val) {
+                seedInitialEntities();
+                return;
+            }
+            entities = Object.keys(val).filter(k => !k.startsWith('_')).map(k => ({ id: k, ...val[k] }));
+            setStoredCache('entities', entities);
             updateEntityDropdowns();
             renderEntities();
             renderInvoices();
@@ -465,6 +456,7 @@ document.addEventListener('DOMContentLoaded', () => {
         db.ref('commission_admissions').on('value', (snapshot) => {
             const val = snapshot.val();
             admissions = val ? Object.keys(val).filter(k => !k.startsWith('_')).map(k => ({ id: k, ...val[k] })) : [];
+            setStoredCache('admissions', admissions);
             updateDashboardMetrics();
             renderAdmissions();
         });
@@ -473,6 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
         db.ref('commission_invoices').on('value', (snapshot) => {
             const val = snapshot.val();
             invoices = val ? Object.keys(val).filter(k => !k.startsWith('_')).map(k => ({ id: k, ...val[k] })) : [];
+            setStoredCache('invoices', invoices);
             updateDashboardMetrics();
             renderInvoices();
         });
@@ -481,6 +474,7 @@ document.addEventListener('DOMContentLoaded', () => {
         db.ref('commission_payments').on('value', (snapshot) => {
             const val = snapshot.val();
             payments = val ? Object.keys(val).filter(k => !k.startsWith('_')).map(k => ({ id: k, ...val[k] })) : [];
+            setStoredCache('payments', payments);
             updateDashboardMetrics();
             renderPayments();
         });

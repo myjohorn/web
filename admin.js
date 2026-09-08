@@ -14,6 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let tokenClient;
     let gcalEventsCache = [];
     let johornRequests = [];
+    try {
+        const cachedReqs = localStorage.getItem('johorn_cache_requests');
+        if (cachedReqs) johornRequests = JSON.parse(cachedReqs);
+    } catch(e) {}
     let currentFilter = 'all';
 
     // Mobile Nav Toggle for admin page
@@ -220,6 +224,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. Initialization & Database Listeners
     // ----------------------------------------------------
     function initializeDashboard() {
+        // Render cached requests immediately (0ms) so user never waits
+        if (johornRequests.length > 0) {
+            renderAdminDashboard();
+            renderAdminCalendar();
+        }
+
         // 1. Sync GCal settings from Firebase Realtime Database
         db.ref('settings/gcal').on('value', (snapshot) => {
             const val = snapshot.val();
@@ -255,6 +265,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 });
             }
+            try {
+                localStorage.setItem('johorn_cache_requests', JSON.stringify(johornRequests));
+            } catch(e) {}
             
             // Re-render dashboard list and calendar
             renderAdminDashboard();
