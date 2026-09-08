@@ -214,6 +214,11 @@
                                         <option value="JohorN">🏢 JohorN</option>
                                         <option value="Kepler">🎓 Kepler</option>
                                     </select>
+                                    <!-- Show All Students Checkbox -->
+                                    <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text-primary); cursor: pointer; user-select: none; padding: 7px 12px; background: #fff; border: 1px solid var(--border-color); border-radius: 4px; white-space: nowrap;" title="체크 시 정산이 필요 없는 학생(비제휴/수수료 0원)을 포함하여 모든 학생을 표시합니다.">
+                                        <input type="checkbox" id="showAllAdmissionsCheckbox" style="cursor: pointer; width: 15px; height: 15px; accent-color: var(--primary-color);">
+                                        전체 학생 보기
+                                    </label>
                                 </div>
                                 <button type="button" id="openAddAdmissionBtn" class="btn btn-primary admin-only" style="padding: 9px 20px; font-size: 13px; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
                                     <i class="fa-solid fa-plus"></i> 신규 학생 입학 등록
@@ -1394,7 +1399,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <!-- Admin Commission Management JS -->
-    <script src="admin-commission.js?v=20260909_zero_filter"></script>
+    <script src="admin-commission.js?v=20260909_student_filter"></script>
     <script src="mobile-bridge.js"></script>
 
     <!-- Vercel Speed Insights & Analytics -->

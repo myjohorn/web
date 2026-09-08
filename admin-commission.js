@@ -933,6 +933,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const admissionSearchInput = document.getElementById('admissionSearchInput');
     const admissionSchoolFilter = document.getElementById('admissionSchoolFilter');
     const admissionStatusFilter = document.getElementById('admissionStatusFilter');
+    const showAllAdmissionsCheckbox = document.getElementById('showAllAdmissionsCheckbox');
 
     function renderAdmissions() {
         if (!admissionTableBody) return;
@@ -941,10 +942,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const schoolFilter = (admissionSchoolFilter ? admissionSchoolFilter.value : 'all');
         const statusFilter = (admissionStatusFilter ? admissionStatusFilter.value : 'all');
         const agencyFilter = (document.getElementById('admissionAgencyFilter') ? document.getElementById('admissionAgencyFilter').value : 'all');
+        const showAll = (showAllAdmissionsCheckbox ? showAllAdmissionsCheckbox.checked : false);
 
         const baseAdmissions = getFilteredAdmissions();
 
         const filtered = baseAdmissions.filter(adm => {
+            // Default filter: exclude students who do not need settlement (commAmt <= 0) unless showAll is checked
+            if (!showAll) {
+                const commAmt = parseFloat(adm.commissionAmount) || 
+                    Math.round((parseFloat(adm.tuitionFee) || 0) * ((parseFloat(adm.commissionRate) || 0) / 100));
+                if (commAmt <= 0) return false;
+            }
+
             if (schoolFilter !== 'all' && adm.schoolName !== schoolFilter) return false;
             if (statusFilter !== 'all' && adm.status !== statusFilter) return false;
             if (agencyFilter !== 'all') {
@@ -959,11 +968,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (filtered.length === 0) {
+            const emptyMessage = !showAll && baseAdmissions.length > 0 
+                ? '정산 대상 학생 입학 수속 내역이 없습니다. (상단의 "전체 학생 보기" 체크 시 비제휴/0% 학생 포함 표시)' 
+                : '등록된 학생 입학 수속 내역이 없습니다.';
             admissionTableBody.innerHTML = `
                 <tr>
                     <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary);">
                         <i class="fa-solid fa-graduation-cap" style="font-size: 32px; color: #C5A880; margin-bottom: 10px; display: block;"></i>
-                        등록된 학생 입학 수속 내역이 없습니다.
+                        ${emptyMessage}
                     </td>
                 </tr>
             `;
@@ -1094,6 +1106,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (admissionStatusFilter) admissionStatusFilter.addEventListener('change', renderAdmissions);
     const admissionAgencyFilter = document.getElementById('admissionAgencyFilter');
     if (admissionAgencyFilter) admissionAgencyFilter.addEventListener('change', renderAdmissions);
+    if (showAllAdmissionsCheckbox) showAllAdmissionsCheckbox.addEventListener('change', renderAdmissions);
 
     function getStatusBadge(status) {
         switch (status) {
