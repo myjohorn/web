@@ -721,6 +721,8 @@ document.addEventListener('DOMContentLoaded', () => {
             accountName: "KEPLER CONSULTING & TRAINING SDN BHD",
             swiftCode: "PBBEMYKLXXX",
             isDefault: true,
+            signatureUrl: "assets/signatures/sig_kepler_seo.png",
+            signatureFileName: "sig_kepler_seo.png",
             loginId: "kepler",
             loginPassword: "0198153659"
         };
@@ -1728,6 +1730,9 @@ document.addEventListener('DOMContentLoaded', () => {
         currentViewingInvoice = inv;
         const sch = schools.find(s => s.nameEn === inv.schoolName || s.nameKo === inv.schoolName || s.id === inv.schoolId) || {};
         const ent = entities.find(e => e.name === inv.entityName || e.id === inv.entityId) || entities[0];
+        if (invoiceModalEntitySelect && ent) {
+            invoiceModalEntitySelect.value = ent.id;
+        }
         renderInvoiceSheet(inv, ent, sch);
         openModal('invoiceModal');
     }
@@ -2195,15 +2200,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
 
-                <!-- Signatory Footer (100% English) -->
-                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 25px; padding-top: 15px;">
-                    <div style="font-size: 11px; color: #888; line-height: 1.4;">
+                <!-- Signatory Footer (100% English with Director Signature) -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; padding-top: 15px;">
+                    <div style="font-size: 11px; color: #888; line-height: 1.5;">
                         Thank you for your valued partnership with JohorN Education Consulting.<br>
                         Authorized Agent & Official Education Placement Partner
                     </div>
-                    <div style="text-align: center; border-top: 1px solid #aaa; padding-top: 8px; width: 220px;">
-                        <div style="font-size: 12px; font-weight: 700; color: #1a1a1a;">${ent.director || 'Authorized Signatory'}</div>
-                        <div style="font-size: 10px; color: #777;">${ent.name}</div>
+                    <div style="text-align: center; width: 230px; display: flex; flex-direction: column; align-items: center;">
+                        <div style="height: 65px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 2px;">
+                            ${(ent.signatureDataUrl || ent.signatureUrl) ? `
+                                <img src="${ent.signatureDataUrl || ent.signatureUrl}" alt="Signature of ${ent.director || 'Director'}" style="max-height: 60px; max-width: 190px; object-fit: contain;">
+                            ` : ''}
+                        </div>
+                        <div style="border-top: 1px solid #888; padding-top: 6px; width: 100%;">
+                            <div style="font-size: 12px; font-weight: 700; color: #1a1a1a;">${ent.director || 'Authorized Signatory'}</div>
+                            <div style="font-size: 10px; color: #666; margin-top: 1px;">Managing Director / Authorized Representative</div>
+                            <div style="font-size: 10px; color: #888;">${ent.name}</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3365,11 +3378,28 @@ Email / Contact: ${ent.contact || '-'}`.trim();
                 </div>
 
                 <!-- Portal Access Credentials Display -->
-                <div style="background: #EBF8FF; border: 1px solid #BEE3F8; padding: 10px 12px; border-radius: 6px; font-size: 11px; margin-bottom: 15px;">
+                <div style="background: #EBF8FF; border: 1px solid #BEE3F8; padding: 10px 12px; border-radius: 6px; font-size: 11px; margin-bottom: 12px;">
                     <div style="font-weight: 700; color: #0288D1; margin-bottom: 4px;"><i class="fa-solid fa-key"></i> 법인 조회 포털 접속 계정</div>
                     <div>아이디: <strong style="font-family: monospace; color: #1a1a1a;">${ent.loginId || '(미설정)'}</strong></div>
                     <div>비밀번호: <strong style="font-family: monospace; color: #4A5568;">${ent.loginPassword ? '••••••••' : '(미설정)'}</strong></div>
                 </div>
+
+                <!-- Director Signature Preview on Entity Card -->
+                ${(ent.signatureDataUrl || ent.signatureUrl) ? `
+                    <div style="display: flex; align-items: center; gap: 10px; background: #FAF9F6; border: 1px solid #E5E0D8; border-radius: 6px; padding: 8px 12px; margin-bottom: 15px;">
+                        <div style="height: 38px; width: 90px; background: #FFF; border: 1px solid #EEE; border-radius: 4px; display: flex; align-items: center; justify-content: center; padding: 2px;">
+                            <img src="${ent.signatureDataUrl || ent.signatureUrl}" alt="Signature" style="max-height: 34px; max-width: 82px; object-fit: contain;">
+                        </div>
+                        <div style="font-size: 11px;">
+                            <div style="font-weight: 700; color: #2E7D32;"><i class="fa-solid fa-file-signature"></i> 대표자 서명 등록됨</div>
+                            <div style="color: #666; font-size: 10px;">인보이스 발행 시 자동 서명 날인</div>
+                        </div>
+                    </div>
+                ` : `
+                    <div style="background: #F9FAFB; border: 1px dashed #E5E7EB; border-radius: 6px; padding: 6px 10px; margin-bottom: 15px; font-size: 11px; color: #9CA3AF; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-signature"></i> 대표자 서명 미등록 (텍스트 서명란 사용)
+                    </div>
+                `}
 
                 <div style="display: flex; justify-content: flex-end; gap: 8px;">
                     <button type="button" class="btn btn-secondary btn-edit-entity" data-id="${ent.id}" style="padding: 5px 12px; font-size: 12px;">
@@ -3384,6 +3414,85 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         });
     }
 
+    // Corporate Entity Signature Upload & Management
+    const entitySignatureFileInput = document.getElementById('entitySignatureFileInput');
+    const triggerEntitySignatureUploadBtn = document.getElementById('triggerEntitySignatureUploadBtn');
+    const removeEntitySignatureBtn = document.getElementById('removeEntitySignatureBtn');
+    const entitySignaturePreview = document.getElementById('entitySignaturePreview');
+    const entitySignatureUrl = document.getElementById('entitySignatureUrl');
+    const entitySignatureDataUrl = document.getElementById('entitySignatureDataUrl');
+    const entitySignatureFileName = document.getElementById('entitySignatureFileName');
+
+    function updateEntitySignaturePreview(url, fileName) {
+        if (!entitySignaturePreview) return;
+        if (!url) {
+            entitySignaturePreview.innerHTML = `
+                <div style="padding: 12px; border: 1px dashed var(--border-color); border-radius: 4px; text-align: center; color: #8C8782; background: #FFF;">
+                    <i class="fa-solid fa-signature" style="margin-right: 4px;"></i> 현재 등록된 대표자 서명 이미지가 없습니다. (텍스트 서명란으로 표시됨)
+                </div>
+            `;
+            if (removeEntitySignatureBtn) removeEntitySignatureBtn.classList.add('hidden');
+            return;
+        }
+
+        entitySignaturePreview.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: #FFF; border: 1px solid #D5CFC5; padding: 10px 14px; border-radius: 6px;">
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <div style="height: 52px; width: 130px; display: flex; align-items: center; justify-content: center; background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 4px; padding: 3px;">
+                        <img src="${url}" alt="서명 미리보기" style="max-height: 46px; max-width: 120px; object-fit: contain;">
+                    </div>
+                    <div>
+                        <div style="font-weight: 700; color: #1a1a1a; font-size: 12px;">${fileName || '대표자 친필 서명 파일'}</div>
+                        <div style="font-size: 11px; color: #2E7D32; margin-top: 2px;"><i class="fa-solid fa-circle-check"></i> 인보이스 발행 시 자동 날인 적용됨</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        if (removeEntitySignatureBtn) removeEntitySignatureBtn.classList.remove('hidden');
+    }
+
+    if (triggerEntitySignatureUploadBtn && entitySignatureFileInput) {
+        triggerEntitySignatureUploadBtn.addEventListener('click', () => {
+            entitySignatureFileInput.click();
+        });
+
+        entitySignatureFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (file.size > 3 * 1024 * 1024) {
+                alert('서명 이미지 크기가 3MB를 초과합니다. 3MB 이하의 이미지를 업로드해주세요.');
+                entitySignatureFileInput.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const dataUrl = evt.target.result;
+                if (entitySignatureUrl) entitySignatureUrl.value = dataUrl;
+                if (entitySignatureDataUrl) entitySignatureDataUrl.value = dataUrl;
+                if (entitySignatureFileName) entitySignatureFileName.value = file.name;
+                updateEntitySignaturePreview(dataUrl, file.name);
+            };
+            reader.onerror = function() {
+                alert('파일을 읽는 중 오류가 발생했습니다.');
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    if (removeEntitySignatureBtn) {
+        removeEntitySignatureBtn.addEventListener('click', () => {
+            if (confirm('현재 등록된 대표자 서명 이미지를 삭제하시겠습니까?')) {
+                if (entitySignatureFileInput) entitySignatureFileInput.value = '';
+                if (entitySignatureUrl) entitySignatureUrl.value = '';
+                if (entitySignatureDataUrl) entitySignatureDataUrl.value = '';
+                if (entitySignatureFileName) entitySignatureFileName.value = '';
+                updateEntitySignaturePreview('', '');
+            }
+        });
+    }
+
     if (openAddEntityBtn) {
         openAddEntityBtn.addEventListener('click', () => {
             document.getElementById('entityModalTitle').innerHTML = '<i class="fa-solid fa-building-columns" style="color: var(--accent-color);"></i> 신규 발행 법인 프로필 등록';
@@ -3391,6 +3500,11 @@ Email / Contact: ${ent.contact || '-'}`.trim();
             document.getElementById('entityForm').reset();
             if (document.getElementById('entityLoginId')) document.getElementById('entityLoginId').value = '';
             if (document.getElementById('entityLoginPassword')) document.getElementById('entityLoginPassword').value = '';
+            if (entitySignatureFileInput) entitySignatureFileInput.value = '';
+            if (entitySignatureUrl) entitySignatureUrl.value = '';
+            if (entitySignatureDataUrl) entitySignatureDataUrl.value = '';
+            if (entitySignatureFileName) entitySignatureFileName.value = '';
+            updateEntitySignaturePreview('', '');
             if (deleteEntityBtn) deleteEntityBtn.classList.add('hidden');
             openModal('entityModal');
         });
@@ -3419,6 +3533,12 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         if (document.getElementById('entityLoginPassword')) {
             document.getElementById('entityLoginPassword').value = ent.loginPassword || '';
         }
+
+        const sigUrl = ent.signatureDataUrl || ent.signatureUrl || '';
+        if (entitySignatureUrl) entitySignatureUrl.value = sigUrl;
+        if (entitySignatureDataUrl) entitySignatureDataUrl.value = ent.signatureDataUrl || '';
+        if (entitySignatureFileName) entitySignatureFileName.value = ent.signatureFileName || '';
+        updateEntitySignaturePreview(sigUrl, ent.signatureFileName || '');
 
         if (deleteEntityBtn) deleteEntityBtn.classList.remove('hidden');
         openModal('entityModal');
@@ -3451,7 +3571,10 @@ Email / Contact: ${ent.contact || '-'}`.trim();
                 swiftCode: document.getElementById('entitySwiftCode').value.trim(),
                 isDefault,
                 loginId: document.getElementById('entityLoginId') ? document.getElementById('entityLoginId').value.trim() : '',
-                loginPassword: document.getElementById('entityLoginPassword') ? document.getElementById('entityLoginPassword').value.trim() : ''
+                loginPassword: document.getElementById('entityLoginPassword') ? document.getElementById('entityLoginPassword').value.trim() : '',
+                signatureUrl: entitySignatureUrl ? entitySignatureUrl.value.trim() : '',
+                signatureDataUrl: entitySignatureDataUrl ? entitySignatureDataUrl.value.trim() : '',
+                signatureFileName: entitySignatureFileName ? entitySignatureFileName.value.trim() : ''
             };
 
             if (isDefault) {

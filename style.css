@@ -3378,5 +3378,49 @@ input, textarea {
     color: #FFF !important;
 }
 
-
-
+/* ====================================================
+   Official Commission Invoice Print Styles
+   ==================================================== */
+@media print {
+    body * {
+        visibility: hidden !important;
+    }
+    #invoiceModal,
+    #invoiceModal * {
+        visibility: visible !important;
+    }
+    #invoiceModal {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        background: #FFF !important;
+        box-shadow: none !important;
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        z-index: 99999 !important;
+    }
+    #invoiceModal > div {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+    }
+    .invoice-modal-header,
+    .invoice-entity-selector-bar,
+    .invoice-email-box,
+    .invoice-modal-footer,
+    .close-modal-btn {
+        display: none !important;
+    }
+    #invoiceSheetContainer {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 10mm 15mm !important;
+        box-sizing: border-box !important;
+    }
+}

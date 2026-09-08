@@ -934,6 +934,33 @@
                     </div>
                 </div>
 
+                <!-- Director Signature Attachment & Upload -->
+                <div style="background: #FAF9F6; border: 1px solid var(--border-color); border-radius: 6px; padding: 14px; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label style="font-size: 12px; font-weight: 700; color: var(--accent-color); display: flex; align-items: center; gap: 6px; margin: 0;">
+                            <i class="fa-solid fa-signature"></i> 대표자 서명/직인 이미지 (Authorized Director Signature)
+                        </label>
+                        <span style="font-size: 11px; color: var(--text-secondary);">인보이스 하단에 자동 날인될 대표자 서명 (PNG/JPG)</span>
+                    </div>
+                    <input type="hidden" id="entitySignatureUrl" value="">
+                    <input type="hidden" id="entitySignatureDataUrl" value="">
+                    <input type="hidden" id="entitySignatureFileName" value="">
+                    <input type="file" id="entitySignatureFileInput" accept=".png,.jpg,.jpeg" style="display: none;">
+
+                    <div id="entitySignaturePreview" style="margin-bottom: 10px; font-size: 12px;">
+                        <!-- JS dynamically updates current signature preview or empty state -->
+                    </div>
+
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button type="button" id="triggerEntitySignatureUploadBtn" class="btn btn-secondary" style="padding: 7px 14px; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-cloud-arrow-up" style="color: var(--accent-color);"></i> 서명 파일 직접 업로드 / 변경
+                        </button>
+                        <button type="button" id="removeEntitySignatureBtn" class="btn btn-secondary hidden" style="padding: 7px 12px; font-size: 12px; color: #C62828; border-color: #EF9A9A; display: flex; align-items: center; gap: 5px;">
+                            <i class="fa-solid fa-trash-can"></i> 서명 삭제
+                        </button>
+                    </div>
+                </div>
+
                 <div class="form-group" style="margin-bottom: 15px;">
                     <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">법인 등록 주소 (Registered Office Address) <span style="color: #C62828;">*</span></label>
                     <input type="text" id="entityAddress" class="form-control" placeholder="예: 84B Jalan Eko Botani 3/2 Taman Eko Botani, 79100 Iskandar Puteri, Johor, Malaysia" required style="font-size: 13px; padding: 10px;">
