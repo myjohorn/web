@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let activeTab = 'admissions';
     let adminPasswordHash = null;
+    let isDataListenersInitialized = false;
 
     // Role & Entity Portal Session
     let userRole = 'admin'; // 'admin' | 'entity'
@@ -388,10 +389,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const invIds = new Set(filteredInvs.map(i => i.id));
         return payments.filter(p => (p.admissionId && admIds.has(p.admissionId)) || (p.invoiceId && invIds.has(p.invoiceId)));
     }
-
-    checkAuth();
-
-    let isDataListenersInitialized = false;
 
     function renderInitialCacheData() {
         if (schools && schools.length > 0) {
@@ -3613,4 +3610,7 @@ Email / Contact: ${ent.contact || '-'}`.trim();
             }
         });
     }
+
+    // Initialize Auth and Data Listeners after all DOM elements and handlers are bound
+    checkAuth();
 });
