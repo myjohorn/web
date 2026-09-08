@@ -530,9 +530,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 contractEndDate: "2026-12-31",
                 commissionType: "percentage",
                 defaultRate: 15,
-                defaultSettlement: "1", // 1-time
-                settlementCycle: "학기 개시 후 배치별 정산 (S1: 7~8월 / S2: 2월 및 4월 신청, 학비 납부 후 30일 이내)",
-                settlementMethod: "Raffles Education Network 학생 확인표(Verification Form) 제출 및 검증 후 공식 인보이스 발행하여 은행 송금",
+                defaultSettlement: "2", // 2 installments
+                settlementCycle: "학기별 2회 분할 정산 (1학기 & 2학기 수업료 완납 및 개강 후 12주 이내 각각 분할 지급)",
+                settlementMethod: "Raffles Education Network 학생 검증표(Verification Form) 승인 후 공식 인보이스 발행하여 은행 송금",
                 adminContactName: "OW Wei Hong & Mingle SI (Raffles Education Network)",
                 adminContactEmail: "OWWeiHong@Raffles-Education-Network.com",
                 adminContactPhone: "+60 7-509 8888",
@@ -540,7 +540,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 financeContactEmail: "finance@rafflesamericanschool.org",
                 financeContactPhone: "+60 7-509 8890",
                 location: "Jalan Raffles, 79050 Iskandar Puteri, Johor, Malaysia",
-                memo: "Non-RSG Agent Agreement 갱신 완료 (계약 법인: KEPLER CONSULTING & TRAINING SDN. BHD.), 미국식 정규 커리큘럼(AP), 15% 커미션"
+                memo: "계약서 원문(Appendix E): 1~10명 10%, 11~20명 15%, 21명 이상 20% 누진 요율 적용. 각 학기 개강 후 12주 이내 2회 분할 지급"
             },
             {
                 nameEn: "Sunway International School",
@@ -585,11 +585,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 nameKo: "포레스트시티 국제학교",
                 contractStartDate: "2025-08-01",
                 contractEndDate: "2027-07-31",
-                commissionType: "percentage",
-                defaultRate: 12,
-                defaultSettlement: "2",
-                settlementCycle: "학기별 2회 분할 정산 (Term 1 개시 후 50%, Term 2 개시 후 잔여 50%)",
-                settlementMethod: "학생 학비 납부 영수증 첨부하여 FCIS Finance(Jennifer Low)로 공식 인보이스 발송 후 30일 이내 송금",
+                commissionType: "fixed",
+                defaultRate: 13000, // Day RM 13,000 / Boarding RM 15,000
+                defaultSettlement: "1", // 1-time
+                settlementCycle: "학생 첫 학년도 1회 일괄 정산 (학비 50% 이상 납부 및 6주 정규 수업 이수 완료 후 정산 개시)",
+                settlementMethod: "공식 세금 인보이스(Tax Invoice) 발행 및 검증 후 30 영업일(working days) 이내 은행 송금",
                 adminContactName: "Yu Jie (Zoe) Shi (CATS / FCIS)",
                 adminContactEmail: "zoe.shi@cats-fc.org",
                 adminContactPhone: "+60 7-500 5900",
@@ -597,7 +597,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 financeContactEmail: "jennifer.low@cats-fc.org",
                 financeContactPhone: "+60 7-500 5910",
                 location: "Forest City, 81550 Gelang Patah, Johor, Malaysia",
-                memo: "AY 2026-2027 갱신 완료 (FCIS Enrollment Promotion Service Agreement), CATS Global Education 소속, 12% 커미션 (2회 분할 정산)"
+                memo: "FCIS 계약서 원문: 통학 학생(Day) RM 13,000 net / 기숙 학생(Boarding) RM 15,000 net 고정 커미션. 6주 수업 출석 후 인보이스 발행 (30 영업일 내 지급)"
             },
             {
                 nameEn: "Stellar International School",
