@@ -5,4 +5,4 @@ Disallow: /admin*.html
 Disallow: /temp/
 
 # Sitemap location
-Sitemap: https://johorn.kr/sitemap.xml
+Sitemap: https://www.johorn.kr/sitemap.xml
