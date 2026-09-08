@@ -935,12 +935,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const search = (admissionSearchInput ? admissionSearchInput.value.trim().toLowerCase() : '');
         const schoolFilter = (admissionSchoolFilter ? admissionSchoolFilter.value : 'all');
         const statusFilter = (admissionStatusFilter ? admissionStatusFilter.value : 'all');
+        const agencyFilter = (document.getElementById('admissionAgencyFilter') ? document.getElementById('admissionAgencyFilter').value : 'all');
 
         const baseAdmissions = getFilteredAdmissions();
 
         const filtered = baseAdmissions.filter(adm => {
             if (schoolFilter !== 'all' && adm.schoolName !== schoolFilter) return false;
             if (statusFilter !== 'all' && adm.status !== statusFilter) return false;
+            if (agencyFilter !== 'all') {
+                const curAg = (adm.registeredAgency || adm.agency || 'JohorN').toLowerCase();
+                if (curAg !== agencyFilter.toLowerCase()) return false;
+            }
             if (search) {
                 const combined = `${adm.studentNameEn || ''} ${adm.studentNameKo || ''} ${adm.studentName || ''} ${adm.registeredAgency || adm.agency || ''} ${adm.parentName || ''} ${adm.parentPhone || ''} ${adm.parentEmail || ''} ${adm.parentKakaoWhatsapp || adm.parentKakao || ''} ${adm.parentContact || ''} ${adm.schoolName || ''} ${adm.gradeEn || adm.grade || ''}`.toLowerCase();
                 if (!combined.includes(search)) return false;
@@ -1082,6 +1087,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (admissionSearchInput) admissionSearchInput.addEventListener('input', renderAdmissions);
     if (admissionSchoolFilter) admissionSchoolFilter.addEventListener('change', renderAdmissions);
     if (admissionStatusFilter) admissionStatusFilter.addEventListener('change', renderAdmissions);
+    const admissionAgencyFilter = document.getElementById('admissionAgencyFilter');
+    if (admissionAgencyFilter) admissionAgencyFilter.addEventListener('change', renderAdmissions);
 
     function getStatusBadge(status) {
         switch (status) {

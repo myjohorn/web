@@ -10,6 +10,7 @@ gmail-token.json
 temp/
 *.tmp
 *.log
+data/kepler_attachments/
 
 # Dependencies and OS files
 node_modules/
