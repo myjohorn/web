@@ -792,6 +792,35 @@
                             <input type="text" id="schoolSettlementMethod" class="form-control" placeholder="예: 학생 확인서 제출 후 공식 인보이스 발행하여 은행 계좌 송금" style="font-size: 13px; padding: 10px;">
                         </div>
                     </div>
+
+                    <!-- Contract Document Upload & Management -->
+                    <div style="margin-top: 15px; background: #FAF9F6; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px 14px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <label style="font-size: 12px; font-weight: 700; color: var(--accent-color); display: flex; align-items: center; gap: 6px; margin: 0;">
+                                <i class="fa-solid fa-file-contract"></i> 계약서 원문 파일 첨부 (Contract Documents)
+                            </label>
+                            <span style="font-size: 11px; color: var(--text-secondary);">PDF / Word / 이미지 파일 지원 (최대 5MB)</span>
+                        </div>
+                        <input type="hidden" id="schoolContractFileUrl" value="">
+                        <input type="hidden" id="schoolContractFileName" value="">
+                        <input type="hidden" id="schoolContractSecondaryUrl" value="">
+                        <input type="hidden" id="schoolContractSecondaryName" value="">
+                        <input type="file" id="schoolContractFileInput" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" style="display: none;">
+
+                        <!-- File Status / Preview Area -->
+                        <div id="schoolContractFilePreview" style="margin-bottom: 8px; font-size: 12px;">
+                            <!-- JS dynamically updates current file or empty state -->
+                        </div>
+
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            <button type="button" id="triggerSchoolContractUploadBtn" class="btn btn-secondary" style="padding: 7px 14px; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-cloud-arrow-up" style="color: var(--accent-color);"></i> 계약서 파일 직접 업로드 / 변경
+                            </button>
+                            <button type="button" id="removeSchoolContractFileBtn" class="btn btn-secondary hidden" style="padding: 7px 12px; font-size: 12px; color: #C62828; border-color: #EF9A9A; display: flex; align-items: center; gap: 5px;">
+                                <i class="fa-solid fa-trash-can"></i> 파일 연결 해제
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Section 3: Separate Admin & Finance Contact Persons -->

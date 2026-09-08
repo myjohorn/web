@@ -2857,6 +2857,24 @@ Email / Contact: ${ent.contact || '-'}`.trim();
                                 • <strong>지급 방법:</strong> ${sch.settlementMethod || '공식 인보이스 발행 후 은행 계좌 송금'}
                             </div>
                         </div>
+
+                        <!-- Contract Document Download & View Links -->
+                        ${sch.contractFileUrl ? `
+                            <div style="margin-top: 10px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 6px;">
+                                <a href="${sch.contractFileUrl}" target="_blank" download="${sch.contractFileName || 'School_Contract.pdf'}" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 12px; font-size: 11.5px; background: #FFF9E6; border-color: #FFE082; color: #9A6700; font-weight: 700; text-decoration: none; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                                    <i class="fa-solid fa-file-pdf" style="color: #D32F2F; font-size: 13px;"></i> 계약서 원문: ${sch.contractFileName || '열람 / 다운로드'}
+                                </a>
+                                ${sch.contractSecondaryFileUrl ? `
+                                    <a href="${sch.contractSecondaryFileUrl}" target="_blank" download="${sch.contractSecondaryFileName || 'Fee_Declaration_Form.pdf'}" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 12px; font-size: 11px; background: #F1F8E9; border-color: #C8E6C9; color: #2E7D32; font-weight: 600; text-decoration: none; border-radius: 6px;">
+                                        <i class="fa-solid fa-file-lines" style="color: #2E7D32; font-size: 12px;"></i> 부속 서류: ${sch.contractSecondaryFileName || 'Fee Declaration Form'}
+                                    </a>
+                                ` : ''}
+                            </div>
+                        ` : `
+                            <div style="margin-top: 8px; margin-bottom: 8px; font-size: 11px; color: #9E9E9E; display: flex; align-items: center; gap: 5px;">
+                                <i class="fa-regular fa-file" style="color: #BDBDBD;"></i> 등록된 계약서 원문 없음
+                            </div>
+                        `}
                     </div>
 
                     <div style="border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 10px;">
@@ -3022,6 +3040,107 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         openModal('schoolStudentsModal');
     }
 
+    // Contract File Upload & Preview Helpers
+    const schoolContractFileInput = document.getElementById('schoolContractFileInput');
+    const triggerSchoolContractUploadBtn = document.getElementById('triggerSchoolContractUploadBtn');
+    const removeSchoolContractFileBtn = document.getElementById('removeSchoolContractFileBtn');
+    const schoolContractFilePreview = document.getElementById('schoolContractFilePreview');
+    const schoolContractFileUrl = document.getElementById('schoolContractFileUrl');
+    const schoolContractFileName = document.getElementById('schoolContractFileName');
+    const schoolContractSecondaryUrl = document.getElementById('schoolContractSecondaryUrl');
+    const schoolContractSecondaryName = document.getElementById('schoolContractSecondaryName');
+
+    function updateSchoolContractPreview(url, fileName, secUrl, secName) {
+        if (!schoolContractFilePreview) return;
+
+        if (!url && !secUrl) {
+            schoolContractFilePreview.innerHTML = `
+                <div style="padding: 10px; border: 1px dashed var(--border-color); border-radius: 4px; text-align: center; color: #8C8782; background: #FFF;">
+                    <i class="fa-regular fa-file-lines" style="margin-right: 4px;"></i> 현재 등록된 계약서 파일이 없습니다.
+                </div>
+            `;
+            if (removeSchoolContractFileBtn) removeSchoolContractFileBtn.classList.add('hidden');
+            return;
+        }
+
+        let html = '<div style="display: flex; flex-direction: column; gap: 6px;">';
+        if (url) {
+            html += `
+                <div style="display: flex; align-items: center; justify-content: space-between; background: #FFF; border: 1px solid #FFE082; padding: 8px 12px; border-radius: 4px;">
+                    <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <i class="fa-solid fa-file-pdf" style="color: #D32F2F; font-size: 16px;"></i>
+                        <span style="font-weight: 600; color: #1a1a1a; font-size: 12px;">${fileName || '계약서 원문 파일'}</span>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        <a href="${url}" target="_blank" download="${fileName || 'contract.pdf'}" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px; color: #0288D1; border-color: #B3E5FC; text-decoration: none;">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> 열람/다운로드
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+        if (secUrl) {
+            html += `
+                <div style="display: flex; align-items: center; justify-content: space-between; background: #FFF; border: 1px solid #C8E6C9; padding: 8px 12px; border-radius: 4px;">
+                    <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <i class="fa-solid fa-file-lines" style="color: #2E7D32; font-size: 15px;"></i>
+                        <span style="font-weight: 600; color: #1a1a1a; font-size: 12px;">${secName || '부속 서류 (Fee Declaration)'}</span>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        <a href="${secUrl}" target="_blank" download="${secName || 'declaration.pdf'}" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px; color: #2E7D32; border-color: #C8E6C9; text-decoration: none;">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> 열람/다운로드
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+        html += '</div>';
+        schoolContractFilePreview.innerHTML = html;
+        if (removeSchoolContractFileBtn) removeSchoolContractFileBtn.classList.remove('hidden');
+    }
+
+    if (triggerSchoolContractUploadBtn && schoolContractFileInput) {
+        triggerSchoolContractUploadBtn.addEventListener('click', () => {
+            schoolContractFileInput.click();
+        });
+
+        schoolContractFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                alert('파일 크기가 5MB를 초과합니다. 5MB 이하의 파일을 업로드해주세요.');
+                schoolContractFileInput.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const dataUrl = evt.target.result;
+                if (schoolContractFileUrl) schoolContractFileUrl.value = dataUrl;
+                if (schoolContractFileName) schoolContractFileName.value = file.name;
+                updateSchoolContractPreview(dataUrl, file.name, schoolContractSecondaryUrl ? schoolContractSecondaryUrl.value : '', schoolContractSecondaryName ? schoolContractSecondaryName.value : '');
+            };
+            reader.onerror = function() {
+                alert('파일을 읽는 중 오류가 발생했습니다.');
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    if (removeSchoolContractFileBtn) {
+        removeSchoolContractFileBtn.addEventListener('click', () => {
+            if (confirm('현재 연결된 계약서 파일을 해제하시겠습니까?')) {
+                if (schoolContractFileInput) schoolContractFileInput.value = '';
+                if (schoolContractFileUrl) schoolContractFileUrl.value = '';
+                if (schoolContractFileName) schoolContractFileName.value = '';
+                if (schoolContractSecondaryUrl) schoolContractSecondaryUrl.value = '';
+                if (schoolContractSecondaryName) schoolContractSecondaryName.value = '';
+                updateSchoolContractPreview('', '', '', '');
+            }
+        });
+    }
+
     if (openAddSchoolBtn) {
         openAddSchoolBtn.addEventListener('click', () => {
             document.getElementById('schoolModalTitle').innerHTML = '<i class="fa-solid fa-school" style="color: var(--accent-color);"></i> 협력 국제학교 & 캠프/어학원 등록';
@@ -3036,6 +3155,14 @@ Email / Contact: ${ent.contact || '-'}`.trim();
             if (document.getElementById('schoolSettlementMethod')) document.getElementById('schoolSettlementMethod').value = '';
             document.getElementById('schoolContractStartDate').value = '2025-01-01';
             document.getElementById('schoolContractEndDate').value = '2026-12-31';
+
+            if (schoolContractFileInput) schoolContractFileInput.value = '';
+            if (schoolContractFileUrl) schoolContractFileUrl.value = '';
+            if (schoolContractFileName) schoolContractFileName.value = '';
+            if (schoolContractSecondaryUrl) schoolContractSecondaryUrl.value = '';
+            if (schoolContractSecondaryName) schoolContractSecondaryName.value = '';
+            updateSchoolContractPreview('', '', '', '');
+
             if (deleteSchoolBtn) deleteSchoolBtn.classList.add('hidden');
             openModal('schoolModal');
         });
@@ -3083,6 +3210,14 @@ Email / Contact: ${ent.contact || '-'}`.trim();
 
         document.getElementById('schoolMemo').value = sch.memo || '';
 
+        // Contract Documents
+        if (schoolContractFileInput) schoolContractFileInput.value = '';
+        if (schoolContractFileUrl) schoolContractFileUrl.value = sch.contractFileUrl || '';
+        if (schoolContractFileName) schoolContractFileName.value = sch.contractFileName || '';
+        if (schoolContractSecondaryUrl) schoolContractSecondaryUrl.value = sch.contractSecondaryFileUrl || '';
+        if (schoolContractSecondaryName) schoolContractSecondaryName.value = sch.contractSecondaryFileName || '';
+        updateSchoolContractPreview(sch.contractFileUrl, sch.contractFileName, sch.contractSecondaryFileUrl, sch.contractSecondaryFileName);
+
         if (deleteSchoolBtn) deleteSchoolBtn.classList.remove('hidden');
         openModal('schoolModal');
     }
@@ -3101,6 +3236,11 @@ Email / Contact: ${ent.contact || '-'}`.trim();
 
             const commType = document.getElementById('schoolCommissionType').value;
             const parsedRate = parseFloat(document.getElementById('schoolDefaultRate').value);
+
+            const contractUrl = schoolContractFileUrl ? schoolContractFileUrl.value.trim() : '';
+            const contractName = schoolContractFileName ? schoolContractFileName.value.trim() : '';
+            const contractSecUrl = schoolContractSecondaryUrl ? schoolContractSecondaryUrl.value.trim() : '';
+            const contractSecName = schoolContractSecondaryName ? schoolContractSecondaryName.value.trim() : '';
 
             const data = {
                 category: document.getElementById('schoolCategory') ? document.getElementById('schoolCategory').value : 'school',
@@ -3124,6 +3264,10 @@ Email / Contact: ${ent.contact || '-'}`.trim();
                 email: financeEmail || adminEmail,
                 phone: document.getElementById('schoolFinanceContactPhone').value.trim(),
                 memo: document.getElementById('schoolMemo').value.trim(),
+                contractFileUrl: contractUrl || null,
+                contractFileName: contractName || null,
+                contractSecondaryFileUrl: contractSecUrl || null,
+                contractSecondaryFileName: contractSecName || null,
                 updatedAt: new Date().toISOString()
             };
 
