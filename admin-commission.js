@@ -942,7 +942,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (schoolFilter !== 'all' && adm.schoolName !== schoolFilter) return false;
             if (statusFilter !== 'all' && adm.status !== statusFilter) return false;
             if (search) {
-                const combined = `${adm.studentNameEn || ''} ${adm.studentNameKo || ''} ${adm.studentName || ''} ${adm.parentName || ''} ${adm.parentPhone || ''} ${adm.parentEmail || ''} ${adm.parentKakaoWhatsapp || adm.parentKakao || ''} ${adm.parentContact || ''} ${adm.schoolName || ''} ${adm.gradeEn || adm.grade || ''}`.toLowerCase();
+                const combined = `${adm.studentNameEn || ''} ${adm.studentNameKo || ''} ${adm.studentName || ''} ${adm.registeredAgency || adm.agency || ''} ${adm.parentName || ''} ${adm.parentPhone || ''} ${adm.parentEmail || ''} ${adm.parentKakaoWhatsapp || adm.parentKakao || ''} ${adm.parentContact || ''} ${adm.schoolName || ''} ${adm.gradeEn || adm.grade || ''}`.toLowerCase();
                 if (!combined.includes(search)) return false;
             }
             return true;
@@ -951,7 +951,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (filtered.length === 0) {
             admissionTableBody.innerHTML = `
                 <tr>
-                    <td colspan="9" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                    <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary);">
                         <i class="fa-solid fa-graduation-cap" style="font-size: 32px; color: #C5A880; margin-bottom: 10px; display: block;"></i>
                         등록된 학생 입학 수속 내역이 없습니다.
                     </td>
@@ -977,78 +977,87 @@ document.addEventListener('DOMContentLoaded', () => {
             // Commission Condition Badge (Rate vs Fixed)
             const isFixed = adm.commissionType === 'fixed';
             const commissionTag = isFixed 
-                ? `<span class="installment-tag" style="background: rgba(2, 136, 209, 0.1); color: #0288D1; font-weight: 700;">고정 ${formatMYR(adm.commissionAmount)}</span>`
-                : `<span class="installment-tag">${adm.commissionRate || 10}% (비율)</span>`;
+                ? `<span class="installment-tag" style="background: rgba(2, 136, 209, 0.1); color: #0288D1; font-weight: 700; padding: 2px 6px; font-size: 10.5px;">고정 ${formatMYR(adm.commissionAmount)}</span>`
+                : `<span class="installment-tag" style="padding: 2px 6px; font-size: 10.5px;">${adm.commissionRate || 10}% (비율)</span>`;
+
+            const agency = escapeHtml(adm.registeredAgency || adm.agency || 'JohorN');
+            const agencyBadge = `<span class="agency-badge" title="등록업체: ${agency}"><i class="fa-solid fa-building" style="font-size: 8.5px;"></i> ${agency}</span>`;
 
             const studentNameDisplay = adm.studentNameEn 
-                ? `<strong style="color: var(--text-primary); font-size: 14px;">${escapeHtml(adm.studentNameEn)}</strong> <span style="font-size: 11px; color: #888;">(${escapeHtml(adm.studentNameKo || '')})</span>`
-                : `<strong style="color: var(--text-primary); font-size: 14px;">${escapeHtml(adm.studentName || '-')}</strong>`;
+                ? `<strong style="color: var(--text-primary); font-size: 13.5px;">${escapeHtml(adm.studentNameEn)}</strong> ${adm.studentNameKo ? `<span style="font-size: 11px; color: #777;">(${escapeHtml(adm.studentNameKo)})</span>` : ''}`
+                : `<strong style="color: var(--text-primary); font-size: 13.5px;">${escapeHtml(adm.studentName || '-')}</strong>`;
 
             const gradeDisplay = escapeHtml(adm.gradeEn || adm.grade || '-');
-
             const termDisplay = escapeHtml(adm.termEn || adm.term || '-');
 
             const parentInfoList = [adm.parentName, adm.parentPhone, adm.parentKakaoWhatsapp || adm.parentKakao, adm.parentEmail].filter(Boolean);
             const parentInfoDisplay = parentInfoList.length > 0 ? escapeHtml(parentInfoList.join(' / ')) : escapeHtml(adm.parentContact || '-');
 
             const actionButtonsHtml = isEntity ? `
-                <div class="table-action-btns">
-                    <button type="button" class="btn btn-primary btn-generate-invoice" data-id="${adm.id}" style="padding: 5px 9px; font-size: 11px;" title="인보이스 조회 / 출력">
+                <div class="table-action-grid">
+                    <button type="button" class="btn btn-primary btn-generate-invoice" data-id="${adm.id}" title="인보이스 조회 / 출력">
                         <i class="fa-solid fa-file-invoice"></i> 인보이스
                     </button>
-                    <button type="button" class="btn btn-secondary btn-view-admission" data-id="${adm.id}" style="padding: 5px 9px; font-size: 11px; color: var(--accent-color);" title="상세 조회">
+                    <button type="button" class="btn btn-secondary btn-view-admission" data-id="${adm.id}" style="color: var(--accent-color);" title="상세 조회">
                         <i class="fa-solid fa-eye"></i> 조회
                     </button>
                 </div>
             ` : `
-                <div class="table-action-btns">
-                    <button type="button" class="btn btn-primary btn-generate-invoice" data-id="${adm.id}" style="padding: 5px 9px; font-size: 11px;" title="인보이스 발행 / 출력">
+                <div class="table-action-grid">
+                    <button type="button" class="btn btn-primary btn-generate-invoice" data-id="${adm.id}" title="인보이스 발행 / 출력">
                         <i class="fa-solid fa-file-invoice"></i> 인보이스
                     </button>
-                    <button type="button" class="btn btn-secondary btn-quick-payment" data-id="${adm.id}" style="padding: 5px 9px; font-size: 11px; color: #2E7D32; border-color: #2E7D32;" title="입금 확인 처리">
+                    <button type="button" class="btn btn-secondary btn-quick-payment" data-id="${adm.id}" style="color: #2E7D32; border-color: #2E7D32;" title="입금 확인 처리">
                         <i class="fa-solid fa-money-bill-check"></i> 입금
                     </button>
-                    <button type="button" class="btn btn-secondary btn-edit-admission" data-id="${adm.id}" style="padding: 5px 9px; font-size: 11px;" title="정보 수정">
+                    <button type="button" class="btn btn-secondary btn-edit-admission" data-id="${adm.id}" title="정보 수정">
                         <i class="fa-solid fa-pen-to-square"></i> 수정
                     </button>
-                    <button type="button" class="btn btn-secondary btn-delete-admission" data-id="${adm.id}" style="padding: 5px 9px; font-size: 11px; color: #C62828; border-color: #C62828;" title="삭제">
-                        <i class="fa-solid fa-trash"></i>
+                    <button type="button" class="btn btn-secondary btn-delete-admission" data-id="${adm.id}" style="color: #C62828; border-color: #C62828;" title="삭제">
+                        <i class="fa-solid fa-trash"></i> 삭제
                     </button>
                 </div>
             `;
 
             return `
                 <tr>
-                    <td style="min-width: 175px;">
-                        <div>${studentNameDisplay}</div>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
+                            ${studentNameDisplay}
+                            ${agencyBadge}
+                        </div>
                         <div style="font-size: 11px; color: var(--text-secondary); margin-top: 3px; word-break: break-all;">
                             <i class="fa-solid fa-user-group" style="font-size: 10px; color: var(--accent-color);"></i> ${parentInfoDisplay}
                         </div>
                     </td>
-                    <td style="min-width: 145px;">
-                        <div style="font-weight: 600; color: var(--text-primary);">${escapeHtml(adm.schoolName || '-')}</div>
-                        <div style="font-size: 11px; color: var(--accent-color); font-weight: 500;">${gradeDisplay}</div>
+                    <td>
+                        <div style="font-weight: 600; font-size: 12.5px; color: var(--text-primary);">${escapeHtml(adm.schoolName || '-')}</div>
+                        <div style="font-size: 11px; color: var(--accent-color); font-weight: 600;">${gradeDisplay}</div>
                     </td>
-                    <td style="min-width: 120px; white-space: nowrap;">
+                    <td style="white-space: nowrap;">
                         <div style="font-size: 12px; font-weight: 600;">${termDisplay}</div>
                         <div style="font-size: 11px; color: var(--text-secondary);">입학일: ${formatDate(adm.admissionDate)}</div>
                     </td>
-                    <td style="min-width: 110px; text-align: right; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums;">${adm.tuitionFee ? formatMYR(adm.tuitionFee) : '-'}</td>
-                    <td style="min-width: 105px; text-align: center; white-space: nowrap;">${commissionTag}</td>
-                    <td style="min-width: 140px; white-space: nowrap;">
-                        <div style="font-size: 12px; font-weight: 600;">
+                    <td style="text-align: right; white-space: nowrap;">
+                        <div style="font-weight: 700; font-size: 12.5px; color: #1a1a1a; font-variant-numeric: tabular-nums;">
+                            ${adm.tuitionFee ? formatMYR(adm.tuitionFee) : '-'}
+                        </div>
+                        <div style="margin-top: 3px;">${commissionTag}</div>
+                    </td>
+                    <td style="text-align: right; white-space: nowrap;">
+                        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px;">
+                            <span style="font-size: 11px; color: #8C8782; font-variant-numeric: tabular-nums;">수금: ${formatMYR(paidAmount)}</span>
+                            <span style="font-weight: 700; color: #2E7D32; font-size: 13px; font-variant-numeric: tabular-nums;">${formatMYR(totalCommission)}</span>
+                        </div>
+                        <div style="font-size: 10.5px; font-weight: 600; color: #555; margin-top: 2px; text-align: right;">
                             ${installmentModeLabel} (${paidInstallments.length}/${installments.length || 1}회 완납)
                         </div>
-                        <div class="comm-progress-bar-container" style="margin-top: 5px;">
+                        <div class="comm-progress-bar-container" style="margin-top: 4px; height: 4px;">
                             <div class="comm-progress-bar-fill" style="width: ${progressPercent}%;"></div>
                         </div>
                     </td>
-                    <td style="min-width: 125px; text-align: right; white-space: nowrap;">
-                        <div style="font-weight: 700; color: #2E7D32; font-variant-numeric: tabular-nums;">${formatMYR(totalCommission)}</div>
-                        <div style="font-size: 11px; color: #8C8782; font-variant-numeric: tabular-nums;">수금: ${formatMYR(paidAmount)}</div>
-                    </td>
-                    <td style="min-width: 105px; text-align: center; white-space: nowrap;">${statusBadge}</td>
-                    <td style="min-width: 165px; text-align: center; white-space: nowrap;">
+                    <td style="text-align: center; white-space: nowrap;">${statusBadge}</td>
+                    <td style="text-align: center; white-space: nowrap;">
                         ${actionButtonsHtml}
                     </td>
                 </tr>
@@ -1277,6 +1286,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('admissionId').value = '';
             document.getElementById('admissionForm').reset();
             document.getElementById('admissionDate').value = new Date().toISOString().split('T')[0];
+            if (document.getElementById('admissionAgency')) document.getElementById('admissionAgency').value = 'JohorN';
             document.getElementById('admissionCommissionType').value = 'percentage';
             document.getElementById('admissionCommissionRate').value = '10';
             document.getElementById('admissionSettlementMode').value = '1';
@@ -1337,6 +1347,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('admissionDate').value = adm.admissionDate || '';
         document.getElementById('admissionStatus').value = adm.status || 'applied';
+        if (document.getElementById('admissionAgency')) {
+            document.getElementById('admissionAgency').value = adm.registeredAgency || adm.agency || 'JohorN';
+        }
         document.getElementById('admissionTuitionFee').value = adm.tuitionFee || '';
         
         if (commType === 'fixed') {
@@ -1423,11 +1436,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const parentEmail = document.getElementById('admissionParentEmail') ? document.getElementById('admissionParentEmail').value.trim() : '';
             const parentKakaoWhatsapp = document.getElementById('admissionParentKakao') ? document.getElementById('admissionParentKakao').value.trim() : '';
             const parentContactCombined = [parentName, parentPhone, parentKakaoWhatsapp, parentEmail].filter(Boolean).join(' / ');
+            const agency = document.getElementById('admissionAgency') ? document.getElementById('admissionAgency').value.trim() : 'JohorN';
 
             const data = {
                 studentNameEn,
                 studentNameKo,
                 studentName: studentNameKo ? `${studentNameKo} (${studentNameEn})` : studentNameEn,
+                agency: agency || 'JohorN',
+                registeredAgency: agency || 'JohorN',
                 schoolId,
                 schoolName,
                 gradeEn,
@@ -2991,6 +3007,7 @@ Email / Contact: ${ent.contact || '-'}`.trim();
                             <td>
                                 <strong>${adm.studentNameEn || adm.studentName}</strong>
                                 ${adm.studentNameKo ? `<span style="font-size: 11px; color: #888;"> (${adm.studentNameKo})</span>` : ''}
+                                <span class="agency-badge" style="margin-left: 3px;"><i class="fa-solid fa-building" style="font-size: 8px;"></i> ${escapeHtml(adm.registeredAgency || adm.agency || 'JohorN')}</span>
                                 <div style="font-size: 10px; color: #888;">${pInfo}</div>
                             </td>
                             <td>

@@ -191,7 +191,7 @@
                                     <!-- Search Input -->
                                     <div style="position: relative; min-width: 200px; flex: 1;">
                                         <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #8C8782; font-size: 13px;"></i>
-                                        <input type="text" id="admissionSearchInput" class="form-control" placeholder="학생명(영문/한글) / 학부모 / 학교명 검색" style="padding-left: 34px; font-size: 13px; padding-top: 8px; padding-bottom: 8px;">
+                                        <input type="text" id="admissionSearchInput" class="form-control" placeholder="학생명(영문/한글) / 등록업체 / 학부모 / 학교명 검색" style="padding-left: 34px; font-size: 13px; padding-top: 8px; padding-bottom: 8px;">
                                     </div>
                                     <!-- School Filter -->
                                     <select id="admissionSchoolFilter" class="form-control" style="font-size: 13px; width: auto; min-width: 170px; padding: 8px 12px;">
@@ -215,20 +215,18 @@
                             </div>
                         </div>
 
-                        <!-- Admissions Table -->
+                        <!-- Admissions Table (Optimized 7-Column Layout) -->
                         <div class="admin-table-wrapper">
-                            <table class="admin-table">
+                            <table class="admin-table comm-admissions-table">
                                 <thead>
                                     <tr>
-                                        <th style="min-width: 175px;">학생(영문/한글) / 학부모</th>
-                                        <th style="min-width: 145px;">대상 학교 / 학년</th>
-                                        <th style="min-width: 120px;">입학 학기 / 입학일</th>
-                                        <th style="min-width: 110px; text-align: right;">등록 학비 (MYR)</th>
-                                        <th style="min-width: 105px; text-align: center;">학교 요율 / 조건</th>
-                                        <th style="min-width: 140px;">정산 방식 / 수금 진척</th>
-                                        <th style="min-width: 125px; text-align: right;">산정 커미션 / 수금액</th>
-                                        <th style="min-width: 105px; text-align: center;">진행 상태</th>
-                                        <th style="min-width: 165px; text-align: center;">인보이스 / 정산 관리</th>
+                                        <th style="min-width: 160px;">학생 / 등록업체 / 학부모</th>
+                                        <th style="min-width: 125px;">대상 학교 / 학년</th>
+                                        <th style="min-width: 95px;">입학 학기 / 입학일</th>
+                                        <th style="min-width: 105px; text-align: right;">등록 학비 / 요율</th>
+                                        <th style="min-width: 130px; text-align: right;">예상 커미션 / 정산 진척</th>
+                                        <th style="min-width: 85px; text-align: center;">진행 상태</th>
+                                        <th style="min-width: 125px; text-align: center;">관리 / 인보이스</th>
                                     </tr>
                                 </thead>
                                 <tbody id="admissionTableBody">
@@ -406,7 +404,7 @@
                         <i class="fa-solid fa-file-contract" style="color: var(--accent-color); margin-right: 4px;"></i> <span id="schoolAutoTermsText">학교 선택 시 계약 조건이 자동 연동됩니다.</span>
                     </div>
 
-                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 12px;">
                         <div class="form-group">
                             <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">진행 상태</label>
                             <select id="admissionStatus" class="form-control" style="font-size: 13px; padding: 10px;">
@@ -418,6 +416,10 @@
                                 <option value="completed">수속 완료 (비제휴 / 업무 종결)</option>
                                 <option value="cancelled">취소 / 환불</option>
                             </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">등록업체 (Agency) <span style="color: #C62828;">*</span></label>
+                            <input type="text" id="admissionAgency" class="form-control" placeholder="예: JohorN" value="JohorN" required style="font-size: 13px; padding: 10px; font-weight: 600;">
                         </div>
                         <div class="form-group">
                             <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">기본 인보이스 발행 법인</label>

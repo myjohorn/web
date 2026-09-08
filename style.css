@@ -50,7 +50,8 @@ h1, h2, h3, h4 {
 
 #admin .container,
 .admin-container {
-    max-width: 1440px;
+    max-width: 1560px;
+    padding: 0 20px;
 }
 
 /* Header */
@@ -2306,6 +2307,55 @@ footer {
     padding: 5px 8px !important;
     font-size: 11px !important;
     line-height: 1.2 !important;
+}
+
+/* Compact 2x2 Action Button Grid for Admissions Table */
+.table-action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    width: 120px;
+    margin: 0 auto;
+}
+
+.table-action-grid .btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 3px !important;
+    white-space: nowrap !important;
+    padding: 4px 5px !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    border-radius: 4px !important;
+}
+
+/* Compact Student Admissions Table (Prevents right cutoff) */
+.comm-admissions-table {
+    width: 100% !important;
+    min-width: 820px !important;
+    table-layout: auto;
+}
+
+.comm-admissions-table th,
+.comm-admissions-table td {
+    padding: 9px 8px !important;
+    vertical-align: middle !important;
+    font-size: 12.5px;
+}
+
+.agency-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    background: #EFEBE9;
+    color: #5D4037;
+    border: 1px solid #D7CCC8;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: 700;
+    vertical-align: middle;
 }
 
 /* School Cards Grid */
