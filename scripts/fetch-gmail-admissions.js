@@ -310,7 +310,7 @@ function parseEmailForAdmission(subject, from, body, dateStr) {
         commissionRate,
         commissionAmount,
         settlementMode: '1',
-        entityName: 'GLOBAL EDU CONSULTING SDN. BHD.',
+        entityName: 'KEPLER CONSULTING & TRAINING SDN. BHD.',
         memo: `[Gmail 자동수집] 제목: ${subject.slice(0, 50)}`,
         installments: [
             {

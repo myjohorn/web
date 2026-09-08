@@ -424,19 +424,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const tenbyData = {
                     nameEn: "Tenby Schools Setia Eco Gardens",
                     nameKo: "텐비 국제학교 (세티아 에코 가든스)",
-                    contractStartDate: "2025-01-01",
-                    contractEndDate: "2027-12-31",
+                    contractStartDate: "2024-08-01",
+                    contractEndDate: "2027-07-31",
                     commissionType: "percentage",
                     defaultRate: 10,
                     defaultSettlement: "1",
-                    adminContactName: "Admissions Department / WhatsApp: +60 16-723 3788",
-                    adminContactEmail: "admissions.seg@tenby.edu.my",
+                    adminContactName: "Ra Na Choi (ISP) / Admissions Department",
+                    adminContactEmail: "rchoi@ispschools.com",
                     adminContactPhone: "+60 7-558 8812",
-                    financeContactName: "Finance & Accounts (Tenby Southern Sdn. Bhd.)",
-                    financeContactEmail: "finance.seg@tenby.edu.my",
+                    financeContactName: "Pui Yi Kuan / Finance & Accounts (Tenby Southern Sdn. Bhd.)",
+                    financeContactEmail: "puiyi.kuan@tenby.edu.my",
                     financeContactPhone: "+60 7-558 8812",
                     location: "7, Jalan Laman Setia 2/1, Setia Eco Gardens, 81550 Gelang Patah, Johor, Malaysia",
-                    memo: "영국 IPC 및 캠브리지 IGCSE 커리큘럼, 글로벌 교육그룹 ISP(International Schools Partnership) 소속, 에코 가든스 친환경 명품 단지 내 위치"
+                    memo: "ISP Malaysia Agent Agreement 2027-07-31까지 연장 완료 (Tenby, Straits, Asia Pacific Schools 적용, 10% 커미션)"
                 };
                 db.ref('commission_schools').push(tenbyData);
             }
@@ -520,19 +520,19 @@ document.addEventListener('DOMContentLoaded', () => {
             {
                 nameEn: "Raffles American School",
                 nameKo: "래플스 아메리칸 스쿨",
-                contractStartDate: "2025-01-01",
+                contractStartDate: "2024-04-12",
                 contractEndDate: "2026-12-31",
                 commissionType: "percentage",
                 defaultRate: 15,
                 defaultSettlement: "1", // 1-time
-                adminContactName: "Admissions / Mr. David",
-                adminContactEmail: "admissions@raffles-american-school.edu.my",
+                adminContactName: "OW Wei Hong & Mingle SI (Raffles Education Network)",
+                adminContactEmail: "OWWeiHong@Raffles-Education-Network.com",
                 adminContactPhone: "+60 7-509 8888",
-                financeContactName: "Finance Department / Ms. Joyce Tan",
-                financeContactEmail: "finance@raffles-american-school.edu.my",
+                financeContactName: "Finance Department / Ms. Joyce",
+                financeContactEmail: "finance@rafflesamericanschool.org",
                 financeContactPhone: "+60 7-509 8890",
-                location: "Iskandar Puteri, Johor",
-                memo: "미국식 커리큘럼(AP), 입학 확인 및 학비 납부 후 1회 일괄 정산"
+                location: "Jalan Raffles, 79050 Iskandar Puteri, Johor, Malaysia",
+                memo: "Non-RSG Agent Agreement 갱신 완료 (계약 법인: KEPLER CONSULTING & TRAINING SDN. BHD.), 미국식 정규 커리큘럼(AP), 15% 커미션"
             },
             {
                 nameEn: "Sunway International School",
@@ -569,21 +569,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 memo: "영국 캠브리지 IGCSE 커리큘럼, 가성비 우수 국제학교"
             },
             {
-                nameEn: "Shattuck-St. Mary's Forest City",
-                nameKo: "샤턱 세인트 메리스 포레스트 시티",
-                contractStartDate: "2025-01-01",
-                contractEndDate: "2026-12-31",
+                nameEn: "Forest City International School",
+                nameKo: "포레스트시티 국제학교",
+                contractStartDate: "2025-08-01",
+                contractEndDate: "2027-07-31",
                 commissionType: "percentage",
                 defaultRate: 12,
                 defaultSettlement: "2",
-                adminContactName: "Admissions Department",
-                adminContactEmail: "admissions@ssm-fc.org",
+                adminContactName: "Yu Jie (Zoe) Shi (CATS / FCIS)",
+                adminContactEmail: "zoe.shi@cats-fc.org",
                 adminContactPhone: "+60 7-500 5900",
-                financeContactName: "Bursar & Finance Office",
-                financeContactEmail: "finance@ssm-fc.org",
+                financeContactName: "Jennifer Low / Finance Office",
+                financeContactEmail: "jennifer.low@cats-fc.org",
                 financeContactPhone: "+60 7-500 5910",
-                location: "Forest City, Johor",
-                memo: "미국 본교 직영, 올림피아드 및 골프/테니스 특성화"
+                location: "Forest City, 81550 Gelang Patah, Johor, Malaysia",
+                memo: "AY 2026-2027 갱신 완료 (FCIS Enrollment Promotion Service Agreement), CATS Global Education 소속, 12% 커미션 (2회 분할 정산)"
             },
             {
                 nameEn: "Stellar International School",
@@ -605,19 +605,19 @@ document.addEventListener('DOMContentLoaded', () => {
             {
                 nameEn: "Tenby Schools Setia Eco Gardens",
                 nameKo: "텐비 국제학교 (세티아 에코 가든스)",
-                contractStartDate: "2025-01-01",
-                contractEndDate: "2027-12-31",
+                contractStartDate: "2024-08-01",
+                contractEndDate: "2027-07-31",
                 commissionType: "percentage",
                 defaultRate: 10,
                 defaultSettlement: "1",
-                adminContactName: "Admissions Department / WhatsApp: +60 16-723 3788",
-                adminContactEmail: "admissions.seg@tenby.edu.my",
+                adminContactName: "Ra Na Choi (ISP) / Admissions Department",
+                adminContactEmail: "rchoi@ispschools.com",
                 adminContactPhone: "+60 7-558 8812",
-                financeContactName: "Finance & Accounts (Tenby Southern Sdn. Bhd.)",
-                financeContactEmail: "finance.seg@tenby.edu.my",
+                financeContactName: "Pui Yi Kuan / Finance & Accounts (Tenby Southern Sdn. Bhd.)",
+                financeContactEmail: "puiyi.kuan@tenby.edu.my",
                 financeContactPhone: "+60 7-558 8812",
                 location: "7, Jalan Laman Setia 2/1, Setia Eco Gardens, 81550 Gelang Patah, Johor, Malaysia",
-                memo: "영국 IPC 및 캠브리지 IGCSE 커리큘럼, 글로벌 교육그룹 ISP(International Schools Partnership) 소속, 에코 가든스 친환경 명품 단지 내 위치"
+                memo: "ISP Malaysia Agent Agreement 2027-07-31까지 연장 완료 (Tenby, Straits, Asia Pacific Schools 적용, 10% 커미션)"
             },
             {
                 nameEn: "RAS Camp (Raffles American School)",
@@ -683,18 +683,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Seed Default Corporate Entity
     function seedInitialEntities() {
         const defaultEntity = {
-            name: "GLOBAL EDU CONSULTING SDN. BHD.",
-            regNo: "202401048291 (1567890-V)",
-            director: "Director / Authorized Signatory",
-            contact: "finance@globaledu.com.my / +60 11-2345-6789",
-            address: "Suite 12-05, Menara Teega, Puteri Harbour, 79000 Iskandar Puteri, Johor, Malaysia",
-            bankName: "Malayan Banking Berhad (Maybank)",
-            accountNo: "5012 8899 4321",
-            accountName: "GLOBAL EDU CONSULTING SDN BHD",
-            swiftCode: "MBBEMYKL",
+            name: "KEPLER CONSULTING & TRAINING SDN. BHD.",
+            regNo: "1214159X",
+            director: "SEO HYUN GYU",
+            contact: "mykepleredu@gmail.com / +60 19-815 3659",
+            address: "84B Jalan Eko Botani 3/2 Taman Eko Botani, 79100 Iskandar Puteri, Johor, Malaysia",
+            bankName: "Public Bank",
+            accountNo: "3204554027",
+            accountName: "KEPLER CONSULTING & TRAINING SDN BHD",
+            swiftCode: "PBBEMYKLXXX",
             isDefault: true,
-            loginId: "globaledu",
-            loginPassword: "edu1234"
+            loginId: "kepler",
+            loginPassword: "0198153659"
         };
         db.ref('commission_entities').push(defaultEntity);
     }
@@ -1378,7 +1378,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const commType = document.getElementById('admissionCommissionType').value;
             const entitySelect = document.getElementById('admissionEntityId');
-            const entityName = entitySelect.options[entitySelect.selectedIndex] ? entitySelect.options[entitySelect.selectedIndex].text.split('(')[0].trim() : 'GLOBAL EDU CONSULTING SDN. BHD.';
+            const entityName = entitySelect.options[entitySelect.selectedIndex] ? entitySelect.options[entitySelect.selectedIndex].text.split('(')[0].trim() : 'KEPLER CONSULTING & TRAINING SDN. BHD.';
 
             // Collect installments
             const installmentRows = document.querySelectorAll('.installment-schedule-row');
@@ -1575,7 +1575,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                     <td style="min-width: 150px; font-weight: 600;">${inv.schoolName || '-'}</td>
                     <td style="min-width: 180px;">${studentTargetDisplay}</td>
-                    <td style="min-width: 120px; font-size: 12px; color: var(--text-secondary); white-space: nowrap;">${inv.entityName || 'GLOBAL EDU'}</td>
+                    <td style="min-width: 120px; font-size: 12px; color: var(--text-secondary); white-space: nowrap;">${inv.entityName || 'KEPLER'}</td>
                     <td style="min-width: 130px; white-space: nowrap;">
                         <div style="font-size: 12px;">발행: ${formatDate(inv.issueDate)}</div>
                         <div style="font-size: 11px; color: #C62828;">기한: ${formatDate(inv.dueDate)}</div>
@@ -1615,14 +1615,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const todayStr = new Date().toISOString().split('T')[0];
         
         const defaultEntity = entities.find(e => e.isDefault) || entities[0] || {
-            name: "GLOBAL EDU CONSULTING SDN. BHD.",
-            regNo: "202401048291 (1567890-V)",
-            address: "Suite 12-05, Menara Teega, Puteri Harbour, 79000 Iskandar Puteri, Johor, Malaysia",
-            contact: "finance@globaledu.com.my",
-            bankName: "Malayan Banking Berhad (Maybank)",
-            accountNo: "5012 8899 4321",
-            accountName: "GLOBAL EDU CONSULTING SDN BHD",
-            swiftCode: "MBBEMYKL"
+            name: "KEPLER CONSULTING & TRAINING SDN. BHD.",
+            regNo: "1214159X",
+            address: "84B Jalan Eko Botani 3/2 Taman Eko Botani, 79100 Iskandar Puteri, Johor, Malaysia",
+            contact: "mykepleredu@gmail.com / +60 19-815 3659",
+            bankName: "Public Bank",
+            accountNo: "3204554027",
+            accountName: "KEPLER CONSULTING & TRAINING SDN BHD",
+            swiftCode: "PBBEMYKLXXX"
         };
 
         const sch = schools.find(s => s.nameEn === adm.schoolName || s.nameKo === adm.schoolName || s.id === adm.schoolId) || {};
@@ -1992,14 +1992,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!invoiceSheetContainer) return;
 
         const ent = entity || {
-            name: "GLOBAL EDU CONSULTING SDN. BHD.",
-            regNo: "202401048291 (1567890-V)",
-            address: "Suite 12-05, Menara Teega, Puteri Harbour, 79000 Iskandar Puteri, Johor, Malaysia",
-            contact: "finance@globaledu.com.my / +60 11-2345-6789",
-            bankName: "Malayan Banking Berhad (Maybank)",
-            accountNo: "5012 8899 4321",
-            accountName: "GLOBAL EDU CONSULTING SDN BHD",
-            swiftCode: "MBBEMYKL"
+            name: "KEPLER CONSULTING & TRAINING SDN. BHD.",
+            regNo: "1214159X",
+            address: "84B Jalan Eko Botani 3/2 Taman Eko Botani, 79100 Iskandar Puteri, Johor, Malaysia",
+            contact: "mykepleredu@gmail.com / +60 19-815 3659",
+            bankName: "Public Bank",
+            accountNo: "3204554027",
+            accountName: "KEPLER CONSULTING & TRAINING SDN BHD",
+            swiftCode: "PBBEMYKLXXX"
         };
 
         const sch = school || schools.find(s => s.nameEn === inv.schoolName || s.nameKo === inv.schoolName || s.id === inv.schoolId) || {};
@@ -2496,7 +2496,7 @@ Email / Contact: ${ent.contact || '-'}`.trim();
                     <div style="font-size: 11px; color: var(--accent-color); font-weight: 700; text-transform: uppercase;">연결된 공식 인보이스</div>
                     <div style="font-size: 15px; font-weight: 800; font-family: monospace; color: #1a1a1a; margin-top: 2px;">${p.invoiceNo || '연결 인보이스 없음'}</div>
                     <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">
-                        발행 법인: ${inv ? inv.entityName : 'GLOBAL EDU CONSULTING'} | 청구월: ${inv ? (inv.billingMonth || '-') : '-'}
+                        발행 법인: ${inv ? inv.entityName : 'KEPLER CONSULTING'} | 청구월: ${inv ? (inv.billingMonth || '-') : '-'}
                     </div>
                 </div>
                 ${inv ? `
