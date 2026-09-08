@@ -409,6 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (payments && payments.length > 0) {
             renderPayments();
         }
+        updateUnbilledSummaryBanner();
     }
 
     // ----------------------------------------------------
@@ -433,6 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateSchoolDropdowns();
             renderSchools();
             renderAdmissions();
+            updateUnbilledSummaryBanner();
         });
 
         // Listen for Corporate Entities
@@ -456,6 +458,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setStoredCache('admissions', admissions);
             updateDashboardMetrics();
             renderAdmissions();
+            updateUnbilledSummaryBanner();
         });
 
         // Listen for Invoices
@@ -465,6 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setStoredCache('invoices', invoices);
             updateDashboardMetrics();
             renderInvoices();
+            updateUnbilledSummaryBanner();
         });
 
         // Listen for Payments
@@ -749,7 +753,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (activeTab === 'admissions') renderAdmissions();
-            if (activeTab === 'invoices') renderInvoices();
+            if (activeTab === 'invoices') {
+                renderInvoices();
+                updateUnbilledSummaryBanner();
+            }
             if (activeTab === 'payments') renderPayments();
             if (activeTab === 'schools') renderSchools();
             if (activeTab === 'entities') renderEntities();
@@ -762,6 +769,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateDashboardMetrics();
             renderAdmissions();
             renderInvoices();
+            updateUnbilledSummaryBanner();
             renderPayments();
             renderSchools();
             renderEntities();
@@ -1532,7 +1540,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const monthlyInvoiceTotalClaimAmount = document.getElementById('monthlyInvoiceTotalClaimAmount');
     const generateConsolidatedInvoiceBtn = document.getElementById('generateConsolidatedInvoiceBtn');
 
+    // Auto-Generation Toolbar Elements
+    const autoGenMonthInput = document.getElementById('autoGenMonthInput');
+    const unbilledSummaryBadge = document.getElementById('unbilledSummaryBadge');
+    const btnAutoGenerateMonthlyInvoices = document.getElementById('btnAutoGenerateMonthlyInvoices');
+
+    // Invoice Review & Edit Modal Elements
+    const invoiceEditModal = document.getElementById('invoiceEditModal');
+    const editInvoiceId = document.getElementById('editInvoiceId');
+    const editInvoiceNo = document.getElementById('editInvoiceNo');
+    const editInvoiceSchoolName = document.getElementById('editInvoiceSchoolName');
+    const editInvoiceEntitySelect = document.getElementById('editInvoiceEntitySelect');
+    const editInvoiceBillingMonth = document.getElementById('editInvoiceBillingMonth');
+    const editInvoiceIssueDate = document.getElementById('editInvoiceIssueDate');
+    const editInvoiceDueDate = document.getElementById('editInvoiceDueDate');
+    const invoiceEditStatusTag = document.getElementById('invoiceEditStatusTag');
+    const editInvoiceStudentCount = document.getElementById('editInvoiceStudentCount');
+    const editInvoiceStudentsTableBody = document.getElementById('editInvoiceStudentsTableBody');
+    const editInvoiceAddStudentSelect = document.getElementById('editInvoiceAddStudentSelect');
+    const btnEditInvoiceAddStudent = document.getElementById('btnEditInvoiceAddStudent');
+    const editInvoiceTotalAmountDisplay = document.getElementById('editInvoiceTotalAmountDisplay');
+    const btnDeleteDraftInvoice = document.getElementById('btnDeleteDraftInvoice');
+    const btnSaveInvoiceDraft = document.getElementById('btnSaveInvoiceDraft');
+    const btnConfirmAndSendInvoice = document.getElementById('btnConfirmAndSendInvoice');
+
     let currentViewingInvoice = null;
+    let currentEditingInvoice = null;
+    let originalEditingInvoiceItems = [];
+    let currentEditingEligibleExtra = [];
 
     function renderInvoices() {
         if (!invoiceTableBody) return;
@@ -1569,8 +1604,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         invoiceTableBody.innerHTML = filtered.map(inv => {
             let statusBadge = '<span class="status-badge status-invoiced">발행됨</span>';
-            if (inv.status === 'paid') statusBadge = '<span class="status-badge status-paid"><i class="fa-solid fa-circle-check"></i> 입금 완료</span>';
-            if (inv.status === 'overdue') statusBadge = '<span class="status-badge status-overdue"><i class="fa-solid fa-triangle-exclamation"></i> 기한 초과</span>';
+            const isDraft = (inv.status === 'draft');
+
+            if (isDraft) {
+                statusBadge = '<span class="status-badge" style="background: #FFF3E0; color: #E65100; border: 1px solid #FFE0B2; font-weight: 700;"><i class="fa-solid fa-pen-to-square"></i> 검토 대기</span>';
+            } else if (inv.status === 'paid') {
+                statusBadge = '<span class="status-badge status-paid"><i class="fa-solid fa-circle-check"></i> 입금 완료</span>';
+            } else if (inv.status === 'overdue') {
+                statusBadge = '<span class="status-badge status-overdue"><i class="fa-solid fa-triangle-exclamation"></i> 기한 초과</span>';
+            }
 
             let studentTargetDisplay = '';
             if (inv.items && inv.items.length > 0) {
@@ -1597,15 +1639,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             ` : `
                 <div class="table-action-btns">
-                    <button type="button" class="btn btn-primary btn-view-invoice" data-id="${inv.id}" style="padding: 5px 9px; font-size: 11px;" title="공식 영문 인보이스 열람 및 인쇄">
-                        <i class="fa-solid fa-file-pdf"></i> 열람/PDF
-                    </button>
-                    ${inv.status !== 'paid' ? `
-                        <button type="button" class="btn btn-secondary btn-pay-invoice" data-id="${inv.id}" style="padding: 5px 9px; font-size: 11px; color: #2E7D32; border-color: #2E7D32;" title="입금 확인 처리">
-                            <i class="fa-solid fa-circle-check"></i> 입금
+                    ${isDraft ? `
+                        <button type="button" class="btn btn-secondary btn-edit-invoice" data-id="${inv.id}" style="padding: 5px 8px; font-size: 11px; color: #E65100; border-color: #E65100; font-weight: 700;" title="대상 학생 및 금액 검토/수정">
+                            <i class="fa-solid fa-pen-to-square"></i> 검토/수정
                         </button>
-                    ` : ''}
-                    <button type="button" class="btn btn-secondary btn-del-invoice" data-id="${inv.id}" style="padding: 5px 8px; font-size: 11px; color: #C62828; border-color: #C62828;" title="인보이스 삭제">
+                        <button type="button" class="btn btn-primary btn-confirm-send-invoice" data-id="${inv.id}" style="padding: 5px 8px; font-size: 11px; background: #2E7D32; border-color: #2E7D32;" title="인보이스 발행 확정 및 발송">
+                            <i class="fa-solid fa-paper-plane"></i> 발송
+                        </button>
+                    ` : `
+                        <button type="button" class="btn btn-primary btn-view-invoice" data-id="${inv.id}" style="padding: 5px 8px; font-size: 11px;" title="공식 영문 인보이스 열람 및 인쇄">
+                            <i class="fa-solid fa-file-pdf"></i> 열람/PDF
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-edit-invoice" data-id="${inv.id}" style="padding: 5px 7px; font-size: 11px;" title="인보이스 정보 수정">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        ${inv.status !== 'paid' ? `
+                            <button type="button" class="btn btn-secondary btn-pay-invoice" data-id="${inv.id}" style="padding: 5px 8px; font-size: 11px; color: #2E7D32; border-color: #2E7D32;" title="입금 확인 처리">
+                                <i class="fa-solid fa-circle-check"></i> 입금
+                            </button>
+                        ` : ''}
+                    `}
+                    <button type="button" class="btn btn-secondary btn-del-invoice" data-id="${inv.id}" style="padding: 5px 7px; font-size: 11px; color: #C62828; border-color: #C62828;" title="인보이스 삭제">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </div>
@@ -1642,6 +1696,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.querySelectorAll('.btn-view-invoice').forEach(btn => {
             btn.addEventListener('click', () => openInvoiceModalById(btn.getAttribute('data-id')));
+        });
+        document.querySelectorAll('.btn-edit-invoice').forEach(btn => {
+            btn.addEventListener('click', () => openInvoiceEditModal(btn.getAttribute('data-id')));
+        });
+        document.querySelectorAll('.btn-confirm-send-invoice').forEach(btn => {
+            btn.addEventListener('click', () => confirmAndSendInvoice(btn.getAttribute('data-id')));
         });
         document.querySelectorAll('.btn-pay-invoice').forEach(btn => {
             btn.addEventListener('click', () => openPaymentForInvoice(btn.getAttribute('data-id')));
@@ -2307,13 +2367,595 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         });
     }
 
+    function calculateDueDate(dateStr, days = 30) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return '';
+        d.setDate(d.getDate() + days);
+        return d.toISOString().split('T')[0];
+    }
+
     function deleteInvoiceById(id) {
         if (!id) return;
-        if (confirm('해당 인보이스 내역을 삭제하시겠습니까?')) {
+        const inv = invoices.find(i => i.id === id);
+        const invNo = inv ? inv.invoiceNo : id;
+
+        if (confirm(`해당 인보이스(${invNo})를 삭제하시겠습니까?\n포함되어 있던 학생들의 청구 상태는 다시 '청구 대기(pending)'로 안전하게 복구됩니다.`)) {
+            // Restore included admission installments back to pending
+            if (inv && inv.items && inv.items.length > 0) {
+                inv.items.forEach(item => {
+                    const adm = admissions.find(a => a.id === item.admissionId);
+                    if (adm && adm.installments && adm.installments[item.installmentIndex]) {
+                        adm.installments[item.installmentIndex].status = 'pending';
+                        delete adm.installments[item.installmentIndex].invoiceNo;
+                        delete adm.installments[item.installmentIndex].invoiceId;
+                        db.ref(`commission_admissions/${item.admissionId}/installments`).set(adm.installments);
+                        db.ref(`commission_admissions/${item.admissionId}/status`).set('pending');
+                    }
+                });
+            }
+
             db.ref('commission_invoices/' + id).remove().then(() => {
+                closeModal('invoiceEditModal');
+                closeModal('invoiceModal');
                 renderInvoices();
+                updateUnbilledSummaryBanner();
             });
         }
+    }
+
+    // ----------------------------------------------------
+    // AUTOMATED MONTHLY INVOICE GENERATION ENGINE & RULES
+    // ----------------------------------------------------
+    function getEligibleInstallmentsForMonth(targetMonth) {
+        const result = {};
+
+        // Track items already attached to active invoices
+        const billedKeys = new Set();
+        invoices.forEach(inv => {
+            if (inv.status !== 'cancelled' && inv.items && inv.items.length > 0) {
+                inv.items.forEach(it => {
+                    billedKeys.add(`${it.admissionId}_${it.installmentIndex}`);
+                });
+            }
+        });
+
+        schools.forEach(sch => {
+            const schAdmissions = admissions.filter(a => 
+                (a.schoolId === sch.id || a.schoolName === sch.nameEn || a.schoolName === sch.nameKo) &&
+                a.status !== 'cancelled'
+            );
+
+            const eligibleItems = [];
+
+            schAdmissions.forEach(adm => {
+                const installments = adm.installments || [
+                    { term: 'Full 100%', amount: adm.commissionAmount, dueDate: adm.admissionDate, status: adm.status === 'paid' ? 'paid' : 'pending' }
+                ];
+
+                installments.forEach((inst, instIdx) => {
+                    const key = `${adm.id}_${instIdx}`;
+                    if (billedKeys.has(key)) return;
+                    if (inst.status === 'paid' || inst.status === 'settled' || inst.status === 'invoiced') return;
+
+                    // Check if installment is due for this targetMonth
+                    const dueMonth = (inst.dueDate ? inst.dueDate.slice(0, 7) : (adm.admissionDate ? adm.admissionDate.slice(0, 7) : ''));
+                    if (!dueMonth || dueMonth <= targetMonth) {
+                        eligibleItems.push({
+                            admissionId: adm.id,
+                            studentNameEn: adm.studentNameEn || adm.studentName,
+                            studentNameKo: adm.studentNameKo || '',
+                            gradeEn: adm.gradeEn || adm.grade || '-',
+                            termEn: adm.termEn || adm.term || '-',
+                            admissionDate: adm.admissionDate,
+                            tuitionFee: parseFloat(adm.tuitionFee) || 0,
+                            rate: adm.commissionType === 'fixed' ? 'Fixed Fee' : `${adm.commissionRate || 10}%`,
+                            installmentIndex: instIdx,
+                            installmentTerm: inst.term || `Term ${instIdx + 1}`,
+                            amount: parseFloat(inst.amount) || 0,
+                            agency: adm.registeredAgency || adm.agency || 'JohorN'
+                        });
+                    }
+                });
+            });
+
+            if (eligibleItems.length > 0) {
+                result[sch.id] = {
+                    school: sch,
+                    items: eligibleItems
+                };
+            }
+        });
+
+        return result;
+    }
+
+    function updateUnbilledSummaryBanner() {
+        if (!unbilledSummaryBadge) return;
+        const targetMonth = autoGenMonthInput && autoGenMonthInput.value ? autoGenMonthInput.value : currentYearMonth;
+        if (!targetMonth) return;
+
+        const eligibleBySchool = getEligibleInstallmentsForMonth(targetMonth);
+        const schoolIds = Object.keys(eligibleBySchool);
+
+        let totalEligibleCount = 0;
+        const schoolNames = [];
+
+        schoolIds.forEach(id => {
+            const count = eligibleBySchool[id].items.length;
+            totalEligibleCount += count;
+            const shortName = (eligibleBySchool[id].school.nameEn || 'School').split(' ')[0];
+            schoolNames.push(`${shortName} ${count}건`);
+        });
+
+        if (totalEligibleCount > 0) {
+            unbilledSummaryBadge.style.background = '#FFF3E0';
+            unbilledSummaryBadge.style.color = '#E65100';
+            unbilledSummaryBadge.style.borderColor = '#FFE0B2';
+            unbilledSummaryBadge.innerHTML = `<i class="fa-solid fa-bell"></i> <strong>${targetMonth}월 미청구 대상:</strong> 총 ${totalEligibleCount}건 (${schoolNames.join(', ')})`;
+        } else {
+            unbilledSummaryBadge.style.background = '#E8F5E9';
+            unbilledSummaryBadge.style.color = '#2E7D32';
+            unbilledSummaryBadge.style.borderColor = '#C8E6C9';
+            unbilledSummaryBadge.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${targetMonth}월 모든 계약 정산 건 인보이스 반영 완료`;
+        }
+    }
+
+    function autoGenerateMonthlyInvoices(targetMonth) {
+        if (!targetMonth) {
+            targetMonth = (autoGenMonthInput ? autoGenMonthInput.value : currentYearMonth);
+        }
+        if (!targetMonth) return;
+
+        if (userRole === 'entity') {
+            alert('인보이스 자동 생성은 마스터 관리자만 실행할 수 있습니다.');
+            return;
+        }
+
+        const eligibleBySchool = getEligibleInstallmentsForMonth(targetMonth);
+        const schoolIds = Object.keys(eligibleBySchool);
+
+        if (schoolIds.length === 0) {
+            alert(`${targetMonth}월 정산 주기에 해당하는 미청구 수속 건이 없거나, 이미 모든 학교의 해당 월 인보이스가 생성되어 있습니다.`);
+            return;
+        }
+
+        let createdCount = 0;
+        let totalStudents = 0;
+        let totalAmount = 0;
+        const promises = [];
+
+        schoolIds.forEach(schId => {
+            const schData = eligibleBySchool[schId];
+            const sch = schData.school;
+            const items = schData.items;
+
+            if (!items || items.length === 0) return;
+
+            // Check if active invoice already exists for this school and month
+            const alreadyExists = invoices.some(i => 
+                (i.schoolId === sch.id || i.schoolName === sch.nameEn) && 
+                i.billingMonth === targetMonth && 
+                i.status !== 'cancelled'
+            );
+            if (alreadyExists) return;
+
+            // Pick entity: default to Kepler if any item has registeredAgency === 'Kepler'
+            const hasKepler = items.some(it => (it.agency || '').toLowerCase().includes('kepler'));
+            const defaultEnt = entities.find(e => hasKepler ? (e.name && e.name.toLowerCase().includes('kepler')) : e.isDefault) || entities[0];
+
+            // Generate Invoice No
+            const cleanYearMonth = targetMonth.replace('-', '');
+            const schoolCode = (sch.nameEn ? (sch.nameEn.replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase()) : 'SCH');
+            const entityCode = hasKepler ? 'K' : 'J';
+            const autoInvNo = `INV-${cleanYearMonth}-${schoolCode}-${entityCode}01`;
+
+            const schoolSum = items.reduce((sum, it) => sum + (parseFloat(it.amount) || 0), 0);
+            const issueDate = `${targetMonth}-01`;
+            const dueDate = calculateDueDate(issueDate, 30);
+
+            const draftInv = {
+                invoiceNo: autoInvNo,
+                schoolId: sch.id,
+                schoolName: sch.nameEn,
+                billingMonth: targetMonth,
+                issueDate: issueDate,
+                dueDate: dueDate,
+                amount: schoolSum,
+                entityId: defaultEnt ? defaultEnt.id : '',
+                entityName: defaultEnt ? defaultEnt.name : 'KEPLER CONSULTING & TRAINING SDN. BHD.',
+                status: 'draft',
+                autoGenerated: true,
+                items: items,
+                memo: `계약서 정산 주기(${sch.settlementCycle || '약정'}) 기준 ${targetMonth}월 자동 생성 초안 (검토 대기)`,
+                createdAt: new Date().toISOString()
+            };
+
+            const p = db.ref('commission_invoices').push(draftInv).then(res => {
+                // Update admission installments
+                items.forEach(item => {
+                    const adm = admissions.find(a => a.id === item.admissionId);
+                    if (adm && adm.installments && adm.installments[item.installmentIndex]) {
+                        adm.installments[item.installmentIndex].status = 'draft';
+                        adm.installments[item.installmentIndex].invoiceNo = autoInvNo;
+                        adm.installments[item.installmentIndex].invoiceId = res.key;
+                        db.ref(`commission_admissions/${item.admissionId}/installments`).set(adm.installments);
+                    }
+                });
+            });
+
+            promises.push(p);
+            createdCount++;
+            totalStudents += items.length;
+            totalAmount += schoolSum;
+        });
+
+        if (createdCount === 0) {
+            alert(`${targetMonth}월 정산 주기에 해당하는 미청구 수속 건이 없거나, 이미 해당 월 인보이스가 생성되어 있습니다.`);
+            return;
+        }
+
+        Promise.all(promises).then(() => {
+            if (invoiceStatusFilter) invoiceStatusFilter.value = 'draft';
+            renderInvoices();
+            updateUnbilledSummaryBanner();
+            alert(`🎉 ${targetMonth}월 학교별 인보이스 ${createdCount}건이 자동 생성되었습니다 (총 ${totalStudents}명, ${formatMYR(totalAmount)}).\n\n목록에서 [검토/수정] 버튼을 눌러 대상 학생 및 금액을 검토하시거나 발송할 수 있습니다.`);
+        });
+    }
+
+    if (btnAutoGenerateMonthlyInvoices) {
+        btnAutoGenerateMonthlyInvoices.addEventListener('click', () => {
+            const m = autoGenMonthInput ? autoGenMonthInput.value : currentYearMonth;
+            autoGenerateMonthlyInvoices(m);
+        });
+    }
+    if (autoGenMonthInput) {
+        autoGenMonthInput.value = currentYearMonth;
+        autoGenMonthInput.addEventListener('change', updateUnbilledSummaryBanner);
+    }
+
+    // ----------------------------------------------------
+    // INVOICE REVIEW & EDIT MODAL CONTROLLER
+    // ----------------------------------------------------
+    function openInvoiceEditModal(invoiceId) {
+        const inv = invoices.find(i => i.id === invoiceId);
+        if (!inv) return;
+
+        currentEditingInvoice = JSON.parse(JSON.stringify(inv));
+        if (!currentEditingInvoice.items) currentEditingInvoice.items = [];
+        originalEditingInvoiceItems = JSON.parse(JSON.stringify(currentEditingInvoice.items));
+
+        if (editInvoiceId) editInvoiceId.value = currentEditingInvoice.id;
+        if (editInvoiceNo) editInvoiceNo.value = currentEditingInvoice.invoiceNo || '';
+        if (editInvoiceSchoolName) editInvoiceSchoolName.value = currentEditingInvoice.schoolName || '';
+        if (editInvoiceBillingMonth) editInvoiceBillingMonth.value = currentEditingInvoice.billingMonth || '';
+        if (editInvoiceIssueDate) editInvoiceIssueDate.value = currentEditingInvoice.issueDate || '';
+        if (editInvoiceDueDate) editInvoiceDueDate.value = currentEditingInvoice.dueDate || '';
+
+        // Entity Select
+        if (editInvoiceEntitySelect) {
+            editInvoiceEntitySelect.innerHTML = entities.map(e => `
+                <option value="${e.id}" ${e.id === currentEditingInvoice.entityId || e.name === currentEditingInvoice.entityName ? 'selected' : ''}>
+                    ${e.name}
+                </option>
+            `).join('');
+        }
+
+        // Status Tag & Buttons
+        if (invoiceEditStatusTag) {
+            if (currentEditingInvoice.status === 'draft') {
+                invoiceEditStatusTag.textContent = '검토 대기 초안 (DRAFT)';
+                invoiceEditStatusTag.style.background = '#FFF3E0';
+                invoiceEditStatusTag.style.color = '#E65100';
+                if (btnConfirmAndSendInvoice) btnConfirmAndSendInvoice.style.display = 'inline-flex';
+                if (btnSaveInvoiceDraft) btnSaveInvoiceDraft.textContent = '수정사항 저장 (초안 유지)';
+            } else {
+                invoiceEditStatusTag.textContent = currentEditingInvoice.status === 'paid' ? '입금 완료 (PAID)' : '발행 완료 (ISSUED)';
+                invoiceEditStatusTag.style.background = currentEditingInvoice.status === 'paid' ? '#E8F5E9' : '#E3F2FD';
+                invoiceEditStatusTag.style.color = currentEditingInvoice.status === 'paid' ? '#2E7D32' : '#1565C0';
+                if (btnConfirmAndSendInvoice) btnConfirmAndSendInvoice.style.display = 'none';
+                if (btnSaveInvoiceDraft) btnSaveInvoiceDraft.textContent = '수정사항 저장';
+            }
+        }
+
+        renderEditInvoiceItems();
+        populateEditInvoiceExtraStudents();
+        openModal('invoiceEditModal');
+    }
+
+    function renderEditInvoiceItems() {
+        if (!editInvoiceStudentsTableBody) return;
+
+        const items = currentEditingInvoice ? (currentEditingInvoice.items || []) : [];
+
+        if (items.length === 0) {
+            editInvoiceStudentsTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 25px; color: #888;">
+                        <i class="fa-solid fa-circle-exclamation" style="color: #E65100; font-size: 20px; margin-bottom: 6px; display: block;"></i>
+                        포함된 학생이 없습니다. 아래 '미청구 학생 추가'에서 학생을 추가해주세요.
+                    </td>
+                </tr>
+            `;
+        } else {
+            editInvoiceStudentsTableBody.innerHTML = items.map((item, idx) => `
+                <tr>
+                    <td>
+                        <strong style="color: var(--text-primary); font-size: 13px;">${escapeHtml(item.studentNameEn || item.studentName || '-')}</strong>
+                        ${item.studentNameKo ? `<span style="font-size: 11px; color: #888;"> (${escapeHtml(item.studentNameKo)})</span>` : ''}
+                    </td>
+                    <td>
+                        <div style="font-size: 12px;">${escapeHtml(item.gradeEn || '-')}</div>
+                        <div style="font-size: 11px; color: #888;">${escapeHtml(item.termEn || '-')}</div>
+                    </td>
+                    <td style="font-size: 12px; font-weight: 600;">
+                        ${item.tuitionFee > 0 ? formatMYR(item.tuitionFee) : '-'}
+                    </td>
+                    <td>
+                        <span class="installment-tag" style="font-size: 11px;">${escapeHtml(item.installmentTerm || 'Full 100%')}</span>
+                        <span style="font-size: 11px; color: var(--text-secondary); margin-left: 3px;">(${escapeHtml(item.rate || '-')})</span>
+                    </td>
+                    <td style="text-align: right;">
+                        <input type="number" class="form-control edit-item-amount" data-index="${idx}" value="${item.amount || 0}" step="0.01" min="0" style="width: 120px; text-align: right; font-weight: 700; color: #2E7D32; font-size: 13px; padding: 5px 8px; display: inline-block;">
+                    </td>
+                    <td style="text-align: center;">
+                        <button type="button" class="btn btn-secondary btn-remove-invoice-item" data-index="${idx}" style="color: #C62828; border: none; background: #FFEBEE; padding: 4px 8px; border-radius: 4px;" title="이 학생을 인보이스에서 제외">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Amount input listeners
+            document.querySelectorAll('.edit-item-amount').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const idx = parseInt(e.target.getAttribute('data-index'), 10);
+                    const val = parseFloat(e.target.value) || 0;
+                    if (currentEditingInvoice && currentEditingInvoice.items[idx]) {
+                        currentEditingInvoice.items[idx].amount = val;
+                        updateEditInvoiceTotal();
+                    }
+                });
+            });
+
+            // Remove button listeners
+            document.querySelectorAll('.btn-remove-invoice-item').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const idx = parseInt(btn.getAttribute('data-index'), 10);
+                    if (currentEditingInvoice && currentEditingInvoice.items[idx]) {
+                        currentEditingInvoice.items.splice(idx, 1);
+                        renderEditInvoiceItems();
+                        populateEditInvoiceExtraStudents();
+                        updateEditInvoiceTotal();
+                    }
+                });
+            });
+        }
+
+        updateEditInvoiceTotal();
+    }
+
+    function updateEditInvoiceTotal() {
+        if (!currentEditingInvoice) return;
+        const total = (currentEditingInvoice.items || []).reduce((sum, it) => sum + (parseFloat(it.amount) || 0), 0);
+        currentEditingInvoice.amount = total;
+
+        if (editInvoiceStudentCount) editInvoiceStudentCount.textContent = (currentEditingInvoice.items || []).length;
+        if (editInvoiceTotalAmountDisplay) editInvoiceTotalAmountDisplay.textContent = formatMYR(total);
+    }
+
+    function populateEditInvoiceExtraStudents() {
+        if (!editInvoiceAddStudentSelect || !currentEditingInvoice) return;
+
+        const currentItemIds = new Set((currentEditingInvoice.items || []).map(it => `${it.admissionId}_${it.installmentIndex}`));
+
+        const schAdmissions = admissions.filter(a => 
+            (a.schoolId === currentEditingInvoice.schoolId || a.schoolName === currentEditingInvoice.schoolName) &&
+            a.status !== 'cancelled'
+        );
+
+        const available = [];
+        schAdmissions.forEach(adm => {
+            const insts = adm.installments || [
+                { term: 'Full 100%', amount: adm.commissionAmount, dueDate: adm.admissionDate, status: 'pending' }
+            ];
+            insts.forEach((inst, instIdx) => {
+                const key = `${adm.id}_${instIdx}`;
+                if (!currentItemIds.has(key) && inst.status !== 'paid' && inst.status !== 'settled') {
+                    available.push({
+                        key: key,
+                        admissionId: adm.id,
+                        studentNameEn: adm.studentNameEn || adm.studentName,
+                        studentNameKo: adm.studentNameKo || '',
+                        gradeEn: adm.gradeEn || adm.grade || '-',
+                        termEn: adm.termEn || adm.term || '-',
+                        admissionDate: adm.admissionDate,
+                        tuitionFee: parseFloat(adm.tuitionFee) || 0,
+                        rate: adm.commissionType === 'fixed' ? 'Fixed' : `${adm.commissionRate || 10}%`,
+                        installmentIndex: instIdx,
+                        installmentTerm: inst.term || `Term ${instIdx + 1}`,
+                        amount: parseFloat(inst.amount) || 0,
+                        agency: adm.registeredAgency || adm.agency || 'JohorN'
+                    });
+                }
+            });
+        });
+
+        currentEditingEligibleExtra = available;
+
+        if (available.length === 0) {
+            editInvoiceAddStudentSelect.innerHTML = '<option value="">-- 추가 가능한 미청구 학생 없음 --</option>';
+            editInvoiceAddStudentSelect.disabled = true;
+            if (btnEditInvoiceAddStudent) btnEditInvoiceAddStudent.disabled = true;
+        } else {
+            editInvoiceAddStudentSelect.disabled = false;
+            if (btnEditInvoiceAddStudent) btnEditInvoiceAddStudent.disabled = false;
+            editInvoiceAddStudentSelect.innerHTML = '<option value="">-- 추가할 미청구 학생 선택 --</option>' + available.map(av => `
+                <option value="${av.key}">
+                    ${av.studentNameEn} (${av.installmentTerm} / ${formatMYR(av.amount)})
+                </option>
+            `).join('');
+        }
+    }
+
+    if (btnEditInvoiceAddStudent) {
+        btnEditInvoiceAddStudent.addEventListener('click', () => {
+            if (!editInvoiceAddStudentSelect || !currentEditingInvoice) return;
+            const selectedKey = editInvoiceAddStudentSelect.value;
+            if (!selectedKey) {
+                alert('추가할 학생을 선택해주세요.');
+                return;
+            }
+            const found = currentEditingEligibleExtra.find(e => e.key === selectedKey);
+            if (found) {
+                currentEditingInvoice.items.push({
+                    admissionId: found.admissionId,
+                    studentNameEn: found.studentNameEn,
+                    studentNameKo: found.studentNameKo,
+                    gradeEn: found.gradeEn,
+                    termEn: found.termEn,
+                    admissionDate: found.admissionDate,
+                    tuitionFee: found.tuitionFee,
+                    rate: found.rate,
+                    installmentIndex: found.installmentIndex,
+                    installmentTerm: found.installmentTerm,
+                    amount: found.amount,
+                    agency: found.agency
+                });
+                renderEditInvoiceItems();
+                populateEditInvoiceExtraStudents();
+            }
+        });
+    }
+
+    function saveInvoiceEdits(newStatus = null) {
+        if (!currentEditingInvoice) return;
+
+        const invNo = editInvoiceNo ? editInvoiceNo.value.trim() : '';
+        if (!invNo) {
+            alert('인보이스 번호를 입력해주세요.');
+            return;
+        }
+
+        if (!currentEditingInvoice.items || currentEditingInvoice.items.length === 0) {
+            alert('인보이스에는 최소 1명 이상의 학생이 포함되어야 합니다.');
+            return;
+        }
+
+        const selEntId = editInvoiceEntitySelect ? editInvoiceEntitySelect.value : '';
+        const ent = entities.find(e => e.id === selEntId) || entities[0];
+
+        currentEditingInvoice.invoiceNo = invNo;
+        currentEditingInvoice.entityId = ent ? ent.id : '';
+        currentEditingInvoice.entityName = ent ? ent.name : '';
+        currentEditingInvoice.billingMonth = editInvoiceBillingMonth ? editInvoiceBillingMonth.value : currentEditingInvoice.billingMonth;
+        currentEditingInvoice.issueDate = editInvoiceIssueDate ? editInvoiceIssueDate.value : currentEditingInvoice.issueDate;
+        currentEditingInvoice.dueDate = editInvoiceDueDate ? editInvoiceDueDate.value : currentEditingInvoice.dueDate;
+
+        if (newStatus) {
+            currentEditingInvoice.status = newStatus;
+            if (newStatus === 'issued') {
+                currentEditingInvoice.sentAt = new Date().toISOString();
+            }
+        }
+
+        const invId = currentEditingInvoice.id;
+        const finalStatus = currentEditingInvoice.status || 'draft';
+
+        // Detect removed items to restore their status
+        const currentItemKeys = new Set(currentEditingInvoice.items.map(it => `${it.admissionId}_${it.installmentIndex}`));
+        originalEditingInvoiceItems.forEach(orig => {
+            const key = `${orig.admissionId}_${orig.installmentIndex}`;
+            if (!currentItemKeys.has(key)) {
+                // Was removed! Revert to pending
+                const adm = admissions.find(a => a.id === orig.admissionId);
+                if (adm && adm.installments && adm.installments[orig.installmentIndex]) {
+                    adm.installments[orig.installmentIndex].status = 'pending';
+                    delete adm.installments[orig.installmentIndex].invoiceNo;
+                    delete adm.installments[orig.installmentIndex].invoiceId;
+                    db.ref(`commission_admissions/${orig.admissionId}/installments`).set(adm.installments);
+                    db.ref(`commission_admissions/${orig.admissionId}/status`).set('pending');
+                }
+            }
+        });
+
+        // Update included items
+        currentEditingInvoice.items.forEach(it => {
+            const adm = admissions.find(a => a.id === it.admissionId);
+            if (adm && adm.installments && adm.installments[it.installmentIndex]) {
+                adm.installments[it.installmentIndex].status = finalStatus === 'issued' ? 'invoiced' : 'draft';
+                adm.installments[it.installmentIndex].invoiceNo = invNo;
+                adm.installments[it.installmentIndex].invoiceId = invId;
+                db.ref(`commission_admissions/${it.admissionId}/installments`).set(adm.installments);
+                if (finalStatus === 'issued') {
+                    db.ref(`commission_admissions/${it.admissionId}/status`).set('invoiced');
+                }
+            }
+        });
+
+        // Save invoice in Firebase
+        db.ref('commission_invoices/' + invId).update(currentEditingInvoice).then(() => {
+            closeModal('invoiceEditModal');
+            renderInvoices();
+            updateUnbilledSummaryBanner();
+
+            if (newStatus === 'issued') {
+                alert(`인보이스 (${invNo}) 가 공식 발행 처리되었습니다.\n학교 회계팀 발송용 영문 PDF 및 이메일 화면을 엽니다.`);
+                openInvoiceModalById(invId);
+            } else {
+                alert('인보이스 수정 사항이 저장되었습니다.');
+            }
+        });
+    }
+
+    function confirmAndSendInvoice(invoiceId) {
+        const inv = invoices.find(i => i.id === invoiceId);
+        if (!inv) return;
+
+        if (confirm(`인보이스 (${inv.invoiceNo}) 를 공식 발행 확정하고 학교 발송 화면으로 이동하시겠습니까?`)) {
+            const updatePayload = {
+                status: 'issued',
+                sentAt: new Date().toISOString()
+            };
+
+            db.ref('commission_invoices/' + invoiceId).update(updatePayload).then(() => {
+                if (inv.items && inv.items.length > 0) {
+                    inv.items.forEach(it => {
+                        const adm = admissions.find(a => a.id === it.admissionId);
+                        if (adm && adm.installments && adm.installments[it.installmentIndex]) {
+                            adm.installments[it.installmentIndex].status = 'invoiced';
+                            adm.installments[it.installmentIndex].invoiceNo = inv.invoiceNo;
+                            adm.installments[it.installmentIndex].invoiceId = invoiceId;
+                            db.ref(`commission_admissions/${it.admissionId}/installments`).set(adm.installments);
+                            db.ref(`commission_admissions/${it.admissionId}/status`).set('invoiced');
+                        }
+                    });
+                }
+                renderInvoices();
+                updateUnbilledSummaryBanner();
+                openInvoiceModalById(invoiceId);
+            });
+        }
+    }
+
+    if (btnSaveInvoiceDraft) {
+        btnSaveInvoiceDraft.addEventListener('click', () => saveInvoiceEdits());
+    }
+
+    if (btnConfirmAndSendInvoice) {
+        btnConfirmAndSendInvoice.addEventListener('click', () => {
+            if (confirm('해당 인보이스를 공식 발행 확정하고 학교 발송 화면으로 이동하시겠습니까?')) {
+                saveInvoiceEdits('issued');
+            }
+        });
+    }
+
+    if (btnDeleteDraftInvoice) {
+        btnDeleteDraftInvoice.addEventListener('click', () => {
+            if (currentEditingInvoice) {
+                deleteInvoiceById(currentEditingInvoice.id);
+            }
+        });
     }
 
     // ----------------------------------------------------
