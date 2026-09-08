@@ -402,19 +402,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 const invictusData = {
                     nameEn: "Invictus International School (HH)",
                     nameKo: "인빅투스 국제학교 (호라이즌힐스)",
-                    contractStartDate: "2025-01-01",
-                    contractEndDate: "2027-12-31",
+                    contractStartDate: "2024-10-17",
+                    contractEndDate: "2026-10-16",
                     commissionType: "percentage",
                     defaultRate: 10,
-                    defaultSettlement: "1",
+                    defaultSettlement: "3",
+                    settlementCycle: "학기별 학비 수납 시점 연동 분할 정산 (Termly basis - 학기 완료 후 정산)",
+                    settlementMethod: "학생 학비 완납 대조 후 Kepler 법인 인보이스 발행 및 CES Horizon Sdn Bhd 은행 송금",
+                    contractFileName: "IHH_Agent_Service_Agreement_2024.pdf",
+                    contractFileUrl: "assets/contracts/IHH_Agent_Service_Agreement_2024.pdf",
                     adminContactName: "Admissions Office / WhatsApp: +60 10-882 8721",
                     adminContactEmail: "admissions@invictus.edu.my",
                     adminContactPhone: "+60 7-233 0800",
                     financeContactName: "Finance & Accounts Dept",
                     financeContactEmail: "accounts@invictus.edu.my",
                     financeContactPhone: "+60 7-233 0800",
-                    location: "No. 3, Persiaran Selatan, Horizon Hills, 79100 Iskandar Puteri, Johor",
-                    memo: "영국 캠브리지 커리큘럼(Early Years, Primary, Secondary - IGCSE & A-Levels), 싱가포르 Invictus 계열 Horizon Hills 캠퍼스"
+                    location: "No. 3, Jalan Persiaran Selatan, Horizon Hills, 79100 Iskandar Puteri, Johor",
+                    memo: "CES HORIZON SDN. BHD. (Invictus Horizon Hills)와 KEPLER CONSULTING & TRAINING SDN. BHD. 간 정식 체결 계약서 (1년차 순학비의 10% 커미션, 학기별 Term 정산)"
                 };
                 db.ref('commission_schools').push(invictusData);
             }
