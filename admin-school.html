@@ -768,13 +768,28 @@
                             <input type="number" id="schoolDefaultRate" class="form-control" placeholder="10" min="0" step="0.5" required style="font-size: 13px; padding: 10px;">
                         </div>
                         <div class="form-group">
-                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">기본 정산 방식</label>
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">기본 정산 회차</label>
                             <select id="schoolDefaultSettlement" class="form-control" style="font-size: 13px; padding: 10px;">
                                 <option value="1">1회 일시불 정산</option>
                                 <option value="2">2회 분할 정산</option>
                                 <option value="3">3회 분할 정산 (Term별)</option>
                                 <option value="4">4회 분할 정산</option>
                             </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
+                        <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">
+                                <i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-color);"></i> 정산 주기 (Settlement Cycle)
+                            </label>
+                            <input type="text" id="schoolSettlementCycle" class="form-control" placeholder="예: 학기 개시 후 30일 이내 (1회 일괄) / Term별 분할" style="font-size: 13px; padding: 10px;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">
+                                <i class="fa-solid fa-money-bill-transfer" style="color: #2E7D32;"></i> 정산 청구 및 지급 방법 (Settlement Method)
+                            </label>
+                            <input type="text" id="schoolSettlementMethod" class="form-control" placeholder="예: 학생 확인서 제출 후 공식 인보이스 발행하여 은행 계좌 송금" style="font-size: 13px; padding: 10px;">
                         </div>
                     </div>
                 </div>

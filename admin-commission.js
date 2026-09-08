@@ -429,6 +429,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     commissionType: "percentage",
                     defaultRate: 10,
                     defaultSettlement: "1",
+                    settlementCycle: "학기 시작 및 학비 완납 후 연 3회 (Term 1 / Term 2 / Term 3 분할 또는 신규 1회 일괄)",
+                    settlementMethod: "ISP Malaysia 본부 승인 후 Tenby Southern Sdn. Bhd. 회계팀으로 공식 인보이스 청구 및 TT 계좌 입금",
                     adminContactName: "Ra Na Choi (ISP) / Admissions Department",
                     adminContactEmail: "rchoi@ispschools.com",
                     adminContactPhone: "+60 7-558 8812",
@@ -491,6 +493,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 commissionType: "percentage",
                 defaultRate: 10,
                 defaultSettlement: "1",
+                settlementCycle: "학기 개시 후 학비 완납 확인 30일 이내 1회 일괄 정산",
+                settlementMethod: "인빅투스 재무회계팀(Finance & Accounts)으로 공식 인보이스 발행 후 은행 송금",
                 adminContactName: "Admissions Office / WhatsApp: +60 10-882 8721",
                 adminContactEmail: "admissions@invictus.edu.my",
                 adminContactPhone: "+60 7-233 0800",
@@ -508,6 +512,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 commissionType: "percentage",
                 defaultRate: 10,
                 defaultSettlement: "2", // 2 terms split
+                settlementCycle: "학기별 2회 분할 정산 (Term 1 시작 후 30일 이내 50%, Term 2 시작 시 잔여 50%)",
+                settlementMethod: "학교 재무 부서(Finance Dept)에 공식 인보이스 제출 후 30일 내 TT 은행 송금",
                 adminContactName: "Admissions Office / Mr. James",
                 adminContactEmail: "admissions@marlboroughcollege.my",
                 adminContactPhone: "+60 7-560 2200",
@@ -525,6 +531,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 commissionType: "percentage",
                 defaultRate: 15,
                 defaultSettlement: "1", // 1-time
+                settlementCycle: "학기 개시 후 배치별 정산 (S1: 7~8월 / S2: 2월 및 4월 신청, 학비 납부 후 30일 이내)",
+                settlementMethod: "Raffles Education Network 학생 확인표(Verification Form) 제출 및 검증 후 공식 인보이스 발행하여 은행 송금",
                 adminContactName: "OW Wei Hong & Mingle SI (Raffles Education Network)",
                 adminContactEmail: "OWWeiHong@Raffles-Education-Network.com",
                 adminContactPhone: "+60 7-509 8888",
@@ -542,6 +550,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 commissionType: "percentage",
                 defaultRate: 10,
                 defaultSettlement: "1",
+                settlementCycle: "학기 개시 및 학비 완납 확인 후 1회 일괄 정산 (30일 이내)",
+                settlementMethod: "선웨이 회계팀(Accounts)으로 공식 인보이스 송부 후 은행 계좌 송금",
                 adminContactName: "Admissions Office",
                 adminContactEmail: "infosisj@sunway.edu.my",
                 adminContactPhone: "+60 7-533 8070",
@@ -559,6 +569,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 commissionType: "percentage",
                 defaultRate: 10,
                 defaultSettlement: "1",
+                settlementCycle: "학기 시작 및 학비 완납 후 1회 일괄 정산",
+                settlementMethod: "CHIS Finance팀으로 공식 인보이스 발행 및 계좌 입금",
                 adminContactName: "Marketing & Admissions",
                 adminContactEmail: "admissions@chis.edu.my",
                 adminContactPhone: "+60 7-861 6788",
@@ -576,6 +588,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 commissionType: "percentage",
                 defaultRate: 12,
                 defaultSettlement: "2",
+                settlementCycle: "학기별 2회 분할 정산 (Term 1 개시 후 50%, Term 2 개시 후 잔여 50%)",
+                settlementMethod: "학생 학비 납부 영수증 첨부하여 FCIS Finance(Jennifer Low)로 공식 인보이스 발송 후 30일 이내 송금",
                 adminContactName: "Yu Jie (Zoe) Shi (CATS / FCIS)",
                 adminContactEmail: "zoe.shi@cats-fc.org",
                 adminContactPhone: "+60 7-500 5900",
@@ -593,6 +607,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 commissionType: "fixed",
                 defaultRate: 3500, // Fixed RM 3,500
                 defaultSettlement: "1",
+                settlementCycle: "신규 등록 및 학비 완납 확인 후 1회 일괄 정산 (학생당 RM 3,500)",
+                settlementMethod: "스텔라 회계부서(Accounts)로 인보이스 제출 후 계좌 송금",
                 adminContactName: "Admissions Officer",
                 adminContactEmail: "info@stellar.edu.my",
                 adminContactPhone: "+60 7-364 3808",
@@ -610,6 +626,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 commissionType: "percentage",
                 defaultRate: 10,
                 defaultSettlement: "1",
+                settlementCycle: "학기 시작 및 학비 완납 후 연 3회 (Term 1 / Term 2 / Term 3 분할 또는 신규 1회 일괄)",
+                settlementMethod: "ISP Malaysia 본부 승인 후 Tenby Southern Sdn. Bhd. 회계팀으로 공식 인보이스 청구 및 TT 계좌 입금",
                 adminContactName: "Ra Na Choi (ISP) / Admissions Department",
                 adminContactEmail: "rchoi@ispschools.com",
                 adminContactPhone: "+60 7-558 8812",
@@ -628,6 +646,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 commissionType: "percentage",
                 defaultRate: 15,
                 defaultSettlement: "1",
+                settlementCycle: "여름/겨울 방학 캠프 세션 종료 후 30일 이내 일괄 정산",
+                settlementMethod: "RAS Camp 재무팀으로 참가자 명단 첨부 인보이스 발행 후 계좌 입금",
                 adminContactName: "RAS Camp Admissions / WhatsApp: +60 11-1066 7105",
                 adminContactEmail: "camps@rafflesamericanschool.org",
                 adminContactPhone: "+60 11-1066 7105",
@@ -646,6 +666,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 commissionType: "percentage",
                 defaultRate: 10,
                 defaultSettlement: "1",
+                settlementCycle: "학원 등록 및 수강료 완납 후 매월 말일 또는 개강 후 14일 이내 정산",
+                settlementMethod: "등록 확인서 대조 후 지정 법인 계좌 직접 이체",
                 adminContactName: "Justin (Director) / Admissions Team",
                 adminContactEmail: "admissions@kepler-edu.com",
                 adminContactPhone: "+60 11-3988 5600",
@@ -664,13 +686,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 commissionType: "percentage",
                 defaultRate: 10,
                 defaultSettlement: "1",
+                settlementCycle: "영어캠프/정규 코스 시작 전 수강료 완납 시 1회 일괄 정산",
+                settlementMethod: "원장 확인 및 인보이스 송부 후 은행 계좌 이체",
                 adminContactName: "Natalie (Academic Director) / WhatsApp: +60 11-2938 4460 / 카카오톡: Hunky-Dory",
                 adminContactEmail: "natalie@hunkydory.education",
                 adminContactPhone: "+60 11-2938 4460",
                 financeContactName: "Finance & Accounts",
                 financeContactEmail: "accounts@hunkydory.education",
                 financeContactPhone: "+60 11-2938 4460",
-                location: "8-1 & 12-1, Teega Office Tower, Jalan Laksamana 1, Puteri Harbour, 79250 Iskandar Puteri, Johor",
+                location: "8-1 & 12-1, Teega Office Tower, Jalan Lasmamana 1, Puteri Harbour, 79250 Iskandar Puteri, Johor",
                 memo: "푸테리하버 티가 타워 소재 15년 노하우 원어민 소수정예 주니어 몰입 영어캠프, 국제학교 입학대비 및 스피킹 특화 아카데미"
             }
         ];
@@ -2815,6 +2839,24 @@ Email / Contact: ${ent.contact || '-'}`.trim();
                             <div>• 이메일: <strong style="color: var(--text-primary);">${sch.financeContactEmail || sch.email || '-'}</strong></div>
                             <div>• 연락처: ${sch.financeContactPhone || sch.phone || '-'}</div>
                         </div>
+
+                        <!-- Settlement Policy & Method -->
+                        <div class="school-contact-box" style="background: #F4FBF7; border-color: #C8E6C9; border-left: 4px solid #2E7D32;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                <span style="font-weight: 700; color: #2E7D32; font-size: 11px;">
+                                    <i class="fa-solid fa-hand-holding-dollar"></i> 정산 정책 & 지급 방법
+                                </span>
+                                <span style="font-size: 10px; background: rgba(46, 125, 50, 0.15); color: #2E7D32; padding: 1px 6px; border-radius: 3px; font-weight: 700;">
+                                    ${sch.defaultSettlement === '2' ? '2회 분할' : (sch.defaultSettlement === '3' ? '3회 분할' : (sch.defaultSettlement === '4' ? '4회 분할' : '1회 일괄'))}
+                                </span>
+                            </div>
+                            <div style="font-size: 11px; color: #1a1a1a; margin-bottom: 3px; line-height: 1.4;">
+                                • <strong>정산 주기:</strong> ${sch.settlementCycle || (sch.defaultSettlement === '2' ? '학기별 2회 분할 (50% / 50%)' : '학기 개시 후 일괄 정산')}
+                            </div>
+                            <div style="font-size: 11px; color: #444; line-height: 1.4;">
+                                • <strong>지급 방법:</strong> ${sch.settlementMethod || '공식 인보이스 발행 후 은행 계좌 송금'}
+                            </div>
+                        </div>
                     </div>
 
                     <div style="border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 10px;">
@@ -2990,6 +3032,8 @@ Email / Contact: ${ent.contact || '-'}`.trim();
             if (schoolValueLabel) schoolValueLabel.innerHTML = '기본 요율 (%) <span style="color: #C62828;">*</span>';
             document.getElementById('schoolDefaultRate').value = '10';
             document.getElementById('schoolDefaultSettlement').value = '1';
+            if (document.getElementById('schoolSettlementCycle')) document.getElementById('schoolSettlementCycle').value = '';
+            if (document.getElementById('schoolSettlementMethod')) document.getElementById('schoolSettlementMethod').value = '';
             document.getElementById('schoolContractStartDate').value = '2025-01-01';
             document.getElementById('schoolContractEndDate').value = '2026-12-31';
             if (deleteSchoolBtn) deleteSchoolBtn.classList.add('hidden');
@@ -3024,6 +3068,8 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         }
 
         document.getElementById('schoolDefaultSettlement').value = sch.defaultSettlement || '1';
+        if (document.getElementById('schoolSettlementCycle')) document.getElementById('schoolSettlementCycle').value = sch.settlementCycle || '';
+        if (document.getElementById('schoolSettlementMethod')) document.getElementById('schoolSettlementMethod').value = sch.settlementMethod || '';
         
         // Admin Contact
         document.getElementById('schoolAdminContactName').value = sch.adminContactName || sch.contactPerson || '';
@@ -3066,6 +3112,8 @@ Email / Contact: ${ent.contact || '-'}`.trim();
                 commissionType: commType,
                 defaultRate: (commType === 'none') ? 0 : (isNaN(parsedRate) ? 0 : parsedRate),
                 defaultSettlement: document.getElementById('schoolDefaultSettlement').value,
+                settlementCycle: document.getElementById('schoolSettlementCycle') ? document.getElementById('schoolSettlementCycle').value.trim() : '',
+                settlementMethod: document.getElementById('schoolSettlementMethod') ? document.getElementById('schoolSettlementMethod').value.trim() : '',
                 adminContactName: document.getElementById('schoolAdminContactName').value.trim(),
                 adminContactEmail: adminEmail,
                 adminContactPhone: document.getElementById('schoolAdminContactPhone').value.trim(),
