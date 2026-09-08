@@ -1614,22 +1614,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
 
+            const rawEntityName = inv.entityName || 'KEPLER';
+            const shortEntityName = rawEntityName.trim().split(/\s+/)[0] || 'KEPLER';
+
             return `
                 <tr>
-                    <td style="min-width: 130px; white-space: nowrap;">
+                    <td style="min-width: 120px; white-space: nowrap;">
                         <strong style="color: var(--accent-color); font-family: monospace; font-size: 13px;">${inv.invoiceNo}</strong>
                         ${monthDisplay}
                     </td>
-                    <td style="min-width: 150px; font-weight: 600;">${inv.schoolName || '-'}</td>
-                    <td style="min-width: 180px;">${studentTargetDisplay}</td>
-                    <td style="min-width: 120px; font-size: 12px; color: var(--text-secondary); white-space: nowrap;">${inv.entityName || 'KEPLER'}</td>
-                    <td style="min-width: 130px; white-space: nowrap;">
+                    <td style="min-width: 140px; font-weight: 600;">${inv.schoolName || '-'}</td>
+                    <td style="min-width: 160px;">${studentTargetDisplay}</td>
+                    <td style="min-width: 80px; text-align: center; white-space: nowrap;">
+                        <span class="agency-badge" title="발행법인: ${escapeHtml(rawEntityName)}" style="font-size: 11px; padding: 2px 7px;">
+                            <i class="fa-solid fa-building" style="font-size: 8.5px;"></i> ${escapeHtml(shortEntityName)}
+                        </span>
+                    </td>
+                    <td style="min-width: 120px; white-space: nowrap;">
                         <div style="font-size: 12px;">발행: ${formatDate(inv.issueDate)}</div>
                         <div style="font-size: 11px; color: #C62828;">기한: ${formatDate(inv.dueDate)}</div>
                     </td>
-                    <td style="min-width: 125px; text-align: right; font-weight: 700; color: #2E7D32; font-size: 14px; white-space: nowrap; font-variant-numeric: tabular-nums;">${formatMYR(inv.amount)}</td>
-                    <td style="min-width: 105px; text-align: center; white-space: nowrap;">${statusBadge}</td>
-                    <td style="min-width: 135px; text-align: center; white-space: nowrap;">
+                    <td style="min-width: 115px; text-align: right; font-weight: 700; color: #2E7D32; font-size: 14px; white-space: nowrap; font-variant-numeric: tabular-nums;">${formatMYR(inv.amount)}</td>
+                    <td style="min-width: 95px; text-align: center; white-space: nowrap;">${statusBadge}</td>
+                    <td style="min-width: 125px; text-align: center; white-space: nowrap;">
                         ${invoiceActionsHtml}
                     </td>
                 </tr>
