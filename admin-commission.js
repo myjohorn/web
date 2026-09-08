@@ -1855,15 +1855,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (monthlyInvoiceNoInput) monthlyInvoiceNoInput.value = autoInvNo;
 
         // Filter all student admissions for this school that have unsettled installments
-        const schoolAdmissions = admissions.filter(a => a.schoolId === sch.id || a.schoolName === sch.nameEn || a.schoolName === sch.nameKo);
+        const schoolAdmissions = admissions.filter(a => isSchoolMatch(a, sch) && a.status !== 'cancelled');
         
         eligibleStudentRows = [];
         schoolAdmissions.forEach(adm => {
+            const commAmtTotal = parseFloat(adm.commissionAmount) || 
+                Math.round((parseFloat(adm.tuitionFee) || 0) * ((parseFloat(adm.commissionRate) || 0) / 100));
+
+            // Skip students who do not have positive commission to receive
+            if (commAmtTotal <= 0) return;
+
             const installments = adm.installments || [
-                { term: 'Full 100%', amount: adm.commissionAmount, dueDate: adm.admissionDate, status: adm.status === 'paid' ? 'paid' : 'pending' }
+                { term: 'Full 100%', amount: commAmtTotal, dueDate: adm.admissionDate, status: adm.status === 'paid' ? 'paid' : 'pending' }
             ];
 
             installments.forEach((inst, instIdx) => {
+                const rawAmount = parseFloat(inst.amount) || (commAmtTotal / (installments.length || 1)) || 0;
+                // Never allow 0 amount installment in billing
+                if (rawAmount <= 0) return;
+
                 // Exclude already paid/settled installments!
                 if (inst.status !== 'paid' && inst.status !== 'settled') {
                     eligibleStudentRows.push({
@@ -1879,7 +1889,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         commissionRate: adm.commissionRate || 10,
                         installmentIndex: instIdx,
                         installmentTerm: inst.term || `Term ${instIdx + 1}`,
-                        amount: parseFloat(inst.amount) || 0,
+                        amount: rawAmount,
                         status: inst.status || 'pending'
                     });
                 }
@@ -2407,6 +2417,20 @@ Email / Contact: ${ent.contact || '-'}`.trim();
     // ----------------------------------------------------
     // AUTOMATED MONTHLY INVOICE GENERATION ENGINE & RULES
     // ----------------------------------------------------
+    function isSchoolMatch(adm, sch) {
+        if (!adm || !sch) return false;
+        const targetSchoolId = sch.schoolId || sch.id;
+        if (adm.schoolId && targetSchoolId && adm.schoolId === targetSchoolId) return true;
+        const aName = (adm.schoolName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const sNameEn = (sch.nameEn || sch.schoolName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const sNameKo = (sch.nameKo || '').replace(/\s+/g, '');
+        const aRaw = (adm.schoolName || '');
+
+        if (sNameEn && aName && (aName === sNameEn || aName.includes(sNameEn) || sNameEn.includes(aName))) return true;
+        if (sNameKo && aRaw && (aRaw === sNameKo || aRaw.includes(sNameKo) || sNameKo.includes(aRaw))) return true;
+        return false;
+    }
+
     function getEligibleInstallmentsForMonth(targetMonth) {
         const result = {};
 
@@ -2422,21 +2446,38 @@ Email / Contact: ${ent.contact || '-'}`.trim();
 
         schools.forEach(sch => {
             const schAdmissions = admissions.filter(a => 
-                (a.schoolId === sch.id || a.schoolName === sch.nameEn || a.schoolName === sch.nameKo) &&
+                isSchoolMatch(a, sch) &&
                 a.status !== 'cancelled'
             );
 
             const eligibleItems = [];
 
             schAdmissions.forEach(adm => {
+                // Determine total commission amount expected for this student
+                const commAmtTotal = parseFloat(adm.commissionAmount) || 
+                    Math.round((parseFloat(adm.tuitionFee) || 0) * ((parseFloat(adm.commissionRate) || 0) / 100));
+
+                // STRICT RULE: If no commission to receive (0 or negative), exclude from invoicing!
+                if (commAmtTotal <= 0) return;
+
                 const installments = adm.installments || [
-                    { term: 'Full 100%', amount: adm.commissionAmount, dueDate: adm.admissionDate, status: adm.status === 'paid' ? 'paid' : 'pending' }
+                    { term: 'Full 100%', amount: commAmtTotal, dueDate: adm.admissionDate, status: 'pending' }
                 ];
 
                 installments.forEach((inst, instIdx) => {
                     const key = `${adm.id}_${instIdx}`;
+
+                    // If already in an active invoice, skip
                     if (billedKeys.has(key)) return;
-                    if (inst.status === 'paid' || inst.status === 'settled' || inst.status === 'invoiced') return;
+
+                    // If already paid or settled, skip
+                    if (inst.status === 'paid' || inst.status === 'settled') return;
+
+                    // Calculate installment amount
+                    const rawInstAmount = parseFloat(inst.amount) || (commAmtTotal / (installments.length || 1)) || 0;
+
+                    // STRICT RULE: Claim amount must be strictly greater than 0
+                    if (rawInstAmount <= 0) return;
 
                     // Check if installment is due for this targetMonth
                     const dueMonth = (inst.dueDate ? inst.dueDate.slice(0, 7) : (adm.admissionDate ? adm.admissionDate.slice(0, 7) : ''));
@@ -2452,17 +2493,20 @@ Email / Contact: ${ent.contact || '-'}`.trim();
                             rate: adm.commissionType === 'fixed' ? 'Fixed Fee' : `${adm.commissionRate || 10}%`,
                             installmentIndex: instIdx,
                             installmentTerm: inst.term || `Term ${instIdx + 1}`,
-                            amount: parseFloat(inst.amount) || 0,
+                            amount: rawInstAmount,
                             agency: adm.registeredAgency || adm.agency || 'JohorN'
                         });
                     }
                 });
             });
 
-            if (eligibleItems.length > 0) {
+            // STRICT RULE: Only include school if total claim amount > 0
+            const schoolSum = eligibleItems.reduce((sum, it) => sum + (parseFloat(it.amount) || 0), 0);
+            if (eligibleItems.length > 0 && schoolSum > 0) {
                 result[sch.id] = {
                     school: sch,
-                    items: eligibleItems
+                    items: eligibleItems,
+                    totalAmount: schoolSum
                 };
             }
         });
@@ -2532,9 +2576,13 @@ Email / Contact: ${ent.contact || '-'}`.trim();
 
             if (!items || items.length === 0) return;
 
+            const schoolSum = items.reduce((sum, it) => sum + (parseFloat(it.amount) || 0), 0);
+            // STRICT RULE: Never create invoice if amount <= 0
+            if (schoolSum <= 0) return;
+
             // Check if active invoice already exists for this school and month
             const alreadyExists = invoices.some(i => 
-                (i.schoolId === sch.id || i.schoolName === sch.nameEn) && 
+                (i.schoolId === sch.id || isSchoolMatch({ schoolName: i.schoolName, schoolId: i.schoolId }, sch)) && 
                 i.billingMonth === targetMonth && 
                 i.status !== 'cancelled'
             );
@@ -2550,7 +2598,6 @@ Email / Contact: ${ent.contact || '-'}`.trim();
             const entityCode = hasKepler ? 'K' : 'J';
             const autoInvNo = `INV-${cleanYearMonth}-${schoolCode}-${entityCode}01`;
 
-            const schoolSum = items.reduce((sum, it) => sum + (parseFloat(it.amount) || 0), 0);
             const issueDate = `${targetMonth}-01`;
             const dueDate = calculateDueDate(issueDate, 30);
 
@@ -2750,16 +2797,23 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         const currentItemIds = new Set((currentEditingInvoice.items || []).map(it => `${it.admissionId}_${it.installmentIndex}`));
 
         const schAdmissions = admissions.filter(a => 
-            (a.schoolId === currentEditingInvoice.schoolId || a.schoolName === currentEditingInvoice.schoolName) &&
+            isSchoolMatch(a, currentEditingInvoice) &&
             a.status !== 'cancelled'
         );
 
         const available = [];
         schAdmissions.forEach(adm => {
+            const commAmtTotal = parseFloat(adm.commissionAmount) || 
+                Math.round((parseFloat(adm.tuitionFee) || 0) * ((parseFloat(adm.commissionRate) || 0) / 100));
+            if (commAmtTotal <= 0) return;
+
             const insts = adm.installments || [
-                { term: 'Full 100%', amount: adm.commissionAmount, dueDate: adm.admissionDate, status: 'pending' }
+                { term: 'Full 100%', amount: commAmtTotal, dueDate: adm.admissionDate, status: 'pending' }
             ];
             insts.forEach((inst, instIdx) => {
+                const rawInstAmount = parseFloat(inst.amount) || (commAmtTotal / (insts.length || 1)) || 0;
+                if (rawInstAmount <= 0) return;
+
                 const key = `${adm.id}_${instIdx}`;
                 if (!currentItemIds.has(key) && inst.status !== 'paid' && inst.status !== 'settled') {
                     available.push({
@@ -2774,7 +2828,7 @@ Email / Contact: ${ent.contact || '-'}`.trim();
                         rate: adm.commissionType === 'fixed' ? 'Fixed' : `${adm.commissionRate || 10}%`,
                         installmentIndex: instIdx,
                         installmentTerm: inst.term || `Term ${instIdx + 1}`,
-                        amount: parseFloat(inst.amount) || 0,
+                        amount: rawInstAmount,
                         agency: adm.registeredAgency || adm.agency || 'JohorN'
                     });
                 }
