@@ -947,11 +947,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const baseAdmissions = getFilteredAdmissions();
 
         const filtered = baseAdmissions.filter(adm => {
-            // Default filter: exclude students who do not need settlement (commAmt <= 0) unless showAll is checked
+            // Default filter: exclude non-settlement or already settled students unless showAll is checked
             if (!showAll) {
+                // 1. Exclude 0 or negative commission students (non-partner / 0% fee)
                 const commAmt = parseFloat(adm.commissionAmount) || 
                     Math.round((parseFloat(adm.tuitionFee) || 0) * ((parseFloat(adm.commissionRate) || 0) / 100));
                 if (commAmt <= 0) return false;
+
+                // 2. Exclude students whose settlement is completed (completed, paid) or cancelled
+                if (adm.status === 'completed' || adm.status === 'paid' || adm.status === 'cancelled') return false;
+
+                // 3. Exclude if all installments are already paid or settled
+                const insts = adm.installments || [];
+                if (insts.length > 0 && insts.every(inst => inst.status === 'paid' || inst.status === 'settled')) return false;
             }
 
             if (schoolFilter !== 'all' && adm.schoolName !== schoolFilter) return false;
@@ -969,7 +977,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (filtered.length === 0) {
             const emptyMessage = !showAll && baseAdmissions.length > 0 
-                ? '정산 대상 학생 입학 수속 내역이 없습니다. (상단의 "전체 학생 보기" 체크 시 비제휴/0% 학생 포함 표시)' 
+                ? '현재 정산 진행 중인 학생 내역이 없습니다. (상단의 "전체 학생 보기" 체크 시 입금/수속 완료 및 비제휴 학생 포함 표시)' 
                 : '등록된 학생 입학 수속 내역이 없습니다.';
             admissionTableBody.innerHTML = `
                 <tr>
@@ -1103,7 +1111,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (admissionSearchInput) admissionSearchInput.addEventListener('input', renderAdmissions);
     if (admissionSchoolFilter) admissionSchoolFilter.addEventListener('change', renderAdmissions);
-    if (admissionStatusFilter) admissionStatusFilter.addEventListener('change', renderAdmissions);
+    if (admissionStatusFilter) {
+        admissionStatusFilter.addEventListener('change', () => {
+            const val = admissionStatusFilter.value;
+            if (val === 'paid' || val === 'completed' || val === 'cancelled') {
+                if (showAllAdmissionsCheckbox) showAllAdmissionsCheckbox.checked = true;
+            }
+            renderAdmissions();
+        });
+    }
     const admissionAgencyFilter = document.getElementById('admissionAgencyFilter');
     if (admissionAgencyFilter) admissionAgencyFilter.addEventListener('change', renderAdmissions);
     if (showAllAdmissionsCheckbox) showAllAdmissionsCheckbox.addEventListener('change', renderAdmissions);
