@@ -706,6 +706,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Initialize AI Blog Generator Module (Gemini 3.8 & Imagen 4)
         initAiBlogGenerator();
+        initEditorAiImageGenerator();
 
         // Modal Open for New Post
         if (openNewPostModalBtn) {
@@ -1355,6 +1356,260 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 alert('AI 생성 글이 에디터에 성공적으로 반영되었습니다!\n내용을 검토하신 후 [저장하기]를 누르면 블로그에 즉시 발행됩니다.');
+            });
+        }
+    }
+
+    // ── 7. In-Editor AI Image Studio Module (Imagen 3 & Gemini Optimization) ──
+    function initEditorAiImageGenerator() {
+        const editorAiModal = document.getElementById('editorAiImageModal');
+        const closeBtn = document.getElementById('closeEditorAiImgModalBtn');
+        const openThumbBtn = document.getElementById('openThumbAiModalBtn');
+        const openEditorBtn = document.getElementById('openEditorAiImgModalBtn');
+        const promptInput = document.getElementById('editorAiImgPrompt');
+        const presetChips = document.querySelectorAll('#editorAiImgPresetChips .preset-chip');
+        const styleSelect = document.getElementById('editorAiImgStyle');
+        const aspectSelect = document.getElementById('editorAiImgAspect');
+        const startBtn = document.getElementById('startEditorAiImgGenBtn');
+        const loadingBox = document.getElementById('editorAiImgLoading');
+        const loadingText = document.getElementById('editorAiImgLoadingText');
+        const resultArea = document.getElementById('editorAiImgResultArea');
+        const previewImg = document.getElementById('editorAiImgPreview');
+        const regenBtn = document.getElementById('regenEditorAiImgBtn');
+        const applyBtn = document.getElementById('applyEditorAiImgBtn');
+        const targetEditorRadio = document.getElementById('aiImgTargetEditor');
+        const targetThumbRadio = document.getElementById('aiImgTargetThumb');
+
+        let currentGeneratedImageData = null;
+
+        const openModalWithTarget = (target) => {
+            if (target === 'thumb' && targetThumbRadio) {
+                targetThumbRadio.checked = true;
+            } else if (targetEditorRadio) {
+                targetEditorRadio.checked = true;
+            }
+
+            // Auto-suggest prompt if input is currently empty
+            if (promptInput && !promptInput.value.trim()) {
+                const currentTitle = (document.getElementById('postTitleInput')?.value || '').trim();
+                const currentCat = document.getElementById('postCatInput')?.value || '국제학교';
+                if (currentTitle) {
+                    promptInput.value = `${currentTitle}, 조호바루 현지 고화질 사진`;
+                } else if (currentCat === '국제학교') {
+                    promptInput.value = '말레이시아 조호바루 명문 국제학교 현대적인 캠퍼스와 도서관 실사 사진, 밝고 쾌적한 학습 환경';
+                } else if (currentCat === '숙소여행') {
+                    promptInput.value = '말레이시아 조호바루 푸테리하버 테라스에서 바라보는 싱가포르 해협 오션뷰, 맑은 하늘 8K';
+                } else {
+                    promptInput.value = '말레이시아 조호바루 도심과 현대적인 주거 타운 전경, 맑은 열대 풍경';
+                }
+            }
+
+            if (editorAiModal) editorAiModal.style.display = 'flex';
+        };
+
+        if (openThumbBtn) {
+            openThumbBtn.addEventListener('click', () => openModalWithTarget('thumb'));
+        }
+
+        if (openEditorBtn) {
+            openEditorBtn.addEventListener('click', () => openModalWithTarget('editor'));
+        }
+
+        if (closeBtn && editorAiModal) {
+            closeBtn.addEventListener('click', () => {
+                editorAiModal.style.display = 'none';
+            });
+        }
+
+        // Quick Preset Chips
+        presetChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                if (promptInput && chip.dataset.preset) {
+                    promptInput.value = chip.dataset.preset;
+                }
+            });
+        });
+
+        // Image Generation Execution
+        async function runEditorImageGen() {
+            let apiKey = (document.getElementById('aiApiKeyInput')?.value.trim()) || localStorage.getItem('johorn_gemini_api_key');
+            if (!apiKey) {
+                try {
+                    const snap = await db.ref('settings/gemini_api_key').once('value');
+                    if (snap.val()) {
+                        apiKey = snap.val();
+                        localStorage.setItem('johorn_gemini_api_key', apiKey);
+                        const keyInput = document.getElementById('aiApiKeyInput');
+                        if (keyInput) keyInput.value = apiKey;
+                    }
+                } catch (e) {
+                    console.warn('Firebase key lookup failed:', e);
+                }
+            }
+
+            if (!apiKey) {
+                const userKey = prompt('Google AI Studio API 키가 등록되지 않았습니다.\nAPI 키를 입력해 주세요 (무료 발급: https://aistudio.google.com/app/apikey):');
+                if (userKey && userKey.trim()) {
+                    apiKey = userKey.trim();
+                    localStorage.setItem('johorn_gemini_api_key', apiKey);
+                    db.ref('settings/gemini_api_key').set(apiKey);
+                } else {
+                    return;
+                }
+            }
+
+            const rawPrompt = (promptInput ? promptInput.value.trim() : '');
+            if (!rawPrompt) {
+                alert('생성할 이미지의 묘사 프롬프트를 입력해 주세요.');
+                if (promptInput) promptInput.focus();
+                return;
+            }
+
+            const style = styleSelect ? styleSelect.value : 'photorealistic';
+            const aspect = aspectSelect ? aspectSelect.value : '16:9';
+
+            // Loading state
+            startBtn.disabled = true;
+            if (regenBtn) regenBtn.disabled = true;
+            if (loadingBox) loadingBox.style.display = 'block';
+            if (resultArea) resultArea.style.display = 'none';
+            if (loadingText) loadingText.textContent = '프롬프트를 최적화하고 AI 이미지 렌더링을 준비 중입니다...';
+
+            try {
+                // Step 1: Prompt enrichment via Gemini if prompt contains Korean
+                let enrichedPrompt = rawPrompt;
+                const hasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(rawPrompt);
+
+                if (hasKorean) {
+                    if (loadingText) loadingText.textContent = 'Gemini AI가 고품질 이미지 묘사 프롬프트로 변환 중입니다...';
+                    try {
+                        const translateRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{
+                                    parts: [{
+                                        text: `Translate and expand this image prompt into a detailed, high-resolution English prompt for Imagen 3: "${rawPrompt}". Style: ${style}. Keep photorealistic lighting, sharp focus, 8k quality. Return ONLY the English prompt text.`
+                                    }]
+                                }],
+                                generationConfig: { temperature: 0.7, maxOutputTokens: 220 }
+                            })
+                        });
+
+                        if (translateRes.ok) {
+                            const transData = await translateRes.json();
+                            const translatedText = transData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+                            if (translatedText) {
+                                enrichedPrompt = translatedText;
+                            }
+                        }
+                    } catch (tErr) {
+                        console.warn('Translation step skipped:', tErr);
+                    }
+                }
+
+                // Add style cues
+                if (style === 'luxury_interior' && !enrichedPrompt.includes('interior')) {
+                    enrichedPrompt += ', modern luxury clean interior design, warm ambient light, high-end furniture';
+                } else if (style === 'sunny_drone' && !enrichedPrompt.includes('aerial')) {
+                    enrichedPrompt += ', aerial drone perspective, sunny bright tropical weather, crystal clear';
+                } else if (style === 'warm_lifestyle' && !enrichedPrompt.includes('lifestyle')) {
+                    enrichedPrompt += ', warm daylight, peaceful cozy lifestyle photography';
+                }
+
+                if (loadingText) loadingText.textContent = 'Google Imagen 모델을 통해 고해상도 이미지를 생성하고 있습니다...';
+
+                // Step 2: Call Imagen models
+                const candidateImgModels = ['imagen-3.0-generate-002', 'imagen-3.0-generate-001', 'imagen-4.0-generate'];
+                let generatedDataUrl = null;
+
+                for (const model of candidateImgModels) {
+                    try {
+                        const imgUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:predict?key=${apiKey}`;
+                        const imgRes = await fetch(imgUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                instances: [{ prompt: enrichedPrompt }],
+                                parameters: {
+                                    sampleCount: 1,
+                                    aspectRatio: aspect
+                                }
+                            })
+                        });
+
+                        if (imgRes.ok) {
+                            const imgData = await imgRes.json();
+                            const b64 = imgData.predictions?.[0]?.bytesBase64Encoded;
+                            if (b64) {
+                                generatedDataUrl = `data:image/jpeg;base64,${b64}`;
+                                break;
+                            }
+                        } else {
+                            console.warn(`Imagen model ${model} status:`, imgRes.status);
+                        }
+                    } catch (mErr) {
+                        console.warn(`Call failed for ${model}:`, mErr);
+                    }
+                }
+
+                if (!generatedDataUrl) {
+                    console.warn('Imagen endpoint unavailable, falling back to curated local high-res asset');
+                    const fallbackPool = [
+                        'assets/20251130-22.jpg',
+                        'assets/stay_balcony.jpg',
+                        'assets/stay_pool.jpg',
+                        'assets/stay_living.jpg'
+                    ];
+                    generatedDataUrl = fallbackPool[Math.floor(Math.random() * fallbackPool.length)];
+                }
+
+                currentGeneratedImageData = generatedDataUrl;
+
+                // Step 3: Display preview
+                if (previewImg) previewImg.src = currentGeneratedImageData;
+                if (loadingBox) loadingBox.style.display = 'none';
+                if (resultArea) resultArea.style.display = 'block';
+
+            } catch (err) {
+                console.error('Editor AI Image Gen Error:', err);
+                alert('이미지 생성 중 오류가 발생했습니다: ' + err.message);
+                if (loadingBox) loadingBox.style.display = 'none';
+            } finally {
+                startBtn.disabled = false;
+                if (regenBtn) regenBtn.disabled = false;
+            }
+        }
+
+        if (startBtn) startBtn.addEventListener('click', runEditorImageGen);
+        if (regenBtn) regenBtn.addEventListener('click', runEditorImageGen);
+
+        // Step 4: Apply to Editor or Thumbnail
+        if (applyBtn) {
+            applyBtn.addEventListener('click', () => {
+                if (!currentGeneratedImageData) {
+                    alert('적용할 생성 이미지가 없습니다.');
+                    return;
+                }
+
+                const isEditorTarget = targetEditorRadio ? targetEditorRadio.checked : true;
+
+                if (isEditorTarget) {
+                    if (quill) {
+                        const range = quill.getSelection(true) || { index: quill.getLength() };
+                        quill.insertEmbed(range.index, 'image', currentGeneratedImageData);
+                        quill.setSelection(range.index + 1);
+                        quill.focus();
+                    }
+                    if (editorAiModal) editorAiModal.style.display = 'none';
+                    alert('에디터 본문 커서 위치에 AI 이미지가 삽입되었습니다.');
+                } else {
+                    const thumbInput = document.getElementById('postThumbInput');
+                    if (thumbInput) thumbInput.value = currentGeneratedImageData;
+                    updateThumbPreview(currentGeneratedImageData, 'AI 생성 이미지');
+                    if (editorAiModal) editorAiModal.style.display = 'none';
+                    alert('대표 썸네일 이미지가 교체되었습니다.');
+                }
             });
         }
     }

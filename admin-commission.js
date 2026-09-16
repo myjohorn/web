@@ -921,7 +921,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalPaidSum = curPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
         if (statTotalPaid) statTotalPaid.textContent = formatMYR(totalPaidSum);
 
-        const totalExpectedSum = curAdmissions.filter(a => a.status !== 'cancelled').reduce((sum, a) => sum + (parseFloat(a.commissionAmount) || 0), 0);
+        // Exclude cancelled and completed (non-commissionable) admissions from expected revenue
+        const totalExpectedSum = curAdmissions.filter(a => a.status !== 'cancelled' && a.status !== 'completed').reduce((sum, a) => sum + (parseFloat(a.commissionAmount) || 0), 0);
         const pendingSum = Math.max(0, totalExpectedSum - totalPaidSum);
         if (statPendingCommission) statPendingCommission.textContent = formatMYR(pendingSum);
     }
@@ -1883,8 +1884,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const autoInvNo = `INV-${schCode}-${yyyymm}-01`;
         if (monthlyInvoiceNoInput) monthlyInvoiceNoInput.value = autoInvNo;
 
-        // Filter all student admissions for this school that have unsettled installments
-        const schoolAdmissions = admissions.filter(a => isSchoolMatch(a, sch) && a.status !== 'cancelled');
+        // Filter all student admissions for this school that have unsettled installments (exclude cancelled, completed, and paid)
+        const schoolAdmissions = admissions.filter(a => 
+            isSchoolMatch(a, sch) && 
+            a.status !== 'cancelled' && 
+            a.status !== 'completed' && 
+            a.status !== 'paid'
+        );
         
         eligibleStudentRows = [];
         schoolAdmissions.forEach(adm => {
@@ -2476,7 +2482,9 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         schools.forEach(sch => {
             const schAdmissions = admissions.filter(a => 
                 isSchoolMatch(a, sch) &&
-                a.status !== 'cancelled'
+                a.status !== 'cancelled' &&
+                a.status !== 'completed' &&
+                a.status !== 'paid'
             );
 
             const eligibleItems = [];
@@ -2827,7 +2835,9 @@ Email / Contact: ${ent.contact || '-'}`.trim();
 
         const schAdmissions = admissions.filter(a => 
             isSchoolMatch(a, currentEditingInvoice) &&
-            a.status !== 'cancelled'
+            a.status !== 'cancelled' &&
+            a.status !== 'completed' &&
+            a.status !== 'paid'
         );
 
         const available = [];
@@ -3514,7 +3524,7 @@ Email / Contact: ${ent.contact || '-'}`.trim();
             const totalCount = schoolAdmissions.length;
             const settledCount = schoolAdmissions.filter(a => a.status === 'paid' || a.status === 'completed').length;
             const pendingCount = totalCount - settledCount;
-            const totalCommission = schoolAdmissions.reduce((sum, a) => sum + (parseFloat(a.commissionAmount) || 0), 0);
+            const totalCommission = schoolAdmissions.filter(a => a.status !== 'cancelled' && a.status !== 'completed').reduce((sum, a) => sum + (parseFloat(a.commissionAmount) || 0), 0);
 
             let rateTag = '';
             if (sch.commissionType === 'none' || (sch.defaultRate !== undefined && parseFloat(sch.defaultRate) === 0 && sch.commissionType !== 'fixed')) {

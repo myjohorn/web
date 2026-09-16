@@ -3793,3 +3793,25 @@ input, textarea {
     border-radius: 0 8px 8px 0;
 }
 
+/* In-Editor AI Image Generator Chips & UI */
+.preset-chip {
+    background: #F1F5F9;
+    border: 1px solid #E2E8F0;
+    color: #475569;
+    padding: 4px 10px;
+    border-radius: 14px;
+    font-size: 11.5px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1.3;
+}
+
+.preset-chip:hover {
+    background: #EDE9FE;
+    color: #6D28D9;
+    border-color: #C4B5FD;
+    transform: translateY(-1px);
+}
+
