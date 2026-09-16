@@ -704,6 +704,9 @@ document.addEventListener('DOMContentLoaded', () => {
             renderAdminBlogTable();
         });
 
+        // Initialize AI Blog Generator Module (Gemini 3.8 & Imagen 4)
+        initAiBlogGenerator();
+
         // Modal Open for New Post
         if (openNewPostModalBtn) {
             openNewPostModalBtn.addEventListener('click', () => {
@@ -943,6 +946,382 @@ document.addEventListener('DOMContentLoaded', () => {
         return String(text).replace(/[&<>"']/g, m => map[m]);
     }
 
+    // ── 6. Next-Gen AI Multimedia Blog Generator Module (Gemini 3.8 Flash & Imagen 4) ──
+    function initAiBlogGenerator() {
+        const aiModal = document.getElementById('aiBlogGenModal');
+        const openBtn = document.getElementById('openAiBlogModalBtn');
+        const closeBtn = document.getElementById('closeAiBlogModalBtn');
+        const apiKeyInput = document.getElementById('geminiApiKeyInput');
+        const saveKeyBtn = document.getElementById('saveGeminiApiKeyBtn');
+        const toggleKeyBtn = document.getElementById('toggleApiKeyVisibilityBtn');
+        const keyBadge = document.getElementById('apiKeyStatusBadge');
+        
+        const textModelSelect = document.getElementById('aiTextModelSelect');
+        const imageModelSelect = document.getElementById('aiImageModelSelect');
+        const categorySelect = document.getElementById('aiPostCategory');
+        const topicChips = document.querySelectorAll('#aiQuickTopicChips .ai-topic-chip');
+        const topicInput = document.getElementById('aiTopicInput');
+        const keywordsInput = document.getElementById('aiKeywordsInput');
+        const genImageCheck = document.getElementById('aiGenImageCheck');
+        const imageStyleSelect = document.getElementById('aiImageStyleSelect');
+        
+        const startBtn = document.getElementById('startAiGenBtn');
+        const progressBox = document.getElementById('aiGenProgressBox');
+        const progressStepText = document.getElementById('aiGenProgressStepText');
+        const progressBar = document.getElementById('aiGenProgressBar');
+        
+        const resultArea = document.getElementById('aiGenResultArea');
+        const previewThumbImg = document.getElementById('aiPreviewThumbImg');
+        const previewThumbPlaceholder = document.getElementById('aiPreviewThumbPlaceholder');
+        const previewCatBadge = document.getElementById('aiPreviewCatBadge');
+        const previewTitle = document.getElementById('aiPreviewTitle');
+        const previewSummary = document.getElementById('aiPreviewSummary');
+        const previewBody = document.getElementById('aiPreviewBody');
+        const applyBtn = document.getElementById('applyAiToEditorBtn');
+        const regenBtn = document.getElementById('aiRegenBtn');
+
+        let currentGeneratedPost = null;
+
+        // Load Stored API Key (from LocalStorage or Firebase Settings)
+        function updateApiKeyBadge(key) {
+            if (!keyBadge) return;
+            if (key && key.trim().length > 10) {
+                keyBadge.style.background = '#DCFCE7';
+                keyBadge.style.color = '#15803D';
+                keyBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> API 키 연동 활성화됨';
+            } else {
+                keyBadge.style.background = '#FEE2E2';
+                keyBadge.style.color = '#DC2626';
+                keyBadge.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> 키 등록 필요';
+            }
+        }
+
+        let savedApiKey = localStorage.getItem('johorn_gemini_api_key') || '';
+        if (apiKeyInput && savedApiKey) {
+            apiKeyInput.value = savedApiKey;
+            updateApiKeyBadge(savedApiKey);
+        }
+
+        // Also fetch from Firebase settings if not in localStorage
+        db.ref('settings/gemini_api_key').once('value', (snap) => {
+            const fbKey = snap.val();
+            if (fbKey && !savedApiKey) {
+                savedApiKey = fbKey;
+                if (apiKeyInput) apiKeyInput.value = fbKey;
+                localStorage.setItem('johorn_gemini_api_key', fbKey);
+                updateApiKeyBadge(fbKey);
+            }
+        });
+
+        // Save API Key Handler
+        if (saveKeyBtn && apiKeyInput) {
+            saveKeyBtn.addEventListener('click', () => {
+                const key = apiKeyInput.value.trim();
+                if (!key) {
+                    alert('Google AI Studio API 키를 입력해 주세요.');
+                    return;
+                }
+                localStorage.setItem('johorn_gemini_api_key', key);
+                db.ref('settings/gemini_api_key').set(key)
+                    .then(() => {
+                        updateApiKeyBadge(key);
+                        alert('API 키가 안전하게 저장되었습니다!');
+                    })
+                    .catch(err => {
+                        console.warn('Firebase key sync failed, saved locally:', err);
+                        updateApiKeyBadge(key);
+                        alert('API 키가 브라우저에 저장되었습니다.');
+                    });
+            });
+        }
+
+        // Toggle API Key Visibility
+        if (toggleKeyBtn && apiKeyInput) {
+            toggleKeyBtn.addEventListener('click', () => {
+                const eye = document.getElementById('apiKeyEyeIcon');
+                if (apiKeyInput.type === 'password') {
+                    apiKeyInput.type = 'text';
+                    if (eye) eye.className = 'fa-solid fa-eye-slash';
+                } else {
+                    apiKeyInput.type = 'password';
+                    if (eye) eye.className = 'fa-solid fa-eye';
+                }
+            });
+        }
+
+        // Modal Open / Close
+        if (openBtn && aiModal) {
+            openBtn.addEventListener('click', () => {
+                aiModal.style.display = 'flex';
+                // Reset progress and results on open if needed
+                if (!currentGeneratedPost && resultArea) {
+                    resultArea.style.display = 'none';
+                }
+            });
+        }
+
+        const closeAiModal = () => { if (aiModal) aiModal.style.display = 'none'; };
+        if (closeBtn) closeBtn.addEventListener('click', closeAiModal);
+
+        // Topic Chips Selection
+        topicChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                topicChips.forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                if (categorySelect && chip.dataset.cat) categorySelect.value = chip.dataset.cat;
+                if (topicInput && chip.dataset.topic) topicInput.value = chip.dataset.topic;
+                if (keywordsInput && chip.dataset.keywords) keywordsInput.value = chip.dataset.keywords;
+            });
+        });
+
+        // Generate Post Execution
+        async function runGeneration() {
+            const apiKey = (apiKeyInput ? apiKeyInput.value.trim() : '') || localStorage.getItem('johorn_gemini_api_key');
+            if (!apiKey) {
+                alert('Google AI Studio API 키를 먼저 입력하고 저장해 주세요.\n(무료 키 발급: https://aistudio.google.com/app/apikey)');
+                if (apiKeyInput) apiKeyInput.focus();
+                return;
+            }
+
+            const topic = topicInput ? topicInput.value.trim() : '';
+            if (!topic) {
+                alert('작성할 블로그 글의 주제 또는 제목을 입력해 주세요.');
+                if (topicInput) topicInput.focus();
+                return;
+            }
+
+            const category = categorySelect ? categorySelect.value : '국제학교';
+            const keywords = keywordsInput ? keywordsInput.value.trim() : '';
+            const textModel = (textModelSelect && textModelSelect.value) ? textModelSelect.value : 'gemini-3.8-flash';
+            const imageModel = (imageModelSelect && imageModelSelect.value) ? imageModelSelect.value : 'imagen-4.0-generate';
+            const shouldGenImage = genImageCheck ? genImageCheck.checked : true;
+            const imageStyle = imageStyleSelect ? imageStyleSelect.value : 'photorealistic';
+
+            // UI State: Loading Progress
+            startBtn.disabled = true;
+            startBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 생성 중...';
+            if (resultArea) resultArea.style.display = 'none';
+            if (progressBox) progressBox.style.display = 'block';
+            if (progressBar) progressBar.style.width = '20%';
+            if (progressStepText) progressStepText.textContent = `${textModel}이(가) AEO/GEO에 최적화된 전문 본문을 작성 중입니다...`;
+
+            try {
+                // ── STEP 1: Gemini Text Generation ──
+                const promptContent = `
+당신은 말레이시아 조호바루 전문 이주정착 & 국제학교 컨설팅 및 Teega Residence 숙소 운영 전문 브랜드 "조호엔(JohorN)"의 수석 콘텐츠 에디터이자 AEO/GEO 검색 최적화 최고 전문가입니다.
+
+[블로그 발행 정보]
+- 카테고리: ${category}
+- 주제: ${topic}
+- 필수 포함 키워드: ${keywords || '조호바루, 국제학교, 이주정착, 티가 레지던스, 조호엔'}
+
+[조호엔 브랜드 핵심 권위 팩트 (반드시 본문에 자연스럽게 신뢰 요소로 녹여낼 것)]
+1. 현지 거주 6년차 이상의 실제 생활자 기반 전문성과 빈틈없는 케어
+2. 50세대 이상의 성공적인 이주정착 실적
+3. 조호바루 국제학교 입학 지원 100% 합격률 (원서 접수부터 CAT4 시험 준비, 오퍼레터, 학생/가디언 비자 완벽 지원)
+4. 푸테리 하버 티가 레지던스(Teega Residence) 3베드룸 오션뷰 풀옵션 숙소 직영 (전 구역 올필터 수질 정화 시스템 완비, 한국 실시간 방송/넷플릭스 무료 시청, 주 1회 3시간 전문 청소 및 정기 방역 기본 제공)
+5. 주요 연계 학교: 말보로 칼리지 말레이시아(MCM), 래플스 아메리칸 스쿨(RAS), 선웨이(Sunway), 크레센도-헬프, 페어뷰 등
+
+[AEO / GEO 최적화 작성 규칙]
+- 독자층: 말레이시아 조호바루 유학, 이주, 한달살기, 자녀 국제학교 입학을 계획 중인 한국인 학부모
+- 톤앤매너: 전문적이며 신뢰감 있고, 다정하면서도 명확한 해결책을 제시하는 문체
+- 구성:
+  1. 독자의 시선을 사로잡는 매력적인 제목 (title)
+  2. SNS 및 검색 결과에 노출될 1~2줄 핵심 요약문 (summary)
+  3. 이미지 생성을 위한 고해상도 영문 프롬프트 (imagePrompt)
+  4. 완벽한 시맨틱 HTML 본문 (contentHtml):
+     - <h2> 소제목과 단락 <p>들
+     - 핵심 요약 인용구 <blockquote>
+     - 중요한 정보는 <ul> <li> 리스트로 구조화
+     - Perplexity, ChatGPT 등이 직접 인용하기 좋은 "자주 묻는 질문 (Q&A)" 섹션 (<h2>자주 묻는 질문 (FAQ)</h2>)
+     - 마지막에 조호엔 1:1 상담 및 Teega Residence 예약으로 연결되는 부드러운 콜투액션(CTA) 안내 박스 (<div class="post-cta-card" style="background:#FAF8F5; border:1px solid #E5E0D8; border-radius:8px; padding:20px; margin-top:30px;">...</div>)
+
+[출력 형식]
+반드시 마크다운 백틱 없이 순수 JSON 형식으로만 응답하세요:
+{
+  "title": "게시글 제목",
+  "summary": "1~2줄 핵심 요약 문장",
+  "imagePrompt": "A high-end photorealistic 8k photo of ... in Puteri Harbour Johor Bahru with cinematic natural lighting, highly detailed",
+  "contentHtml": "<h2>...</h2><p>...</p>..."
+}
+`;
+
+                const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${textModel}:generateContent?key=${apiKey}`;
+                const textRes = await fetch(geminiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: promptContent }] }],
+                        generationConfig: {
+                            temperature: 0.7,
+                            maxOutputTokens: 3500
+                        }
+                    })
+                });
+
+                if (!textRes.ok) {
+                    const errData = await textRes.json().catch(() => ({}));
+                    throw new Error(`텍스트 생성 실패 (${textRes.status}): ${errData.error ? errData.error.message : textRes.statusText}`);
+                }
+
+                const textData = await textRes.json();
+                let rawText = textData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                
+                // Strip possible markdown fences
+                rawText = rawText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
+                
+                let parsedJson;
+                try {
+                    parsedJson = JSON.parse(rawText);
+                } catch (pe) {
+                    console.warn('Direct JSON parse failed, extracting via regex:', pe);
+                    const match = rawText.match(/\{[\s\S]*\}/);
+                    if (match) {
+                        parsedJson = JSON.parse(match[0]);
+                    } else {
+                        throw new Error('AI 응답을 JSON으로 해석하지 못했습니다. 다시 시도해 주세요.');
+                    }
+                }
+
+                if (progressBar) progressBar.style.width = '65%';
+
+                // ── STEP 2: Google Imagen 4 Image Generation ──
+                let finalThumbnail = 'assets/stay_balcony.jpg';
+
+                if (shouldGenImage) {
+                    if (progressStepText) progressStepText.textContent = `${imageModel}이(가) 고해상도 대표 이미지를 렌더링하고 있습니다...`;
+                    if (progressBar) progressBar.style.width = '80%';
+
+                    let imgPrompt = parsedJson.imagePrompt || `Modern luxury residence in Puteri Harbour Johor Bahru, sunny sea view balcony, tropical atmosphere, photorealistic 8k`;
+                    if (imageStyle === 'luxury_interior') {
+                        imgPrompt += ', modern luxury clean interior design, warm ambient light';
+                    } else if (imageStyle === 'sunny_drone') {
+                        imgPrompt += ', aerial drone view of Puteri Harbour marina and coastline, bright blue sky';
+                    }
+
+                    try {
+                        const imgUrl = `https://generativelanguage.googleapis.com/v1beta/models/${imageModel}:predict?key=${apiKey}`;
+                        const imgRes = await fetch(imgUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                instances: [{ prompt: imgPrompt }],
+                                parameters: {
+                                    sampleCount: 1,
+                                    aspectRatio: "16:9"
+                                }
+                            })
+                        });
+
+                        if (imgRes.ok) {
+                            const imgData = await imgRes.json();
+                            const b64 = imgData.predictions?.[0]?.bytesBase64Encoded;
+                            if (b64) {
+                                finalThumbnail = `data:image/jpeg;base64,${b64}`;
+                            }
+                        } else {
+                            console.warn('Imagen 4 predict call non-ok, trying fallback asset or 3.0:', imgRes.status);
+                            finalThumbnail = 'assets/20251130-22.jpg';
+                        }
+                    } catch (imgErr) {
+                        console.warn('Imagen generation error, fallback to default high quality asset:', imgErr);
+                        finalThumbnail = 'assets/20251130-22.jpg';
+                    }
+                }
+
+                // ── STEP 3: Render Result & Live Preview ──
+                if (progressBar) progressBar.style.width = '100%';
+                if (progressStepText) progressStepText.textContent = '생성이 성공적으로 완료되었습니다!';
+
+                currentGeneratedPost = {
+                    title: parsedJson.title || topic,
+                    category: category,
+                    summary: parsedJson.summary || '',
+                    thumbnail: finalThumbnail,
+                    contentHtml: parsedJson.contentHtml || '<p>내용이 생성되었습니다.</p>'
+                };
+
+                // Populate Preview Card
+                if (previewTitle) previewTitle.textContent = currentGeneratedPost.title;
+                if (previewCatBadge) previewCatBadge.textContent = currentGeneratedPost.category;
+                if (previewSummary) previewSummary.textContent = currentGeneratedPost.summary;
+                if (previewBody) previewBody.innerHTML = currentGeneratedPost.contentHtml;
+
+                if (previewThumbImg && previewThumbPlaceholder) {
+                    if (finalThumbnail) {
+                        previewThumbImg.src = finalThumbnail;
+                        previewThumbImg.style.display = 'block';
+                        previewThumbPlaceholder.style.display = 'none';
+                    } else {
+                        previewThumbImg.style.display = 'none';
+                        previewThumbPlaceholder.style.display = 'block';
+                    }
+                }
+
+                setTimeout(() => {
+                    if (progressBox) progressBox.style.display = 'none';
+                    if (resultArea) resultArea.style.display = 'block';
+                    startBtn.disabled = false;
+                    startBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> AI 멀티미디어 글 &amp; 이미지 생성하기';
+                }, 500);
+
+            } catch (err) {
+                console.error('AI Generation Failed:', err);
+                alert(`AI 글 생성 중 오류가 발생했습니다:\n${err.message}`);
+                if (progressBox) progressBox.style.display = 'none';
+                startBtn.disabled = false;
+                startBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> AI 멀티미디어 글 &amp; 이미지 생성하기';
+            }
+        }
+
+        if (startBtn) startBtn.addEventListener('click', runGeneration);
+        if (regenBtn) regenBtn.addEventListener('click', runGeneration);
+
+        // Apply to Editor Handler (Transfer AI result into main Quill editor)
+        if (applyBtn) {
+            applyBtn.addEventListener('click', () => {
+                if (!currentGeneratedPost) return;
+
+                // Close AI generator modal
+                if (aiModal) aiModal.style.display = 'none';
+
+                // Populate Post Modal Form
+                const postModal = document.getElementById('postModal');
+                const modalTitle = document.getElementById('postModalTitle');
+                const editId = document.getElementById('editPostId');
+                const titleInput = document.getElementById('postTitleInput');
+                const catInput = document.getElementById('postCatInput');
+                const authorInput = document.getElementById('postAuthorInput');
+                const statusInput = document.getElementById('postStatusInput');
+                const thumbInput = document.getElementById('postThumbInput');
+                const summaryInput = document.getElementById('postSummaryInput');
+
+                if (modalTitle) modalTitle.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles" style="color: #7C3AED;"></i> AI 생성 글 검토 &amp; 편집';
+                if (editId) editId.value = '';
+                if (titleInput) titleInput.value = currentGeneratedPost.title;
+                if (catInput) catInput.value = currentGeneratedPost.category;
+                if (authorInput) authorInput.value = '조호엔';
+                if (statusInput) statusInput.value = 'published';
+                if (thumbInput) thumbInput.value = currentGeneratedPost.thumbnail;
+                if (summaryInput) summaryInput.value = currentGeneratedPost.summary;
+
+                if (quill) {
+                    quill.root.innerHTML = currentGeneratedPost.contentHtml;
+                }
+
+                updateThumbPreview(currentGeneratedPost.thumbnail, 'AI 자동 생성 이미지');
+
+                if (postModal) {
+                    postModal.style.display = 'flex';
+                    postModal.scrollIntoView({ behavior: 'smooth' });
+                }
+
+                alert('AI 생성 글이 에디터에 성공적으로 반영되었습니다!\n내용을 검토하신 후 [저장하기]를 누르면 블로그에 즉시 발행됩니다.');
+            });
+        }
+    }
+
     // Initial Auth Check
     checkAuth();
 });
+

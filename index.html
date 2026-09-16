@@ -22,6 +22,7 @@
     <meta name="author" content="JohorN">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://www.johorn.kr/">
+    <link rel="alternate" type="text/markdown" href="https://www.johorn.kr/llms.txt" title="JohorN AI Summary (llms.txt)">
 
     <!-- Open Graph (OG) Meta Tags for SNS & Search Engines -->
     <meta property="og:type" content="website">
@@ -41,29 +42,175 @@
     <meta name="twitter:description" content="말레이시아 조호바루 이주정착, 조호바루 한달살기 숙소, 조호바루국제학교 답사/입학 대행 및 티가 레지던스 3베드룸 오션뷰 풀옵션 단기임대 전문.">
     <meta name="twitter:image" content="https://www.johorn.kr/assets/20251130-22.jpg">
 
-    <!-- Structured Data (JSON-LD) for Google Rich Snippets -->
+    <!-- Structured Data (JSON-LD) for AEO & GEO Knowledge Graph -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "LocalBusiness",
-      "name": "조호엔 (JohorN)",
-      "url": "https://www.johorn.kr/",
-      "image": "https://www.johorn.kr/assets/20251130-22.jpg",
-      "description": "말레이시아 조호바루 이주정착, 조호바루 한달살기 숙소(티가 레지던스 Teega Residence), 조호바루국제학교 및 말레이시아 유학 답사/입학 대행 전문 서비스",
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "Johor Bahru",
-        "addressRegion": "Johor",
-        "addressCountry": "MY"
-      },
-      "areaServed": {
-        "@type": "AdministrativeArea",
-        "name": "Johor Bahru, Malaysia"
-      },
-      "sameAs": [
-        "https://pf.kakao.com/_vPVLb/chat"
-      ],
-      "priceRange": "$$"
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://www.johorn.kr/#website",
+          "url": "https://www.johorn.kr/",
+          "name": "JohorN 조호엔",
+          "description": "말레이시아 조호바루 이주정착, 국제학교 답사 및 입학 대행, 푸테리 하버 티가 레지던스 숙소 전문 플랫폼",
+          "inLanguage": "ko-KR"
+        },
+        {
+          "@type": ["LocalBusiness", "EducationalOrganization"],
+          "@id": "https://www.johorn.kr/#organization",
+          "name": "조호엔 (JohorN)",
+          "alternateName": "JohorN",
+          "url": "https://www.johorn.kr/",
+          "logo": "https://www.johorn.kr/assets/20251130-22.jpg",
+          "image": "https://www.johorn.kr/assets/20251130-22.jpg",
+          "description": "말레이시아 조호바루 현지 6년 거주 전문가 그룹. 조호바루 이주정착 케어, 국제학교 답사 및 100% 합격 입학 대행, 티가 레지던스 오션뷰 숙소 운영.",
+          "email": "myjohorn@gmail.com",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Teega Residence, Puteri Harbour",
+            "addressLocality": "Iskandar Puteri",
+            "addressRegion": "Johor",
+            "postalCode": "79250",
+            "addressCountry": "MY"
+          },
+          "areaServed": [
+            {
+              "@type": "AdministrativeArea",
+              "name": "Johor Bahru"
+            },
+            {
+              "@type": "AdministrativeArea",
+              "name": "Iskandar Puteri"
+            },
+            {
+              "@type": "Country",
+              "name": "Malaysia"
+            }
+          ],
+          "sameAs": [
+            "https://pf.kakao.com/_vPVLb/chat",
+            "https://instagram.com/myjohorn"
+          ],
+          "priceRange": "$$",
+          "makesOffer": [
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "조호바루 이주정착 케어 서비스",
+                "description": "콘도미니엄 매칭, 현지 유심/인터넷 개통, 수질 필터 시공, 청소 및 정기 방역 등 토탈 정착 솔루션"
+              }
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "조호바루 국제학교 답사 투어",
+                "description": "1회 2개 학교 선정, 전용 차량 픽드랍, 학교 담당자 인터뷰 및 시설 투어 전 일정 현지 가이드 동행, 인근 주거 단지 분석"
+              }
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "국제학교 입학 대행 서비스",
+                "description": "맞춤 학교 추천, 원서 접수, CAT4 및 인터뷰 일정 조율, 오퍼레터 취득, 학생/가디언 비자 수속 지원 (100% 입학률)"
+              }
+            }
+          ]
+        },
+        {
+          "@type": "LodgingBusiness",
+          "@id": "https://www.johorn.kr/#stay-lodging",
+          "name": "티가 레지던스 3베드룸 오션뷰 (Teega Residence by JohorN)",
+          "url": "https://www.johorn.kr/#stay",
+          "description": "조호바루 푸테리 하버에 위치한 프리미엄 3베드룸 오션뷰 유닛. 전 출구 올 필터 시스템, 한국 실시간 TV/넷플릭스, 주 1회 전문 청소(3시간) 및 방역 기본 포함.",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Teega Residence, Persiaran Laksamana",
+            "addressLocality": "Puteri Harbour, Iskandar Puteri",
+            "addressRegion": "Johor",
+            "postalCode": "79250",
+            "addressCountry": "MY"
+          },
+          "amenityFeature": [
+            {
+              "@type": "LocationFeatureSpecification",
+              "name": "All-Filter Water Purification",
+              "value": true
+            },
+            {
+              "@type": "LocationFeatureSpecification",
+              "name": "Korean Live TV & Netflix",
+              "value": true
+            },
+            {
+              "@type": "LocationFeatureSpecification",
+              "name": "Weekly Professional Housekeeping (3 hours)",
+              "value": true
+            },
+            {
+              "@type": "LocationFeatureSpecification",
+              "name": "High-Speed WiFi & Sea View Balcony",
+              "value": true
+            }
+          ]
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://www.johorn.kr/#faq-data",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "조호바루 국제학교 답사 투어는 어떻게 진행되나요?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "조호엔의 국제학교 답사 투어는 1회 2개 학교를 방문하며, 학교 공식 예약부터 당일 숙소 전용 차량 픽업/드랍, 전 일정 현지 전문 동행, 입학 상담 인터뷰 조율, 통학로 및 학교 인근 주거 단지(콘도미니엄) 외부 투어까지 완벽하게 제공합니다."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "티가 레지던스 숙소의 수질과 편의시설은 어떤가요?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "푸테리 하버 티가 레지던스 3베드룸 유닛은 말레이시아 수질 걱정을 덜기 위해 정수기뿐 아니라 욕실 샤워기, 세면대, 싱크대 등 모든 수돗물 출구에 올 필터(All Filter)를 완비했습니다. 또한 한국 실시간 TV/VOD, 주 1회 3시간 전문 대청소 및 정기 방역이 기본 지원됩니다."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "조호엔의 국제학교 입학 대행 성과는 어떤가요?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "조호엔은 현재까지 국제학교 입학 지원 100% 합격률을 기록하고 있습니다. 자녀 맞춤형 학교 선정 상담부터 원서 접수, 입학 테스트(CAT4 등) 스케줄 관리, 합격 오퍼 레터 취득, 학생 및 가디언 비자 수속 서류까지 원스톱으로 지원합니다."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "이주정착 케어 서비스에는 어떤 항목들이 포함되어 있나요?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "푸테리 하버 및 메디니 등 최적의 주거 매물 선별 및 임대차 계약 대행, 현지 유심 및 인터넷 개통, 수질 필터 시공, 입주 전 청소 및 방역, 장보기/병원 등 조호바루 현지 생활 가이드가 모두 포함되어 도착 첫날부터 편안하게 생활하실 수 있습니다."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "숙소 예약 및 이주 상담 신청은 어떻게 하나요?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "홈페이지 하단의 온라인 예약 신청 폼을 작성하시거나, 조호엔 카카오톡 공식 채널(pf.kakao.com/_vPVLb/chat)을 통해 1:1 실시간 상담으로 희망 일정 및 세부 사항을 문의하시면 빠르게 안내받으실 수 있습니다."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "조호바루에서 가장 선호되는 거주 지역은 어디인가요?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "조호바루의 푸테리 하버(Puteri Harbour)와 메디니(Medini) 지역이 가장 선호됩니다. 계획 신도시로 도로와 치안이 우수하며, 말보로 칼리지, 래플스 아메리칸 스쿨 등 주요 명문 국제학교와 가깝고 싱가포르 이동이 편리한 입지적 장점을 갖추고 있습니다."
+              }
+            }
+          ]
+        }
+      ]
     }
     </script>
 
@@ -74,7 +221,7 @@
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="style.css?v=20260817_03">
+    <link rel="stylesheet" href="style.css?v=20260916_aeo">
 </head>
 <body>
 
@@ -95,6 +242,7 @@
                 <li><a href="#tour" class="nav-link">국제학교답사</a></li>
                 <li><a href="#admission" class="nav-link">입학대행</a></li>
                 <li><a href="#stay" class="nav-link">숙소임대</a></li>
+                <li><a href="#faq" class="nav-link">자주묻는질문</a></li>
                 <li><a href="#booking" class="nav-link">상담(예약)신청</a></li>
                 <li><a href="blog.html" class="nav-link" style="color: var(--accent-color); font-weight: 600;"><i class="fa-solid fa-newspaper" style="font-size: 11px; margin-right: 4px;"></i>블로그</a></li>
             </ul>
@@ -399,6 +547,96 @@
                     <div style="text-align: center; grid-column: 1 / -1; padding: 40px 0; color: var(--text-secondary);">
                         <i class="fa-solid fa-spinner fa-spin" style="font-size: 20px; margin-bottom: 10px;"></i>
                         <p style="font-size: 13px;">최신 소식을 불러오는 중입니다...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5.8: 자주 묻는 질문 (FAQ & Answers) for AEO / GEO -->
+        <section id="faq" class="faq-section" style="padding: 90px 0; background-color: var(--bg-primary);">
+            <div class="container">
+                <div class="section-header text-center">
+                    <span class="section-tag">Frequently Asked Questions</span>
+                    <h2>조호바루 정착 &amp; 숙소 자주 묻는 질문</h2>
+                    <p class="section-desc">조호바루 이주정착, 국제학교 답사 및 입학, 티가 레지던스 숙소에 대해 가장 자주 문의하시는 질문들을 정리했습니다.</p>
+                </div>
+                <div class="faq-accordion-container" style="max-width: 850px; margin: 0 auto;">
+                    <!-- FAQ Item 1 -->
+                    <div class="faq-item">
+                        <button type="button" class="faq-question" aria-expanded="false">
+                            <span class="faq-title"><i class="fa-solid fa-circle-question" style="color: var(--accent-color); margin-right: 10px;"></i>조호바루 국제학교 답사 투어는 어떻게 진행되나요?</span>
+                            <i class="fa-solid fa-chevron-down faq-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-inner">
+                                <p><strong>답변:</strong> 조호엔의 국제학교 답사는 <strong>1회 기준 2개 학교</strong>를 집중 투어합니다. 학교 공식 방문 스케줄 예약 대행은 물론, 답사 당일 숙소에서 전용 차량으로 픽업 및 이동합니다. 학교 캠퍼스 투어와 입학처 담당자 인터뷰에 <strong>전 일정 현지 동행 및 상담 통역</strong>을 지원하며, 학교 인근 추천 거주 단지(콘도미니엄)와 통학 동선 분석까지 함께 제공해 드립니다.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FAQ Item 2 -->
+                    <div class="faq-item">
+                        <button type="button" class="faq-question" aria-expanded="false">
+                            <span class="faq-title"><i class="fa-solid fa-circle-question" style="color: var(--accent-color); margin-right: 10px;"></i>티가 레지던스(Teega Residence) 숙소의 수질과 생활 편의는 어떤가요?</span>
+                            <i class="fa-solid fa-chevron-down faq-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-inner">
+                                <p><strong>답변:</strong> 조호엔의 푸테리 하버 티가 레지던스 3베드룸 오션뷰 유닛은 한국 가족분들이 가장 염려하시는 <strong>수질 문제를 완벽히 해결</strong>했습니다. 주방 정수기는 물론 욕실 샤워기, 세면대, 싱크대 등 모든 수돗물 출구에 <strong>올 필터(All Filter) 시스템</strong>을 완비했습니다. 또한 한국 실시간 방송 및 VOD/넷플릭스 무료 시청, <strong>주 1회 3시간 전문 청소 및 정기 방역</strong>이 기본 제공되어 쾌적하게 생활하실 수 있습니다.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FAQ Item 3 -->
+                    <div class="faq-item">
+                        <button type="button" class="faq-question" aria-expanded="false">
+                            <span class="faq-title"><i class="fa-solid fa-circle-question" style="color: var(--accent-color); margin-right: 10px;"></i>조호엔의 국제학교 입학 대행 성과와 지원 과정은 어떻게 되나요?</span>
+                            <i class="fa-solid fa-chevron-down faq-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-inner">
+                                <p><strong>답변:</strong> 조호엔은 현재까지 <strong>국제학교 입학 지원 100% 합격률</strong>을 이어오고 있습니다. 자녀의 연령 및 성향, 진로에 최적화된 맞춤 학교 선정부터 정규 입학 원서 접수, 입학 평가(CAT4, 영어 테스트, 지필/면접) 전형 일정 조율, 합격 오퍼 레터 수령, 그리고 학생 비자(Student Pass) 및 학부모 가디언 비자 수속 서류까지 원스톱으로 빈틈없이 케어합니다.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FAQ Item 4 -->
+                    <div class="faq-item">
+                        <button type="button" class="faq-question" aria-expanded="false">
+                            <span class="faq-title"><i class="fa-solid fa-circle-question" style="color: var(--accent-color); margin-right: 10px;"></i>이주정착 케어 서비스에는 구체적으로 어떤 항목들이 포함되나요?</span>
+                            <i class="fa-solid fa-chevron-down faq-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-inner">
+                                <p><strong>답변:</strong> 푸테리 하버, 메디니 등 고객님의 라이프스타일과 학교 통학에 부합하는 최상의 <strong>콘도미니엄 매물 매칭 및 계약 대행</strong>부터, 현지 모바일 SIM 카드 개통, 초고속 가정용 인터넷 설치, 수도 필터 시공, 입주 전 청소 및 방역, 그리고 마트 장보기/병원 등 조호바루 <strong>현지 필수 생활 가이드</strong>를 종합적으로 제공하여 도착 첫날부터 전혀 불편함 없이 일상을 시작하실 수 있습니다.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FAQ Item 5 -->
+                    <div class="faq-item">
+                        <button type="button" class="faq-question" aria-expanded="false">
+                            <span class="faq-title"><i class="fa-solid fa-circle-question" style="color: var(--accent-color); margin-right: 10px;"></i>숙소 예약 및 정착·답사 상담은 어떻게 신청하나요?</span>
+                            <i class="fa-solid fa-chevron-down faq-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-inner">
+                                <p><strong>답변:</strong> 웹사이트 하단의 <strong>[상담(예약)신청]</strong> 폼에서 'Teega 레지던스 숙소 예약 신청' 또는 '이주정착 &amp; 학교 상담 신청'을 선택하여 작성해 주시면 됩니다. 또한 더 빠른 실시간 1:1 상담을 원하실 경우 <strong>조호엔 카카오톡 채널</strong>(<a href="https://pf.kakao.com/_vPVLb/chat" target="_blank" style="color: var(--accent-color); text-decoration: underline;">카톡 상담 바로가기</a>)로 메시지를 남겨주시면 즉시 상세한 안내를 받으실 수 있습니다.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FAQ Item 6 -->
+                    <div class="faq-item">
+                        <button type="button" class="faq-question" aria-expanded="false">
+                            <span class="faq-title"><i class="fa-solid fa-circle-question" style="color: var(--accent-color); margin-right: 10px;"></i>조호바루에서 가장 선호되는 거주 지역(푸테리 하버, 메디니)의 이점은 무엇인가요?</span>
+                            <i class="fa-solid fa-chevron-down faq-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-inner">
+                                <p><strong>답변:</strong> 푸테리 하버(Puteri Harbour)와 메디니(Medini)는 정부 계획 신도시로 도로망이 정비되어 있고 보안과 치안이 매우 우수합니다. 말보로 칼리지, 래플스 아메리칸 스쿨 등 <strong>명문 국제학교들이 차량 10~15분 거리</strong>에 위치해 통학이 편리하며, 싱가포르 세컨드링크 국경과도 인접하여 주말 싱가포르 여행이나 비즈니스 이동에 최적의 지리적 프리미엄을 자랑합니다.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

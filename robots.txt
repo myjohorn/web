@@ -1,8 +1,65 @@
-# Allow all search engine crawlers to index public pages
+# ==============================================================================
+# AI Crawlers & Search Engines Access Policy for JohorN (johorn.kr)
+# ==============================================================================
+
+# --- Search-Augmented & Generative AI Crawlers (Allowed for AI Citations & Answers) ---
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin*.html
+Disallow: /temp/
+
+User-agent: GPTBot
+Allow: /
+Disallow: /admin*.html
+Disallow: /temp/
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin*.html
+Disallow: /temp/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin*.html
+Disallow: /temp/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin*.html
+Disallow: /temp/
+
+User-agent: anthropic-ai
+Allow: /
+Disallow: /admin*.html
+Disallow: /temp/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin*.html
+Disallow: /temp/
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /admin*.html
+Disallow: /temp/
+
+User-agent: CCBot
+Allow: /
+Disallow: /admin*.html
+Disallow: /temp/
+
+# --- General Web Crawlers ---
 User-agent: *
 Allow: /
 Disallow: /admin*.html
 Disallow: /temp/
 
-# Sitemap location
+# --- Block Aggressive Scraping Bots ---
+User-agent: Bytespider
+Disallow: /
+
+# --- Discovery Endpoints ---
 Sitemap: https://www.johorn.kr/sitemap.xml
+# LLMs Discovery: https://www.johorn.kr/llms.txt
+# LLMs Full Context: https://www.johorn.kr/llms-full.txt
+

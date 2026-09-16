@@ -3416,6 +3416,200 @@ input, textarea {
     .invoice-modal-footer,
     .close-modal-btn {
         display: none !important;
+.post-article-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.post-article-content blockquote {
+    border-left: 4px solid var(--accent-color);
+    padding: 12px 20px;
+    margin: 20px 0;
+    background: #FAF8F5;
+    font-style: italic;
+    color: #5C5549;
+}
+
+.post-article-content ul,
+.post-article-content ol {
+    padding-left: 24px;
+    margin-bottom: 1.4em;
+}
+
+.post-share-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    padding: 16px 0;
+    margin: 40px 0;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+@media (max-width: 991px) {
+    .cms-split-container {
+        flex-direction: column;
+    }
+    .cms-editor-panel {
+        flex: 1;
+        width: 100%;
+        position: static;
+        max-height: none;
+    }
+    .post-article-wrap {
+        padding: 25px 20px;
+        margin: 20px auto 40px;
+    }
+    .post-article-title {
+        font-size: 24px;
+    }
+}
+
+/* Accommodation Stay Gallery Admin Editor */
+.stay-gallery-admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+.stay-gallery-admin-card {
+    position: relative;
+    border: 1px solid #D5CFC5;
+    border-radius: 8px;
+    background: #FFFFFF;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    transition: var(--transition);
+}
+.stay-gallery-admin-card.is-main {
+    border: 2px solid #7B1FA2;
+    box-shadow: 0 4px 12px rgba(123, 31, 162, 0.18);
+}
+.stay-gallery-card-img-wrap {
+    position: relative;
+    width: 100%;
+    height: 85px;
+    background: #F0EFEA;
+    overflow: hidden;
+}
+.stay-gallery-card-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.stay-gallery-card-badge {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    background: #7B1FA2;
+    color: #FFFFFF;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: -0.02em;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.stay-gallery-card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px;
+    background: #FAFAFA;
+    border-top: 1px solid #EFEFEF;
+    gap: 4px;
+}
+.stay-gallery-btn-action {
+    background: #FFFFFF;
+    border: 1px solid #D5CFC5;
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 11px;
+    padding: 3px 6px;
+    cursor: pointer;
+    transition: var(--transition);
+    line-height: 1;
+}
+.stay-gallery-btn-action:hover:not(:disabled) {
+    background: var(--accent-color);
+    color: #FFFFFF;
+    border-color: var(--accent-color);
+}
+.stay-gallery-btn-action:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+.stay-gallery-btn-main {
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 3px 6px;
+    border-radius: 4px;
+    border: 1px solid #D5CFC5;
+    background: #FFF;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+.stay-gallery-btn-main.active {
+    background: #EDE7F6;
+    color: #7B1FA2;
+    border-color: #7B1FA2;
+    font-weight: 700;
+    cursor: default;
+}
+.stay-gallery-btn-del {
+    color: #DC2626 !important;
+    border-color: #FECACA !important;
+}
+.stay-gallery-btn-del:hover {
+    background: #DC2626 !important;
+    color: #FFF !important;
+}
+
+/* ====================================================
+   Official Commission Invoice Print Styles
+   ==================================================== */
+@media print {
+    body * {
+        visibility: hidden !important;
+    }
+    #invoiceModal,
+    #invoiceModal * {
+        visibility: visible !important;
+    }
+    #invoiceModal {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        background: #FFF !important;
+        box-shadow: none !important;
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        z-index: 99999 !important;
+    }
+    #invoiceModal > div {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+    }
+    .invoice-modal-header,
+    .invoice-entity-selector-bar,
+    .invoice-email-box,
+    .invoice-modal-footer,
+    .close-modal-btn {
+        display: none !important;
     }
     #invoiceSheetContainer {
         width: 100% !important;
@@ -3424,3 +3618,177 @@ input, textarea {
         box-sizing: border-box !important;
     }
 }
+
+/* ==========================================================================
+   AEO / GEO FAQ Accordion Section
+   ========================================================================== */
+.faq-section {
+    position: relative;
+    border-top: 1px solid var(--border-color);
+}
+
+.faq-accordion-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 40px;
+}
+
+.faq-item {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.faq-item:hover {
+    border-color: rgba(197, 160, 89, 0.4);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+}
+
+.faq-item.active {
+    border-color: var(--accent-color);
+    box-shadow: 0 6px 24px rgba(197, 160, 89, 0.12);
+}
+
+.faq-question {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 28px;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-primary);
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.faq-question:hover {
+    background-color: rgba(197, 160, 89, 0.03);
+}
+
+.faq-title {
+    display: flex;
+    align-items: center;
+    line-height: 1.5;
+    padding-right: 15px;
+}
+
+.faq-icon {
+    font-size: 15px;
+    color: var(--text-secondary);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease;
+    flex-shrink: 0;
+}
+
+.faq-item.active .faq-icon {
+    transform: rotate(180deg);
+    color: var(--accent-color);
+}
+
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.faq-answer-inner {
+    padding: 0 28px 24px 28px;
+    color: var(--text-secondary);
+    font-size: 15px;
+    line-height: 1.75;
+    border-top: 1px solid rgba(0, 0, 0, 0.04);
+    padding-top: 18px;
+}
+
+.faq-answer-inner strong {
+    color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+    .faq-question {
+        padding: 18px 20px;
+        font-size: 15px;
+    }
+    .faq-answer-inner {
+        padding: 0 20px 20px 20px;
+        font-size: 14px;
+        line-height: 1.65;
+    }
+}
+
+/* ==========================================================================
+   AI Multimedia Blog Generator Styles (Gemini 3.8 & Imagen 4)
+   ========================================================================== */
+.ai-topic-chip {
+    background: #ffffff;
+    border: 1px solid #E2E8F0;
+    border-radius: 20px;
+    padding: 6px 13px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.ai-topic-chip:hover {
+    background: #EDE9FE;
+    border-color: #A78BFA;
+    color: #6D28D9;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(124, 58, 237, 0.15);
+}
+
+.ai-topic-chip.active {
+    background: #7C3AED;
+    border-color: #7C3AED;
+    color: #ffffff;
+}
+
+#aiBlogGenModal .post-article-content h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 20px 0 10px 0;
+    color: var(--text-primary);
+    border-left: 4px solid var(--accent-color);
+    padding-left: 10px;
+}
+
+#aiBlogGenModal .post-article-content h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 16px 0 8px 0;
+    color: #334155;
+}
+
+#aiBlogGenModal .post-article-content p {
+    margin-bottom: 12px;
+    line-height: 1.7;
+}
+
+#aiBlogGenModal .post-article-content ul,
+#aiBlogGenModal .post-article-content ol {
+    padding-left: 20px;
+    margin-bottom: 14px;
+}
+
+#aiBlogGenModal .post-article-content blockquote {
+    background: #F8FAFC;
+    border-left: 4px solid #7C3AED;
+    padding: 10px 16px;
+    margin: 14px 0;
+    border-radius: 0 8px 8px 0;
+}
+
