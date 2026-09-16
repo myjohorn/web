@@ -17,22 +17,22 @@
 </head>
 <body>
 
-    <!-- Header / Navigation -->
+        <!-- Header / Navigation -->
     <header>
         <div class="container header-container">
-            <div class="logo">
-                <a href="index.html">JohorN <span style="font-size: 13px; font-weight: 500; letter-spacing: 0.1em; color: var(--accent-color); margin-left: 6px;">CONTENT ADMIN</span></a>
+            <div class="logo" style="display: flex; align-items: baseline; gap: 6px;">
+                <a href="index.html" title="홈페이지 메인으로 이동">JohorN</a>
+                <a href="admin.html" style="font-size: 13px; font-weight: 700; letter-spacing: 0.1em; color: var(--accent-color); text-decoration: none;" title="어드민 메인으로 이동">ADMIN</a>
             </div>
             <button class="nav-toggle" id="navToggle" aria-label="메뉴">
                 <span></span><span></span><span></span>
             </button>
             <ul class="nav-links" id="navLinks">
-                <li><a href="admin.html" id="headerNavBooking" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-list-check" style="margin-right: 4px;"></i> 예약/상담 관리</a></li>
-                <li><a href="admin-car.html" id="headerNavCar" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-car" style="margin-right: 4px;"></i> 렌트카 관리</a></li>
-                <li><a href="admin-school.html" id="headerNavCommission" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-graduation-cap" style="margin-right: 4px;"></i> 국제학교 입학</a></li>
-                <li><a href="admin-content.html" id="headerNavContent" class="nav-link active" style="color: var(--accent-color); font-weight: 600;"><i class="fa-solid fa-pen-nib" style="margin-right: 4px;"></i> 콘텐츠/블로그</a></li>
-                <li><a href="admin-analytics.html" id="headerNavAnalytics" class="nav-link" style="font-weight: 600;"><i class="fa-solid fa-chart-line" style="margin-right: 4px;"></i> 방문자 통계</a></li>
-                <li><a href="index.html" class="nav-link">메인 페이지로 이동</a></li>
+                <li><a href="admin.html" id="headerNavBooking" class="nav-link " style="font-weight: 600;"><i class="fa-solid fa-list-check" style="margin-right: 4px;"></i> 예약/상담</a></li>
+                <li><a href="admin-car.html" id="headerNavCar" class="nav-link " style="font-weight: 600;"><i class="fa-solid fa-car" style="margin-right: 4px;"></i> 렌트카</a></li>
+                <li><a href="admin-school.html" id="headerNavCommission" class="nav-link " style="font-weight: 600;"><i class="fa-solid fa-graduation-cap" style="margin-right: 4px;"></i> 국제학교</a></li>
+                <li><a href="admin-content.html" id="headerNavContent" class="nav-link active" style="color: var(--accent-color); font-weight: 700;"><i class="fa-solid fa-pen-nib" style="margin-right: 4px;"></i> 콘텐츠</a></li>
+                <li><a href="admin-analytics.html" id="headerNavAnalytics" class="nav-link " style="font-weight: 600;"><i class="fa-solid fa-chart-line" style="margin-right: 4px;"></i> 방문자 통계</a></li>
             </ul>
         </div>
     </header>
@@ -83,12 +83,12 @@
                     <div class="comm-tab-nav" style="margin-bottom: 22px;">
                         <button type="button" class="comm-tab-btn active" id="subTabCmsBtn" data-tab="cms">
                             <i class="fa-solid fa-laptop-code"></i>
-                            <span class="tab-label-full">홈페이지 문구 & 이미지 편집 (실시간 미리보기)</span>
+                            <span class="tab-label-full">홈페이지 문구 & 이미지 편집</span>
                             <span class="tab-label-short">홈페이지 편집</span>
                         </button>
                         <button type="button" class="comm-tab-btn" id="subTabBlogBtn" data-tab="blog">
                             <i class="fa-solid fa-newspaper"></i>
-                            <span class="tab-label-full">블로그 & 소식 게시판 관리</span>
+                            <span class="tab-label-full">블로그 관리</span>
                             <span class="tab-label-short">블로그 관리</span>
                         </button>
                     </div>
