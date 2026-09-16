@@ -1146,27 +1146,60 @@ document.addEventListener('DOMContentLoaded', () => {
 }
 `;
 
-                const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${textModel}:generateContent?key=${apiKey}`;
-                const textRes = await fetch(geminiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: promptContent }] }],
-                        generationConfig: {
-                            temperature: 0.7,
-                            maxOutputTokens: 3500
-                        }
-                    })
-                });
+                // ── STEP 1: Gemini Text Generation with Auto-Fallback ──
+                const candidateTextModels = [
+                    textModel,
+                    'gemini-2.0-flash',
+                    'gemini-1.5-flash',
+                    'gemini-1.5-pro'
+                ];
+                const uniqueTextModels = [...new Set(candidateTextModels)];
 
-                if (!textRes.ok) {
-                    const errData = await textRes.json().catch(() => ({}));
-                    throw new Error(`텍스트 생성 실패 (${textRes.status}): ${errData.error ? errData.error.message : textRes.statusText}`);
+                let rawText = '';
+                let successfulModel = '';
+                let lastError = null;
+
+                for (let i = 0; i < uniqueTextModels.length; i++) {
+                    const currentModel = uniqueTextModels[i];
+                    try {
+                        if (i > 0 && progressStepText) {
+                            progressStepText.textContent = `${uniqueTextModels[i - 1]} 일시적 혼잡으로 ${currentModel}(으)로 자동 전환하여 생성 중입니다...`;
+                        }
+                        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
+                        const textRes = await fetch(geminiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{ parts: [{ text: promptContent }] }],
+                                generationConfig: {
+                                    temperature: 0.7,
+                                    maxOutputTokens: 3500
+                                }
+                            })
+                        });
+
+                        if (textRes.ok) {
+                            const textData = await textRes.json();
+                            rawText = textData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                            if (rawText) {
+                                successfulModel = currentModel;
+                                break;
+                            }
+                        } else {
+                            const errData = await textRes.json().catch(() => ({}));
+                            lastError = new Error(`모델 ${currentModel} (${textRes.status}): ${errData.error ? errData.error.message : textRes.statusText}`);
+                            console.warn(`Model ${currentModel} failed (${textRes.status}), trying next fallback...`);
+                        }
+                    } catch (netErr) {
+                        lastError = netErr;
+                        console.warn(`Network/Fetch error on ${currentModel}:`, netErr.message);
+                    }
                 }
 
-                const textData = await textRes.json();
-                let rawText = textData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                
+                if (!rawText) {
+                    throw lastError || new Error('모든 AI 모델에서 일시적 응답 지연이 발생했습니다. 잠시 후 다시 시도해 주세요.');
+                }
+
                 // Strip possible markdown fences
                 rawText = rawText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
                 
@@ -1185,11 +1218,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (progressBar) progressBar.style.width = '65%';
 
-                // ── STEP 2: Google Imagen 4 Image Generation ──
-                let finalThumbnail = 'assets/stay_balcony.jpg';
+                // ── STEP 2: Google Imagen Image Generation with Auto-Fallback ──
+                let finalThumbnail = 'assets/20251130-22.jpg';
 
                 if (shouldGenImage) {
-                    if (progressStepText) progressStepText.textContent = `${imageModel}이(가) 고해상도 대표 이미지를 렌더링하고 있습니다...`;
                     if (progressBar) progressBar.style.width = '80%';
 
                     let imgPrompt = parsedJson.imagePrompt || `Modern luxury residence in Puteri Harbour Johor Bahru, sunny sea view balcony, tropical atmosphere, photorealistic 8k`;
@@ -1199,33 +1231,38 @@ document.addEventListener('DOMContentLoaded', () => {
                         imgPrompt += ', aerial drone view of Puteri Harbour marina and coastline, bright blue sky';
                     }
 
-                    try {
-                        const imgUrl = `https://generativelanguage.googleapis.com/v1beta/models/${imageModel}:predict?key=${apiKey}`;
-                        const imgRes = await fetch(imgUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                instances: [{ prompt: imgPrompt }],
-                                parameters: {
-                                    sampleCount: 1,
-                                    aspectRatio: "16:9"
-                                }
-                            })
-                        });
+                    const candidateImgModels = [imageModel, 'imagen-3.0-generate-002'];
+                    const uniqueImgModels = [...new Set(candidateImgModels)];
 
-                        if (imgRes.ok) {
-                            const imgData = await imgRes.json();
-                            const b64 = imgData.predictions?.[0]?.bytesBase64Encoded;
-                            if (b64) {
-                                finalThumbnail = `data:image/jpeg;base64,${b64}`;
+                    for (const curImgModel of uniqueImgModels) {
+                        try {
+                            if (progressStepText) progressStepText.textContent = `${curImgModel} 이미지를 렌더링하고 있습니다...`;
+                            const imgUrl = `https://generativelanguage.googleapis.com/v1beta/models/${curImgModel}:predict?key=${apiKey}`;
+                            const imgRes = await fetch(imgUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    instances: [{ prompt: imgPrompt }],
+                                    parameters: {
+                                        sampleCount: 1,
+                                        aspectRatio: "16:9"
+                                    }
+                                })
+                            });
+
+                            if (imgRes.ok) {
+                                const imgData = await imgRes.json();
+                                const b64 = imgData.predictions?.[0]?.bytesBase64Encoded;
+                                if (b64) {
+                                    finalThumbnail = `data:image/jpeg;base64,${b64}`;
+                                    break;
+                                }
+                            } else {
+                                console.warn(`Image model ${curImgModel} failed (${imgRes.status}), fallback...`);
                             }
-                        } else {
-                            console.warn('Imagen 4 predict call non-ok, trying fallback asset or 3.0:', imgRes.status);
-                            finalThumbnail = 'assets/20251130-22.jpg';
+                        } catch (imgErr) {
+                            console.warn(`Image generation fetch error for ${curImgModel}:`, imgErr);
                         }
-                    } catch (imgErr) {
-                        console.warn('Imagen generation error, fallback to default high quality asset:', imgErr);
-                        finalThumbnail = 'assets/20251130-22.jpg';
                     }
                 }
 
