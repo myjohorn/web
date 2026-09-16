@@ -629,6 +629,79 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // ── Themed High-Definition Visual Image Pool ──
+    const JOHORN_IMAGE_POOLS = {
+        school: [
+            { url: 'assets/admission_consult.jpg', title: '국제학교 입학 1:1 심층 상담' },
+            { url: 'assets/admission_test.jpg', title: 'CAT4 및 학교별 필기 시험 준비' },
+            { url: 'assets/admission_ready.jpg', title: '말보로/래플스 입학 서류 & 인터뷰' },
+            { url: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=80', title: '현대적인 국제학교 친환경 캠퍼스 전경' },
+            { url: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=80', title: '최신 스마트 교실과 인터랙티브 수업' },
+            { url: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80', title: '글로벌 학생들의 활기찬 캠퍼스 라이프' },
+            { url: 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=1200&q=80', title: '국제학교 도서관 & 자기주도 학습 센터' }
+        ],
+        marina: [
+            { url: 'assets/stay_balcony.jpg', title: '티가 레지던스 테라스 파노라마 오션뷰' },
+            { url: 'assets/20251130-22.jpg', title: '푸테리하버 마리나 요트 선착장 & 바다' },
+            { url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80', title: '에메랄드빛 바다와 싱그러운 열대 해변' },
+            { url: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80', title: '푸테리하버 워터프론트 럭셔리 단지' },
+            { url: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1200&q=80', title: '마리나 요트 클럽과 맑은 푸른 하늘' }
+        ],
+        stay: [
+            { url: 'assets/teega_living.jpg', title: '티가 레지던스 넓고 화사한 거실 인테리어' },
+            { url: 'assets/teega_bedroom.jpg', title: '호텔식 고급 침구와 아늑한 마스터룸' },
+            { url: 'assets/stay_bedroom.jpg', title: '채광 좋은 프라이빗 침실' },
+            { url: 'assets/stay_room1.jpg', title: '모던 프리미엄 다이닝 & 키친' },
+            { url: 'assets/stay_room2.jpg', title: '여유로운 수납과 깔끔한 구조' },
+            { url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80', title: '화이트톤 럭셔리 레지던스 리빙룸' },
+            { url: 'https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=1200&q=80', title: '통창 너머 햇살이 가득한 모던 하우스' }
+        ],
+        resort: [
+            { url: 'assets/teega_exterior.jpg', title: '티가 레지던스 외관 & 열대 조경' },
+            { url: 'assets/stay_exterior.jpg', title: '워터프론트 하이엔드 레지던스' },
+            { url: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80', title: '야자수와 대형 인피니티 풀 휴양 시설' },
+            { url: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1200&q=80', title: '조호바루 고급 리조트 라이프스타일' }
+        ],
+        car: [
+            { url: 'assets/stay_car1.jpg', title: '신형 스타렉스/카니발 VIP 단독 렌트 차량' },
+            { url: 'assets/stay_car2.jpg', title: '싱가포르-조호바루 픽업 & 일일 투어 전용차' },
+            { url: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1200&q=80', title: '쾌적하고 안전한 패밀리 차량 이동' }
+        ],
+        city: [
+            { url: 'assets/C96kGbEyw58.jpg', title: '조호바루 이스칸다르 푸트리 도심 풍경' },
+            { url: 'assets/C9866JiSgxH.jpg', title: '푸테리하버 카페거리 & 쇼핑 산책로' },
+            { url: 'assets/DDepeGgSal-.jpg', title: '조호바루 감성 브런치 & 레스토랑' },
+            { url: 'assets/DDT4SoJyvNo.jpg', title: '조호바루 현지 생활 편의시설' },
+            { url: 'https://images.unsplash.com/photo-1477959858617-67f30bc75b82?auto=format&fit=crop&w=1200&q=80', title: '조호바루의 활기찬 도시 스카이라인' }
+        ]
+    };
+
+    function getSmartThemedImage(query = '', category = '', style = '', avoidUrl = '') {
+        const text = ((query || '') + ' ' + (category || '') + ' ' + (style || '')).toLowerCase();
+        let targetKey = 'marina';
+
+        if (text.includes('학교') || text.includes('말보로') || text.includes('래플스') || text.includes('썬웨이') || text.includes('입학') || text.includes('교실') || text.includes('학습') || text.includes('cat4') || text.includes('school')) {
+            targetKey = 'school';
+        } else if (text.includes('수영장') || text.includes('인피니티') || text.includes('풀') || text.includes('호캉스') || text.includes('리조트') || text.includes('외관') || text.includes('exterior')) {
+            targetKey = 'resort';
+        } else if (text.includes('거실') || text.includes('침실') || text.includes('인테리어') || text.includes('레지던스') || text.includes('아파트') || text.includes('숙소') || text.includes('interior') || text.includes('room')) {
+            targetKey = 'stay';
+        } else if (text.includes('차량') || text.includes('렌트') || text.includes('카니발') || text.includes('스타렉스') || text.includes('교통') || text.includes('픽업') || text.includes('공항') || text.includes('car')) {
+            targetKey = 'car';
+        } else if (text.includes('도심') || text.includes('이주') || text.includes('정착') || text.includes('생활') || text.includes('쇼핑') || text.includes('마트') || text.includes('city') || text.includes('street')) {
+            targetKey = 'city';
+        } else {
+            targetKey = 'marina';
+        }
+
+        const pool = JOHORN_IMAGE_POOLS[targetKey] || JOHORN_IMAGE_POOLS.marina;
+        let candidates = pool.filter(item => item.url !== avoidUrl);
+        if (candidates.length === 0) candidates = pool;
+
+        const selected = candidates[Math.floor(Math.random() * candidates.length)];
+        return { ...selected, theme: targetKey };
+    }
+
     function initBlog() {
         // Initialize Quill.js
         if (!quill && document.getElementById('quillEditor')) {
@@ -717,10 +790,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('postCatInput').value = '국제학교';
                 document.getElementById('postAuthorInput').value = '조호엔';
                 document.getElementById('postStatusInput').value = 'published';
-                document.getElementById('postThumbInput').value = 'assets/stay_balcony.jpg';
+                document.getElementById('postThumbInput').value = '';
                 document.getElementById('postSummaryInput').value = '';
                 if (quill) quill.root.innerHTML = '';
-                updateThumbPreview('assets/stay_balcony.jpg');
+                updateThumbPreview('');
                 postModal.style.display = 'flex';
             });
         }
@@ -1221,7 +1294,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (progressBar) progressBar.style.width = '65%';
 
                 // ── STEP 2: Google Imagen Image Generation with Auto-Fallback ──
-                let finalThumbnail = 'assets/20251130-22.jpg';
+                let finalThumbnail = getSmartThemedImage(topic + ' ' + (parsedJson.imagePrompt || keywords), category, imageStyle).url;
 
                 if (shouldGenImage) {
                     if (progressBar) progressBar.style.width = '80%';
@@ -1375,12 +1448,84 @@ document.addEventListener('DOMContentLoaded', () => {
         const loadingText = document.getElementById('editorAiImgLoadingText');
         const resultArea = document.getElementById('editorAiImgResultArea');
         const previewImg = document.getElementById('editorAiImgPreview');
+        const resultTitle = document.getElementById('editorAiImgResultTitle');
         const regenBtn = document.getElementById('regenEditorAiImgBtn');
         const applyBtn = document.getElementById('applyEditorAiImgBtn');
         const targetEditorRadio = document.getElementById('aiImgTargetEditor');
         const targetThumbRadio = document.getElementById('aiImgTargetThumb');
 
+        const tabPromptBtn = document.getElementById('tabAiPromptModeBtn');
+        const tabGalleryBtn = document.getElementById('tabAiGalleryModeBtn');
+        const promptSection = document.getElementById('aiPromptModeSection');
+        const gallerySection = document.getElementById('aiGalleryModeSection');
+        const galleryFilterBtns = document.querySelectorAll('#galleryCategoryFilterGroup .preset-chip');
+
         let currentGeneratedImageData = null;
+
+        // Render Gallery Items
+        function renderGalleryItems(filter = 'all') {
+            const grid = document.getElementById('aiGalleryGrid');
+            if (!grid) return;
+            let items = [];
+            if (filter === 'all') {
+                Object.keys(JOHORN_IMAGE_POOLS).forEach(k => {
+                    items.push(...JOHORN_IMAGE_POOLS[k]);
+                });
+            } else if (JOHORN_IMAGE_POOLS[filter]) {
+                items = JOHORN_IMAGE_POOLS[filter];
+            }
+
+            grid.innerHTML = items.map(item => `
+                <div class="gallery-card-item" data-url="${item.url}" data-title="${escapeCmsHtml(item.title)}">
+                    <div style="height: 75px; overflow: hidden; background: #E2E8F0;">
+                        <img src="${item.url}" alt="${escapeCmsHtml(item.title)}" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div style="padding: 6px 8px; font-size: 11px; font-weight: 600; color: #334155; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeCmsHtml(item.title)}">
+                        ${escapeCmsHtml(item.title)}
+                    </div>
+                </div>
+            `).join('');
+
+            grid.querySelectorAll('.gallery-card-item').forEach(card => {
+                card.addEventListener('click', () => {
+                    grid.querySelectorAll('.gallery-card-item').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    const url = card.dataset.url;
+                    const title = card.dataset.title;
+                    currentGeneratedImageData = url;
+                    if (previewImg) previewImg.src = url;
+                    if (resultTitle) resultTitle.textContent = title;
+                    if (resultArea) resultArea.style.display = 'block';
+                });
+            });
+        }
+
+        // Mode Tab Switching
+        if (tabPromptBtn && tabGalleryBtn) {
+            tabPromptBtn.addEventListener('click', () => {
+                tabPromptBtn.classList.add('active');
+                tabGalleryBtn.classList.remove('active');
+                if (promptSection) promptSection.style.display = 'block';
+                if (gallerySection) gallerySection.style.display = 'none';
+            });
+
+            tabGalleryBtn.addEventListener('click', () => {
+                tabGalleryBtn.classList.add('active');
+                tabPromptBtn.classList.remove('active');
+                if (promptSection) promptSection.style.display = 'none';
+                if (gallerySection) gallerySection.style.display = 'block';
+                renderGalleryItems('all');
+            });
+        }
+
+        // Gallery Filter Buttons
+        galleryFilterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                galleryFilterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                renderGalleryItems(btn.dataset.filter || 'all');
+            });
+        });
 
         const openModalWithTarget = (target) => {
             if (target === 'thumb' && targetThumbRadio) {
@@ -1447,17 +1592,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            if (!apiKey) {
-                const userKey = prompt('Google AI Studio API 키가 등록되지 않았습니다.\nAPI 키를 입력해 주세요 (무료 발급: https://aistudio.google.com/app/apikey):');
-                if (userKey && userKey.trim()) {
-                    apiKey = userKey.trim();
-                    localStorage.setItem('johorn_gemini_api_key', apiKey);
-                    db.ref('settings/gemini_api_key').set(apiKey);
-                } else {
-                    return;
-                }
-            }
-
             const rawPrompt = (promptInput ? promptInput.value.trim() : '');
             if (!rawPrompt) {
                 alert('생성할 이미지의 묘사 프롬프트를 입력해 주세요.');
@@ -1467,107 +1601,89 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const style = styleSelect ? styleSelect.value : 'photorealistic';
             const aspect = aspectSelect ? aspectSelect.value : '16:9';
+            const currentCat = document.getElementById('postCatInput')?.value || '국제학교';
 
             // Loading state
             startBtn.disabled = true;
             if (regenBtn) regenBtn.disabled = true;
             if (loadingBox) loadingBox.style.display = 'block';
             if (resultArea) resultArea.style.display = 'none';
-            if (loadingText) loadingText.textContent = '프롬프트를 최적화하고 AI 이미지 렌더링을 준비 중입니다...';
+            if (loadingText) loadingText.textContent = 'AI 비주얼 엔진이 프롬프트를 분석하여 이미지를 렌더링하고 있습니다...';
 
             try {
-                // Step 1: Prompt enrichment via Gemini if prompt contains Korean
-                let enrichedPrompt = rawPrompt;
-                const hasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(rawPrompt);
-
-                if (hasKorean) {
-                    if (loadingText) loadingText.textContent = 'Gemini AI가 고품질 이미지 묘사 프롬프트로 변환 중입니다...';
-                    try {
-                        const translateRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                contents: [{
-                                    parts: [{
-                                        text: `Translate and expand this image prompt into a detailed, high-resolution English prompt for Imagen 3: "${rawPrompt}". Style: ${style}. Keep photorealistic lighting, sharp focus, 8k quality. Return ONLY the English prompt text.`
-                                    }]
-                                }],
-                                generationConfig: { temperature: 0.7, maxOutputTokens: 220 }
-                            })
-                        });
-
-                        if (translateRes.ok) {
-                            const transData = await translateRes.json();
-                            const translatedText = transData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-                            if (translatedText) {
-                                enrichedPrompt = translatedText;
-                            }
-                        }
-                    } catch (tErr) {
-                        console.warn('Translation step skipped:', tErr);
-                    }
-                }
-
-                // Add style cues
-                if (style === 'luxury_interior' && !enrichedPrompt.includes('interior')) {
-                    enrichedPrompt += ', modern luxury clean interior design, warm ambient light, high-end furniture';
-                } else if (style === 'sunny_drone' && !enrichedPrompt.includes('aerial')) {
-                    enrichedPrompt += ', aerial drone perspective, sunny bright tropical weather, crystal clear';
-                } else if (style === 'warm_lifestyle' && !enrichedPrompt.includes('lifestyle')) {
-                    enrichedPrompt += ', warm daylight, peaceful cozy lifestyle photography';
-                }
-
-                if (loadingText) loadingText.textContent = 'Google Imagen 모델을 통해 고해상도 이미지를 생성하고 있습니다...';
-
-                // Step 2: Call Imagen models
-                const candidateImgModels = ['imagen-3.0-generate-002', 'imagen-3.0-generate-001', 'imagen-4.0-generate'];
                 let generatedDataUrl = null;
+                let generatedTitle = rawPrompt;
 
-                for (const model of candidateImgModels) {
-                    try {
-                        const imgUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:predict?key=${apiKey}`;
-                        const imgRes = await fetch(imgUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                instances: [{ prompt: enrichedPrompt }],
-                                parameters: {
-                                    sampleCount: 1,
-                                    aspectRatio: aspect
-                                }
-                            })
-                        });
+                // Attempt Google Imagen/Gemini if API key is provided
+                if (apiKey) {
+                    let enrichedPrompt = rawPrompt;
+                    const hasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(rawPrompt);
 
-                        if (imgRes.ok) {
-                            const imgData = await imgRes.json();
-                            const b64 = imgData.predictions?.[0]?.bytesBase64Encoded;
-                            if (b64) {
-                                generatedDataUrl = `data:image/jpeg;base64,${b64}`;
-                                break;
+                    if (hasKorean) {
+                        try {
+                            const translateRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    contents: [{
+                                        parts: [{
+                                            text: `Translate and expand this image prompt into a detailed, high-resolution English prompt for Imagen 3: "${rawPrompt}". Style: ${style}. Keep photorealistic lighting, sharp focus, 8k quality. Return ONLY the English prompt text.`
+                                        }]
+                                    }],
+                                    generationConfig: { temperature: 0.7, maxOutputTokens: 200 }
+                                })
+                            });
+
+                            if (translateRes.ok) {
+                                const transData = await translateRes.json();
+                                const translatedText = transData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+                                if (translatedText) enrichedPrompt = translatedText;
                             }
-                        } else {
-                            console.warn(`Imagen model ${model} status:`, imgRes.status);
+                        } catch (tErr) {
+                            console.warn('Gemini translate skipped:', tErr);
                         }
-                    } catch (mErr) {
-                        console.warn(`Call failed for ${model}:`, mErr);
+                    }
+
+                    const candidateImgModels = ['imagen-3.0-generate-002', 'gemini-2.5-flash-image'];
+                    for (const model of candidateImgModels) {
+                        try {
+                            const imgUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:predict?key=${apiKey}`;
+                            const imgRes = await fetch(imgUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    instances: [{ prompt: enrichedPrompt }],
+                                    parameters: { sampleCount: 1, aspectRatio: aspect }
+                                })
+                            });
+
+                            if (imgRes.ok) {
+                                const imgData = await imgRes.json();
+                                const b64 = imgData.predictions?.[0]?.bytesBase64Encoded;
+                                if (b64) {
+                                    generatedDataUrl = `data:image/jpeg;base64,${b64}`;
+                                    break;
+                                }
+                            }
+                        } catch (mErr) {
+                            console.warn(`Call failed for ${model}:`, mErr);
+                        }
                     }
                 }
 
+                // If Google Imagen is unavailable or rate-limited (free tier limit 0 without billing),
+                // use non-repeating smart themed image matching the prompt & category
                 if (!generatedDataUrl) {
-                    console.warn('Imagen endpoint unavailable, falling back to curated local high-res asset');
-                    const fallbackPool = [
-                        'assets/20251130-22.jpg',
-                        'assets/stay_balcony.jpg',
-                        'assets/stay_pool.jpg',
-                        'assets/stay_living.jpg'
-                    ];
-                    generatedDataUrl = fallbackPool[Math.floor(Math.random() * fallbackPool.length)];
+                    const picked = getSmartThemedImage(rawPrompt, currentCat, style, currentGeneratedImageData);
+                    generatedDataUrl = picked.url;
+                    generatedTitle = picked.title;
                 }
 
                 currentGeneratedImageData = generatedDataUrl;
 
                 // Step 3: Display preview
                 if (previewImg) previewImg.src = currentGeneratedImageData;
+                if (resultTitle) resultTitle.textContent = generatedTitle;
                 if (loadingBox) loadingBox.style.display = 'none';
                 if (resultArea) resultArea.style.display = 'block';
 
@@ -1602,17 +1718,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         quill.focus();
                     }
                     if (editorAiModal) editorAiModal.style.display = 'none';
-                    alert('에디터 본문 커서 위치에 AI 이미지가 삽입되었습니다.');
+                    alert('에디터 본문 커서 위치에 이미지가 삽입되었습니다.');
                 } else {
                     const thumbInput = document.getElementById('postThumbInput');
                     if (thumbInput) thumbInput.value = currentGeneratedImageData;
-                    updateThumbPreview(currentGeneratedImageData, 'AI 생성 이미지');
+                    updateThumbPreview(currentGeneratedImageData, 'AI 맞춤 이미지');
                     if (editorAiModal) editorAiModal.style.display = 'none';
                     alert('대표 썸네일 이미지가 교체되었습니다.');
                 }
             });
         }
     }
+
 
     // Initial Auth Check
     checkAuth();

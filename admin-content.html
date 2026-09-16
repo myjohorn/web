@@ -452,14 +452,14 @@
 
                 <div class="form-group" style="margin-bottom: 14px;">
                     <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">대표 썸네일 이미지</label>
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <input type="text" id="postThumbInput" class="form-control" placeholder="이미지 파일 선택 또는 URL (https://...)" style="font-size: 13px; padding: 9px; flex: 1;">
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <input type="text" id="postThumbInput" class="form-control" placeholder="이미지 파일 선택 또는 URL (https://...)" style="font-size: 13px; padding: 9px; flex: 1; min-width: 220px;">
                         <input type="file" id="postThumbFileInput" accept="image/*" style="display: none;">
                         <button type="button" id="postThumbUploadBtn" class="btn btn-secondary" style="font-size: 12px; padding: 8px 14px; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
-                            <i class="fa-solid fa-cloud-arrow-up"></i> 이미지지정
+                            <i class="fa-solid fa-cloud-arrow-up"></i> 내 PC 파일 선택
                         </button>
                         <button type="button" id="openThumbAiModalBtn" class="btn" style="font-size: 12px; padding: 8px 14px; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%); color: #fff; border: none; border-radius: 4px; cursor: pointer; box-shadow: 0 2px 6px rgba(124, 58, 237, 0.25);">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i> AI 썸네일 생성
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> AI 생성 &amp; 추천 갤러리
                         </button>
                     </div>
                     <div id="postThumbPreviewWrapper" style="margin-top: 8px; display: none; align-items: center; gap: 12px; background: #F8F9FA; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color);">
@@ -532,74 +532,114 @@
                 </div>
             </div>
 
-            <!-- Prompt Input -->
-            <div style="margin-bottom: 12px;">
-                <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px; color: var(--text-primary);">
-                    이미지 묘사 프롬프트 (한글 자유 입력) <span style="color: #C62828;">*</span>
-                </label>
-                <textarea id="editorAiImgPrompt" class="form-control" rows="3" placeholder="예: 말레이시아 조호바루 푸테리하버 마리나 요트 항구의 황금빛 석양과 고급 아파트 풍경, 선명한 실사 8K" style="font-size: 13px; line-height: 1.5;"></textarea>
-            </div>
-
-            <!-- Quick Preset Chips -->
-            <div style="margin-bottom: 14px;">
-                <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 5px;">추천 빠른 키워드 (클릭 시 자동 입력):</label>
-                <div style="display: flex; flex-wrap: wrap; gap: 6px;" id="editorAiImgPresetChips">
-                    <button type="button" class="preset-chip" data-preset="조호바루 푸테리하버 마리나 요트 항구의 화창한 낮 풍경, 에메랄드빛 바다와 현대적인 빌딩 실사">푸테리하버 마리나</button>
-                    <button type="button" class="preset-chip" data-preset="모던 럭셔리 레지던스 거실과 발코니, 넓은 통창 너머로 펼쳐진 조호 해협 오션뷰">럭셔리 레지던스 인테리어</button>
-                    <button type="button" class="preset-chip" data-preset="말레이시아 조호바루 명문 국제학교 현대적인 캠퍼스 잔디 운동장과 최신 교실 시설">국제학교 캠퍼스</button>
-                    <button type="button" class="preset-chip" data-preset="열대 야자수와 에메랄드 인피니티 풀이 있는 고급 리조트 수영장, 맑은 하늘">인피니티 풀 &amp; 휴양</button>
-                    <button type="button" class="preset-chip" data-preset="조호바루 에듀시티 스타디움과 글로벌 대학 캠퍼스 전경 실사 사진">에듀시티 교육 허브</button>
-                    <button type="button" class="preset-chip" data-preset="화사하고 아늑한 콘도 테라스에서 즐기는 여유로운 티타임과 조호바루 시티뷰">발코니 시티뷰 &amp; 티타임</button>
-                </div>
-            </div>
-
-            <!-- Style & Aspect Ratio Options -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
-                <div>
-                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">이미지 스타일</label>
-                    <select id="editorAiImgStyle" class="form-control" style="font-size: 12.5px; padding: 8px 10px;">
-                        <option value="photorealistic">선명한 실사 사진 (Photorealistic 8K)</option>
-                        <option value="luxury_interior">고급 인테리어 &amp; 건축 (Luxury Interior)</option>
-                        <option value="sunny_drone">화창한 드론 항공 촬영 (Drone Aerial)</option>
-                        <option value="warm_lifestyle">따뜻하고 감성적인 라이프스타일 (Warm Lifestyle)</option>
-                    </select>
-                </div>
-                <div>
-                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">화면 비율 (Aspect Ratio)</label>
-                    <select id="editorAiImgAspect" class="form-control" style="font-size: 12.5px; padding: 8px 10px;">
-                        <option value="16:9">16:9 (와이드 / 썸네일 &amp; 본문 최적)</option>
-                        <option value="4:3">4:3 (표준 가로형)</option>
-                        <option value="1:1">1:1 (정사각형)</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Action Button -->
-            <div style="margin-bottom: 14px;">
-                <button type="button" id="startEditorAiImgGenBtn" class="btn" style="width: 100%; padding: 11px; font-size: 13.5px; font-weight: 700; background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%); color: #fff; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 3px 10px rgba(124, 58, 237, 0.3);">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> AI 이미지 생성하기
+            <!-- Mode Switch Tabs -->
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                <button type="button" id="tabAiPromptModeBtn" class="ai-studio-tab active">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> AI 프롬프트 맞춤 생성
                 </button>
+                <button type="button" id="tabAiGalleryModeBtn" class="ai-studio-tab">
+                    <i class="fa-solid fa-images"></i> 추천 테마 갤러리 (원클릭)
+                </button>
+            </div>
+
+            <!-- Billing & Engine Info Notice -->
+            <div style="background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; padding: 9px 12px; font-size: 11.5px; color: #166534; line-height: 1.5; margin-bottom: 14px; display: flex; align-items: flex-start; gap: 8px;">
+                <i class="fa-solid fa-circle-check" style="color: #16A34A; margin-top: 2px;"></i>
+                <div>
+                    <strong>AI 스마트 맞춤 생성 시스템:</strong> 프롬프트 또는 테마를 선택하시면 조호바루 현지 및 고해상도 테마 라이브러리에서 최적의 맞춤 이미지를 다양하게 생성/추천해 드립니다. (Google Cloud 결제 계정 연결 시 Google Imagen 3 실시간 렌더링이 자동으로 적용됩니다.)
+                </div>
+            </div>
+
+            <!-- TAB 1: Prompt Generation Mode -->
+            <div id="aiPromptModeSection">
+                <!-- Prompt Input -->
+                <div style="margin-bottom: 12px;">
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px; color: var(--text-primary);">
+                        이미지 묘사 프롬프트 (한글 자유 입력) <span style="color: #C62828;">*</span>
+                    </label>
+                    <textarea id="editorAiImgPrompt" class="form-control" rows="3" placeholder="예: 말레이시아 조호바루 푸테리하버 마리나 요트 항구의 황금빛 석양과 고급 아파트 풍경, 선명한 실사 8K" style="font-size: 13px; line-height: 1.5;"></textarea>
+                </div>
+
+                <!-- Quick Preset Chips -->
+                <div style="margin-bottom: 14px;">
+                    <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 5px;">추천 빠른 키워드 (클릭 시 자동 입력):</label>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px;" id="editorAiImgPresetChips">
+                        <button type="button" class="preset-chip" data-preset="조호바루 푸테리하버 마리나 요트 항구의 화창한 낮 풍경, 에메랄드빛 바다와 현대적인 빌딩 실사">푸테리하버 마리나</button>
+                        <button type="button" class="preset-chip" data-preset="모던 럭셔리 레지던스 거실과 발코니, 넓은 통창 너머로 펼쳐진 조호 해협 오션뷰">럭셔리 레지던스 인테리어</button>
+                        <button type="button" class="preset-chip" data-preset="말레이시아 조호바루 명문 국제학교 현대적인 캠퍼스 잔디 운동장과 최신 교실 시설">국제학교 캠퍼스</button>
+                        <button type="button" class="preset-chip" data-preset="열대 야자수와 에메랄드 인피니티 풀이 있는 고급 리조트 수영장, 맑은 하늘">인피니티 풀 &amp; 휴양</button>
+                        <button type="button" class="preset-chip" data-preset="조호바루 에듀시티 스타디움과 글로벌 대학 캠퍼스 전경 실사 사진">에듀시티 교육 허브</button>
+                        <button type="button" class="preset-chip" data-preset="화사하고 아늑한 콘도 테라스에서 즐기는 여유로운 티타임과 조호바루 시티뷰">발코니 시티뷰 &amp; 티타임</button>
+                    </div>
+                </div>
+
+                <!-- Style & Aspect Ratio Options -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">이미지 스타일</label>
+                        <select id="editorAiImgStyle" class="form-control" style="font-size: 12.5px; padding: 8px 10px;">
+                            <option value="photorealistic">선명한 실사 사진 (Photorealistic 8K)</option>
+                            <option value="luxury_interior">고급 인테리어 &amp; 건축 (Luxury Interior)</option>
+                            <option value="sunny_drone">화창한 드론 항공 촬영 (Drone Aerial)</option>
+                            <option value="warm_lifestyle">따뜻하고 감성적인 라이프스타일 (Warm Lifestyle)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">화면 비율 (Aspect Ratio)</label>
+                        <select id="editorAiImgAspect" class="form-control" style="font-size: 12.5px; padding: 8px 10px;">
+                            <option value="16:9">16:9 (와이드 / 썸네일 &amp; 본문 최적)</option>
+                            <option value="4:3">4:3 (표준 가로형)</option>
+                            <option value="1:1">1:1 (정사각형)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <div style="margin-bottom: 14px;">
+                    <button type="button" id="startEditorAiImgGenBtn" class="btn" style="width: 100%; padding: 11px; font-size: 13.5px; font-weight: 700; background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%); color: #fff; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 3px 10px rgba(124, 58, 237, 0.3);">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> AI 이미지 생성하기
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB 2: Curated Theme Gallery Mode -->
+            <div id="aiGalleryModeSection" style="display: none; margin-bottom: 16px;">
+                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;" id="galleryCategoryFilterGroup">
+                    <button type="button" class="preset-chip active" data-filter="all">전체보기</button>
+                    <button type="button" class="preset-chip" data-filter="school">국제학교</button>
+                    <button type="button" class="preset-chip" data-filter="marina">푸테리하버 오션뷰</button>
+                    <button type="button" class="preset-chip" data-filter="stay">티가 레지던스</button>
+                    <button type="button" class="preset-chip" data-filter="resort">인피니티 풀</button>
+                    <button type="button" class="preset-chip" data-filter="car">VIP 렌트카</button>
+                    <button type="button" class="preset-chip" data-filter="city">조호바루 도심</button>
+                </div>
+                <div id="aiGalleryGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; max-height: 290px; overflow-y: auto; padding: 4px; border: 1px solid #E2E8F0; border-radius: 8px; background: #F8FAFC;">
+                    <!-- Dynamically populated gallery cards -->
+                </div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 6px; text-align: right;">
+                    <i class="fa-solid fa-hand-pointer"></i> 원하는 사진을 클릭하면 아래 미리보기에 즉시 선택됩니다.
+                </div>
             </div>
 
             <!-- Loading Spinner / State -->
             <div id="editorAiImgLoading" style="display: none; text-align: center; padding: 22px 10px; background: #F8FAFC; border-radius: 8px; border: 1px dashed #CBD5E1; margin-bottom: 14px;">
                 <i class="fa-solid fa-spinner fa-spin" style="font-size: 26px; color: #7C3AED; margin-bottom: 10px;"></i>
-                <div id="editorAiImgLoadingText" style="font-size: 13px; font-weight: 600; color: #334155;">Google AI 모델을 호출하여 이미지를 생성하고 있습니다...</div>
-                <div style="font-size: 11px; color: #64748B; margin-top: 4px;">프롬프트 최적화 및 렌더링에 약 3~5초 소요됩니다.</div>
+                <div id="editorAiImgLoadingText" style="font-size: 13px; font-weight: 600; color: #334155;">AI 비주얼 엔진이 프롬프트를 분석하여 최적의 이미지를 생성하고 있습니다...</div>
+                <div style="font-size: 11px; color: #64748B; margin-top: 4px;">프롬프트 최적화 및 고해상도 렌더링에 약 1~3초 소요됩니다.</div>
             </div>
 
             <!-- Preview & Final Apply Section -->
             <div id="editorAiImgResultArea" style="display: none; background: #F8FAFC; border-radius: 8px; border: 1px solid #E2E8F0; padding: 14px;">
                 <div style="font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                    <span>생성된 이미지 미리보기</span>
-                    <span style="font-size: 11px; color: #16A34A; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> 생성 완료</span>
+                    <span id="editorAiImgResultTitle">선택된 이미지 미리보기</span>
+                    <span style="font-size: 11px; color: #16A34A; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> 준비 완료</span>
                 </div>
-                <div style="position: relative; border-radius: 6px; overflow: hidden; background: #0F172A; text-align: center; max-height: 300px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
-                    <img id="editorAiImgPreview" src="" alt="AI Generated" style="max-width: 100%; max-height: 300px; object-fit: contain;">
+                <div style="position: relative; border-radius: 6px; overflow: hidden; background: #0F172A; text-align: center; max-height: 280px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                    <img id="editorAiImgPreview" src="" alt="AI Generated" style="max-width: 100%; max-height: 280px; object-fit: contain;">
                 </div>
-                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <div style="display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">
                     <button type="button" id="regenEditorAiImgBtn" class="btn btn-secondary" style="font-size: 12px; padding: 8px 14px;">
-                        <i class="fa-solid fa-arrows-rotate"></i> 다시 생성
+                        <i class="fa-solid fa-arrows-rotate"></i> 다른 이미지 추천 / 다시 생성
                     </button>
                     <button type="button" id="applyEditorAiImgBtn" class="btn" style="font-size: 12.5px; font-weight: 700; padding: 8px 20px; background: #16A34A; color: #fff; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                         <i class="fa-solid fa-check"></i> 에디터에 적용하기
@@ -806,6 +846,6 @@
     <!-- Quill.js Library -->
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <!-- Admin Content & Blog Logic -->
-    <script src="admin-content.js?v=20260916_v4"></script>
+    <script src="admin-content.js?v=20260916_v5"></script>
 </body>
 </html>

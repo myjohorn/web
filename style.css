@@ -3815,3 +3815,48 @@ input, textarea {
     transform: translateY(-1px);
 }
 
+/* AI Studio Mode Tabs & Gallery */
+.ai-studio-tab {
+    flex: 1;
+    padding: 9px 12px;
+    font-size: 12.5px;
+    font-weight: 700;
+    border: 1px solid #E2E8F0;
+    background: #F8FAFC;
+    color: #475569;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.ai-studio-tab.active {
+    background: #7C3AED;
+    color: #ffffff;
+    border-color: #7C3AED;
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
+}
+
+.gallery-card-item {
+    cursor: pointer;
+    border: 2px solid #E2E8F0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #ffffff;
+    transition: all 0.15s ease;
+}
+
+.gallery-card-item:hover {
+    border-color: #7C3AED;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+}
+
+.gallery-card-item.selected {
+    border-color: #7C3AED;
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.4);
+}
+
