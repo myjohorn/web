@@ -1149,9 +1149,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // ── STEP 1: Gemini Text Generation with Auto-Fallback ──
                 const candidateTextModels = [
                     textModel,
-                    'gemini-2.0-flash',
-                    'gemini-1.5-flash',
-                    'gemini-1.5-pro'
+                    'gemini-flash-latest',
+                    'gemini-3.5-flash',
+                    'gemini-3-flash-preview',
+                    'gemini-pro-latest'
                 ];
                 const uniqueTextModels = [...new Set(candidateTextModels)];
 
