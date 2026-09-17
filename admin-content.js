@@ -1036,6 +1036,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const topicChips = document.querySelectorAll('#aiQuickTopicChips .ai-topic-chip');
         const topicInput = document.getElementById('aiTopicInput');
         const keywordsInput = document.getElementById('aiKeywordsInput');
+        const instructionsInput = document.getElementById('aiInstructionsInput');
+        const instructionChips = document.querySelectorAll('#aiInstructionPresetChips .preset-chip');
         const genImageCheck = document.getElementById('aiGenImageCheck');
         const imageStyleSelect = document.getElementById('aiImageStyleSelect');
         
@@ -1148,6 +1150,20 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
+        // Special Instruction Preset Chips
+        instructionChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                if (!instructionsInput) return;
+                const inst = chip.dataset.inst || '';
+                if (!inst) return;
+                if (!instructionsInput.value.trim()) {
+                    instructionsInput.value = inst;
+                } else if (!instructionsInput.value.includes(inst)) {
+                    instructionsInput.value += `\n- ${inst}`;
+                }
+            });
+        });
+
         // Generate Post Execution
         async function runGeneration() {
             const apiKey = (apiKeyInput ? apiKeyInput.value.trim() : '') || localStorage.getItem('johorn_gemini_api_key');
@@ -1166,6 +1182,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const category = categorySelect ? categorySelect.value : '국제학교';
             const keywords = keywordsInput ? keywordsInput.value.trim() : '';
+            const instructions = instructionsInput ? instructionsInput.value.trim() : '';
             const textModel = (textModelSelect && textModelSelect.value) ? textModelSelect.value : 'gemini-3.8-flash';
             const imageModel = (imageModelSelect && imageModelSelect.value) ? imageModelSelect.value : 'imagen-4.0-generate';
             const shouldGenImage = genImageCheck ? genImageCheck.checked : true;
@@ -1187,14 +1204,18 @@ document.addEventListener('DOMContentLoaded', () => {
 [블로그 발행 정보]
 - 카테고리: ${category}
 - 주제: ${topic}
-- 필수 포함 키워드: ${keywords || '조호바루, 국제학교, 이주정착, 티가 레지던스, 조호엔'}
-
-[조호엔 브랜드 핵심 권위 팩트 (반드시 본문에 자연스럽게 신뢰 요소로 녹여낼 것)]
+- 필수 포함 키워드: ${keywords || '조호바루, 국제학교, 이주정착, 조호엔'}
+${instructions ? `
+[★ 관리자 특별 요청 및 필수 준수사항 (STRICT REQUIREMENT - 최우선 순위 준수!)]
+${instructions}
+※ 경고: 위 관리자 특별 지시사항(예: 특정 주제/숙소/렌트카 언급 배제, 특정 톤앤매너, 특정 내용 집중 등)은 본문의 모든 규칙보다 절대적인 최우선권을 가집니다. 금지되거나 배제하도록 요청된 내용은 본문 본문과 FAQ, 콜투액션(CTA) 어디에도 절대 단 한 줄도 언급하지 마세요.
+` : ''}
+[조호엔 브랜드 핵심 역량 (주제 및 관리자 지시사항에 부합하는 항목만 선별하여 자연스럽게 녹여낼 것)]
 1. 현지 거주 6년차 이상의 실제 생활자 기반 전문성과 빈틈없는 케어
 2. 50세대 이상의 성공적인 이주정착 실적
 3. 조호바루 국제학교 입학 지원 100% 합격률 (원서 접수부터 CAT4 시험 준비, 오퍼레터, 학생/가디언 비자 완벽 지원)
-4. 푸테리 하버 티가 레지던스(Teega Residence) 3베드룸 오션뷰 풀옵션 숙소 직영 (전 구역 올필터 수질 정화 시스템 완비, 한국 실시간 방송/넷플릭스 무료 시청, 주 1회 3시간 전문 청소 및 정기 방역 기본 제공)
-5. 주요 연계 학교: 말보로 칼리지 말레이시아(MCM), 래플스 아메리칸 스쿨(RAS), 선웨이(Sunway), 크레센도-헬프, 페어뷰 등
+4. 주요 연계 학교: 말보로 칼리지 말레이시아(MCM), 래플스 아메리칸 스쿨(RAS), 선웨이(Sunway), 크레센도-헬프, 페어뷰 등
+5. (숙소 관련 주제이거나 숙소 배제 지시가 없는 경우에만 한함) 푸테리 하버 티가 레지던스(Teega Residence) 3베드룸 오션뷰 풀옵션 숙소 직영 (전 구역 올필터 수질 정화 시스템 완비, 한국 실시간 방송 무료 시청, 주 1회 청소 및 정기 방역 기본 제공)
 
 [AEO / GEO 최적화 작성 규칙]
 - 독자층: 말레이시아 조호바루 유학, 이주, 한달살기, 자녀 국제학교 입학을 계획 중인 한국인 학부모
@@ -1202,13 +1223,13 @@ document.addEventListener('DOMContentLoaded', () => {
 - 구성:
   1. 독자의 시선을 사로잡는 매력적인 제목 (title)
   2. SNS 및 검색 결과에 노출될 1~2줄 핵심 요약문 (summary)
-  3. 이미지 생성을 위한 고해상도 영문 프롬프트 (imagePrompt)
+  3. 이미지 생성을 위한 고해상도 영문 프롬프트 (imagePrompt) - ※ 만약 숙소 제외 요청이 있다면 프롬프트 역시 숙소 대신 학교 캠퍼스나 교실, 현지 풍경 등으로만 묘사할 것
   4. 완벽한 시맨틱 HTML 본문 (contentHtml):
      - <h2> 소제목과 단락 <p>들
      - 핵심 요약 인용구 <blockquote>
      - 중요한 정보는 <ul> <li> 리스트로 구조화
      - Perplexity, ChatGPT 등이 직접 인용하기 좋은 "자주 묻는 질문 (Q&A)" 섹션 (<h2>자주 묻는 질문 (FAQ)</h2>)
-     - 마지막에 조호엔 1:1 상담 및 Teega Residence 예약으로 연결되는 부드러운 콜투액션(CTA) 안내 박스 (<div class="post-cta-card" style="background:#FAF8F5; border:1px solid #E5E0D8; border-radius:8px; padding:20px; margin-top:30px;">...</div>)
+     - 마지막 콜투액션(CTA): 주제에 맞는 맞춤형 1:1 상담 안내 박스 (<div class="post-cta-card" style="background:#FAF8F5; border:1px solid #E5E0D8; border-radius:8px; padding:20px; margin-top:30px;">...</div>) (※ 국제학교 글이거나 숙소 배제 지시가 있는 경우 숙소 예약 유도는 제외하고 학교 입학 및 1:1 현지 상담으로만 유도할 것)
 
 [출력 형식]
 반드시 마크다운 백틱 없이 순수 JSON 형식으로만 응답하세요:
