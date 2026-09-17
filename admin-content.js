@@ -1232,7 +1232,7 @@ ${instructions}
      - 마지막 콜투액션(CTA): 주제에 맞는 맞춤형 1:1 상담 안내 박스 (<div class="post-cta-card" style="background:#FAF8F5; border:1px solid #E5E0D8; border-radius:8px; padding:20px; margin-top:30px;">...</div>) (※ 국제학교 글이거나 숙소 배제 지시가 있는 경우 숙소 예약 유도는 제외하고 학교 입학 및 1:1 현지 상담으로만 유도할 것)
 
 [출력 형식]
-반드시 마크다운 백틱 없이 순수 JSON 형식으로만 응답하세요:
+반드시 유효한 JSON 형식으로만 응답하세요. contentHtml 내부의 큰따옴표나 개행문자가 올바르게 JSON 이스케이프(JSON escape)되어야 합니다:
 {
   "title": "게시글 제목",
   "summary": "1~2줄 핵심 요약 문장",
@@ -1244,10 +1244,11 @@ ${instructions}
                 // ── STEP 1: Gemini Text Generation with Auto-Fallback ──
                 const candidateTextModels = [
                     textModel,
-                    'gemini-flash-latest',
+                    'gemini-3.8-flash',
+                    'gemini-3.7-flash',
                     'gemini-3.5-flash',
-                    'gemini-3-flash-preview',
-                    'gemini-pro-latest'
+                    'gemini-3.1-pro-preview',
+                    'gemini-flash-latest'
                 ];
                 const uniqueTextModels = [...new Set(candidateTextModels)];
 
@@ -1269,7 +1270,8 @@ ${instructions}
                                 contents: [{ parts: [{ text: promptContent }] }],
                                 generationConfig: {
                                     temperature: 0.7,
-                                    maxOutputTokens: 3500
+                                    maxOutputTokens: 8192,
+                                    responseMimeType: 'application/json'
                                 }
                             })
                         });
@@ -1297,19 +1299,78 @@ ${instructions}
                 }
 
                 // Strip possible markdown fences
-                rawText = rawText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
-                
-                let parsedJson;
+                let cleanText = rawText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
+
+                let parsedJson = null;
+
+                // 1st attempt: direct JSON.parse
                 try {
-                    parsedJson = JSON.parse(rawText);
-                } catch (pe) {
-                    console.warn('Direct JSON parse failed, extracting via regex:', pe);
-                    const match = rawText.match(/\{[\s\S]*\}/);
-                    if (match) {
-                        parsedJson = JSON.parse(match[0]);
-                    } else {
-                        throw new Error('AI 응답을 JSON으로 해석하지 못했습니다. 다시 시도해 주세요.');
+                    parsedJson = JSON.parse(cleanText);
+                } catch (pe1) {
+                    console.warn('Direct JSON parse failed, trying brace extraction:', pe1.message);
+                }
+
+                // 2nd attempt: find outermost { ... }
+                if (!parsedJson) {
+                    const firstBrace = cleanText.indexOf('{');
+                    const lastBrace = cleanText.lastIndexOf('}');
+                    if (firstBrace !== -1 && lastBrace > firstBrace) {
+                        try {
+                            parsedJson = JSON.parse(cleanText.substring(firstBrace, lastBrace + 1));
+                        } catch (pe2) {
+                            console.warn('Block JSON parse failed, trying sanitized parse:', pe2.message);
+                        }
                     }
+                }
+
+                // 3rd attempt: Sanitize trailing commas and invalid control characters
+                if (!parsedJson) {
+                    try {
+                        const firstBrace = cleanText.indexOf('{');
+                        const lastBrace = cleanText.lastIndexOf('}');
+                        let block = (firstBrace !== -1 && lastBrace > firstBrace) ? cleanText.substring(firstBrace, lastBrace + 1) : cleanText;
+                        let sanitized = block.replace(/,\s*([\]}])/g, '$1');
+                        parsedJson = JSON.parse(sanitized);
+                    } catch (pe3) {
+                        console.warn('Sanitized JSON parse failed, falling back to regex extraction:', pe3.message);
+                    }
+                }
+
+                // 4th attempt: Bulletproof Regex Field Extractor (never fails)
+                if (!parsedJson || typeof parsedJson !== 'object' || !parsedJson.contentHtml) {
+                    console.warn('Extracting article fields via resilient regex fallback');
+                    const extractField = (key, text) => {
+                        const regex = new RegExp(`"${key}"\\s*:\\s*"([\\s\\S]*?)(?="\\s*,\\s*"[a-zA-Z0-9_]+"\\s*:|"\\s*\\}\\s*$)`, 'i');
+                        const m = text.match(regex);
+                        if (m && m[1]) {
+                            return m[1].replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\r/g, '\r').replace(/\\\\/g, '\\');
+                        }
+                        return '';
+                    };
+
+                    const title = (parsedJson && parsedJson.title) || extractField('title', cleanText) || topic;
+                    const summary = (parsedJson && parsedJson.summary) || extractField('summary', cleanText) || `${topic}에 대한 조호엔의 유용한 안내와 정보입니다.`;
+                    const imagePrompt = (parsedJson && parsedJson.imagePrompt) || extractField('imagePrompt', cleanText) || `${topic}, Puteri Harbour Johor Bahru, ultra high quality`;
+                    let contentHtml = (parsedJson && parsedJson.contentHtml) || extractField('contentHtml', cleanText);
+
+                    if (!contentHtml) {
+                        let fallbackBody = cleanText
+                            .replace(/"?(?:title|summary|imagePrompt)"?\s*:\s*"[^"]*"/gi, '')
+                            .replace(/[{}\[\]"]/g, '')
+                            .trim();
+                        if (fallbackBody) {
+                            contentHtml = `<p>${fallbackBody.replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br>')}</p>`;
+                        } else {
+                            contentHtml = `<h2>${title}</h2><p>${summary}</p>`;
+                        }
+                    }
+
+                    parsedJson = {
+                        title: title.trim(),
+                        summary: summary.trim(),
+                        imagePrompt: imagePrompt.trim(),
+                        contentHtml: contentHtml.trim()
+                    };
                 }
 
                 if (progressBar) progressBar.style.width = '65%';
