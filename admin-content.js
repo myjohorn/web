@@ -1400,21 +1400,14 @@ ${instructions}
 
                 // ── STEP 1: Gemini Text Generation with Dedicated Retry (No Fallback) ──
                 const targetModel = textModel || 'gemini-3.8-flash';
-                const maxRetries = 4;
+                const maxRetries = 5;
                 let rawText = '';
                 let lastError = null;
 
                 for (let attempt = 1; attempt <= maxRetries; attempt++) {
                     try {
-                        if (attempt > 1) {
-                            if (progressStepText) {
-                                progressStepText.textContent = `${targetModel} 최신 플래그십 엔진 접속 중입니다. 잠시 대기 후 재시도합니다... (${attempt}/${maxRetries}회)`;
-                            }
-                            await new Promise(r => setTimeout(r, 3000));
-                        } else {
-                            if (progressStepText) {
-                                progressStepText.textContent = `${targetModel} 최신 플래그십 엔진이 고품질 본문과 Q&A를 작성 중입니다...`;
-                            }
+                        if (progressStepText) {
+                            progressStepText.textContent = `${targetModel} 최신 플래그십 엔진이 고품질 본문과 Q&A를 작성 중입니다... (${attempt}/${maxRetries}회)`;
                         }
 
                         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${apiKey}`;
@@ -1442,18 +1435,71 @@ ${instructions}
                             const errMsg = errData.error ? errData.error.message : textRes.statusText;
                             lastError = new Error(`모델 ${targetModel} (${textRes.status}): ${errMsg}`);
                             console.warn(`Attempt ${attempt} on ${targetModel} failed (${textRes.status}):`, errMsg);
+
                             if (textRes.status !== 429 && textRes.status < 500) {
                                 throw lastError;
+                            }
+
+                            if (attempt < maxRetries) {
+                                // Extract wait duration requested by Google (e.g. "Please retry in 9.29827716s")
+                                let waitSec = 8;
+                                if (errData.error && Array.isArray(errData.error.details)) {
+                                    const retryInfo = errData.error.details.find(d => d['@type'] && d['@type'].includes('RetryInfo'));
+                                    if (retryInfo && retryInfo.retryDelay) {
+                                        const parsed = parseFloat(retryInfo.retryDelay);
+                                        if (!isNaN(parsed) && parsed > 0) {
+                                            waitSec = Math.ceil(parsed) + 1;
+                                        }
+                                    }
+                                }
+                                if (waitSec === 8 && errMsg) {
+                                    const match = errMsg.match(/retry (?:in|after) ([\d\.]+)s/i);
+                                    if (match && match[1]) {
+                                        const parsed = parseFloat(match[1]);
+                                        if (!isNaN(parsed) && parsed > 0) {
+                                            waitSec = Math.ceil(parsed) + 1;
+                                        }
+                                    }
+                                }
+                                if (waitSec <= 8) {
+                                    waitSec = Math.max(attempt * 5, 8);
+                                }
+
+                                // Interactive live countdown
+                                for (let s = waitSec; s > 0; s--) {
+                                    if (progressStepText) {
+                                        progressStepText.textContent = `${targetModel} 요청 제한(Rate Limit) 쿨다운 대기 중: ${s}초 후 최신 모델로 자동 재시도합니다... (${attempt}/${maxRetries}회)`;
+                                    }
+                                    await new Promise(r => setTimeout(r, 1000));
+                                }
                             }
                         }
                     } catch (netErr) {
                         lastError = netErr;
                         console.warn(`Attempt ${attempt} error on ${targetModel}:`, netErr.message);
+                        if (attempt < maxRetries) {
+                            for (let s = 5; s > 0; s--) {
+                                if (progressStepText) {
+                                    progressStepText.textContent = `네트워크 연결 지연: ${s}초 후 자동 재시도합니다... (${attempt}/${maxRetries}회)`;
+                                }
+                                await new Promise(r => setTimeout(r, 1000));
+                            }
+                        }
                     }
                 }
 
                 if (!rawText) {
-                    throw lastError || new Error(`${targetModel} 최신 엔진의 일시적 응답 지연입니다. 잠시 후 다시 시도해 주세요.`);
+                    let friendlyMsg = `${targetModel} 최신 엔진의 일시적 응답 지연입니다. 잠시 후 다시 시도해 주세요.`;
+                    if (lastError && lastError.message) {
+                        if (lastError.message.includes('429') || lastError.message.includes('quota') || lastError.message.includes('RESOURCE_EXHAUSTED')) {
+                            friendlyMsg = `Google AI Studio의 ${targetModel} 무료 분당 요청 한도(Rate Limit)에 일시적으로 도달했습니다.\n\n` +
+                                `• 구글의 분당 사용량 리셋을 위해 약 15~30초 후 다시 [AI 글 생성]을 클릭해 주세요.\n` +
+                                `• 또는 다른 최신 모델(Gemini 3.7 Flash 등)을 선택하시면 대기 없이 즉시 생성하실 수 있습니다.`;
+                        } else {
+                            friendlyMsg = lastError.message;
+                        }
+                    }
+                    throw new Error(friendlyMsg);
                 }
 
                 // Strip possible markdown fences
