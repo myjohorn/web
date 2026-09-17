@@ -702,15 +702,94 @@ document.addEventListener('DOMContentLoaded', () => {
         return { ...selected, theme: targetKey };
     }
 
+    // Helper to safely convert rich HTML into Quill-compatible format without losing table, card, or text data
+    function htmlToQuillSafe(html) {
+        if (!html) return '';
+        try {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            // 1. Convert tables into semantic structured blocks so Quill does not delete table rows/cells
+            const tables = doc.querySelectorAll('table');
+            tables.forEach(table => {
+                const container = doc.createElement('blockquote');
+                container.style.borderLeft = '4px solid #C5A059';
+                container.style.background = '#FBF9F5';
+                container.style.padding = '12px 16px';
+                container.style.margin = '16px 0';
+
+                const rows = table.querySelectorAll('tr');
+                rows.forEach(tr => {
+                    const ths = tr.querySelectorAll('th');
+                    const tds = tr.querySelectorAll('td');
+                    const p = doc.createElement('p');
+                    if (ths.length > 0) {
+                        p.innerHTML = '<strong>' + Array.from(ths).map(th => th.innerText.trim()).join(' | ') + '</strong>';
+                        container.appendChild(p);
+                    } else if (tds.length > 0) {
+                        p.innerHTML = Array.from(tds).map(td => td.innerHTML.trim()).join(' — ');
+                        container.appendChild(p);
+                    }
+                });
+                table.parentNode.replaceChild(container, table);
+            });
+
+            // 2. Protect CTA cards (ensure they have post-cta-card class)
+            const ctaDivs = doc.querySelectorAll('.post-cta-card, [class*="cta"], [class*="card"]');
+            ctaDivs.forEach(card => {
+                if (!card.classList.contains('post-cta-card')) {
+                    card.classList.add('post-cta-card');
+                }
+            });
+
+            // 3. Flatten other generic divs to preserve inner text and child tags
+            const otherDivs = doc.querySelectorAll('div:not(.post-cta-card)');
+            otherDivs.forEach(div => {
+                const fragment = doc.createDocumentFragment();
+                while (div.firstChild) {
+                    fragment.appendChild(div.firstChild);
+                }
+                div.parentNode.replaceChild(fragment, div);
+            });
+
+            return doc.body.innerHTML;
+        } catch (err) {
+            console.warn('htmlToQuillSafe fallback:', err);
+            return html;
+        }
+    }
+
     function initBlog() {
         // Initialize Quill.js
         if (!quill && document.getElementById('quillEditor')) {
+            // Register custom blots to prevent Quill from stripping custom cards, CTA boxes, and embeds
+            try {
+                const BlockEmbed = Quill.import('blots/block/embed');
+                class CustomCardBlot extends BlockEmbed {
+                    static create(value) {
+                        const node = super.create();
+                        node.innerHTML = value;
+                        node.setAttribute('contenteditable', 'false');
+                        return node;
+                    }
+                    static value(node) {
+                        return node.innerHTML;
+                    }
+                }
+                CustomCardBlot.blotName = 'customCard';
+                CustomCardBlot.tagName = 'div';
+                CustomCardBlot.className = 'post-cta-card';
+                Quill.register(CustomCardBlot, true);
+            } catch (e) {
+                console.warn('CustomCardBlot registration warning:', e);
+            }
+
             quill = new Quill('#quillEditor', {
                 theme: 'snow',
                 placeholder: '조호바루 국제학교, 생활 정착에 관한 생생한 소식을 작성해 보세요...',
                 modules: {
                     toolbar: [
-                        [{ 'header': [1, 2, 3, false] }],
+                        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
                         ['bold', 'italic', 'underline', 'strike'],
                         [{ 'color': [] }, { 'background': [] }],
                         [{ 'list': 'ordered' }, { 'list': 'bullet' }],
@@ -781,6 +860,45 @@ document.addEventListener('DOMContentLoaded', () => {
         initAiBlogGenerator();
         initEditorAiImageGenerator();
 
+        // HTML Source Code Mode vs WYSIWYG Toggle
+        let isHtmlSourceMode = false;
+        const toggleHtmlBtn = document.getElementById('toggleEditorHtmlModeBtn');
+        const toggleHtmlIcon = document.getElementById('toggleEditorHtmlIcon');
+        const toggleHtmlText = document.getElementById('toggleEditorHtmlText');
+        const quillEditorElem = document.getElementById('quillEditor');
+        const htmlTextarea = document.getElementById('postHtmlSourceTextarea');
+
+        if (toggleHtmlBtn && htmlTextarea && quillEditorElem) {
+            toggleHtmlBtn.addEventListener('click', () => {
+                isHtmlSourceMode = !isHtmlSourceMode;
+                const qToolbar = document.querySelector('#postModal .ql-toolbar');
+                if (isHtmlSourceMode) {
+                    // Switch to HTML Source Mode
+                    htmlTextarea.value = quill ? quill.root.innerHTML : '';
+                    quillEditorElem.style.display = 'none';
+                    if (qToolbar) qToolbar.style.display = 'none';
+                    htmlTextarea.style.display = 'block';
+                    toggleHtmlBtn.classList.add('active');
+                    if (toggleHtmlIcon) toggleHtmlIcon.className = 'fa-solid fa-eye';
+                    if (toggleHtmlText) toggleHtmlText.textContent = '비주얼 에디터로 전환';
+                } else {
+                    // Switch back to Visual WYSIWYG Mode
+                    const rawHtml = htmlTextarea.value;
+                    if (quill) {
+                        const safeHtml = htmlToQuillSafe(rawHtml);
+                        quill.clipboard.dangerouslyPasteHTML(safeHtml);
+                        quill.update();
+                    }
+                    htmlTextarea.style.display = 'none';
+                    quillEditorElem.style.display = 'block';
+                    if (qToolbar) qToolbar.style.display = 'block';
+                    toggleHtmlBtn.classList.remove('active');
+                    if (toggleHtmlIcon) toggleHtmlIcon.className = 'fa-solid fa-code';
+                    if (toggleHtmlText) toggleHtmlText.textContent = 'HTML 소스 편집';
+                }
+            });
+        }
+
         // Modal Open for New Post
         if (openNewPostModalBtn) {
             openNewPostModalBtn.addEventListener('click', () => {
@@ -792,14 +910,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('postStatusInput').value = 'published';
                 document.getElementById('postThumbInput').value = '';
                 document.getElementById('postSummaryInput').value = '';
+                if (isHtmlSourceMode && toggleHtmlBtn) toggleHtmlBtn.click();
                 if (quill) quill.root.innerHTML = '';
+                if (htmlTextarea) htmlTextarea.value = '';
                 updateThumbPreview('');
                 postModal.style.display = 'flex';
             });
         }
 
         // Modal Close
-        const closeModal = () => { postModal.style.display = 'none'; };
+        const closeModal = () => {
+            if (isHtmlSourceMode && toggleHtmlBtn) toggleHtmlBtn.click();
+            postModal.style.display = 'none';
+        };
         if (closePostModalBtn) closePostModalBtn.addEventListener('click', closeModal);
         if (cancelPostBtn) cancelPostBtn.addEventListener('click', closeModal);
 
@@ -859,7 +982,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const status = document.getElementById('postStatusInput').value;
                 const thumbnail = document.getElementById('postThumbInput').value.trim() || 'assets/stay_balcony.jpg';
                 const summary = document.getElementById('postSummaryInput').value.trim();
-                const contentHtml = quill ? quill.root.innerHTML : '';
+                
+                let contentHtml = '';
+                if (isHtmlSourceMode && htmlTextarea) {
+                    contentHtml = htmlTextarea.value.trim();
+                } else if (quill) {
+                    contentHtml = quill.root.innerHTML;
+                }
 
                 if (!title) {
                     alert('게시글 제목을 입력해 주세요.');
@@ -995,7 +1124,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('postStatusInput').value = post.status || 'published';
                 document.getElementById('postThumbInput').value = post.thumbnail || 'assets/stay_balcony.jpg';
                 document.getElementById('postSummaryInput').value = post.summary || '';
-                if (quill) quill.root.innerHTML = post.contentHtml || '';
+                if (isHtmlSourceMode && toggleHtmlBtn) toggleHtmlBtn.click();
+                if (htmlTextarea) htmlTextarea.value = post.contentHtml || '';
+                if (quill) {
+                    quill.clipboard.dangerouslyPasteHTML(htmlToQuillSafe(post.contentHtml || ''));
+                    quill.update();
+                }
                 updateThumbPreview(post.thumbnail || 'assets/stay_balcony.jpg');
                 postModal.style.display = 'flex';
             });
@@ -1323,29 +1457,90 @@ ${instructions}
                     }
                 }
 
-                // 3rd attempt: Sanitize trailing commas and invalid control characters
+                // 3rd attempt: Fix unescaped control characters/newlines inside string literals and trailing commas
                 if (!parsedJson) {
                     try {
                         const firstBrace = cleanText.indexOf('{');
                         const lastBrace = cleanText.lastIndexOf('}');
-                        let block = (firstBrace !== -1 && lastBrace > firstBrace) ? cleanText.substring(firstBrace, lastBrace + 1) : cleanText;
-                        let sanitized = block.replace(/,\s*([\]}])/g, '$1');
-                        parsedJson = JSON.parse(sanitized);
+                        let s = (firstBrace !== -1 && lastBrace > firstBrace) ? cleanText.substring(firstBrace, lastBrace + 1) : cleanText;
+                        s = s.replace(/,\s*([\]}])/g, '$1');
+
+                        let inString = false;
+                        let escaped = false;
+                        let fixed = '';
+                        for (let i = 0; i < s.length; i++) {
+                            const ch = s[i];
+                            if (escaped) {
+                                fixed += ch;
+                                escaped = false;
+                                continue;
+                            }
+                            if (ch === '\\') {
+                                fixed += ch;
+                                escaped = true;
+                                continue;
+                            }
+                            if (ch === '"') {
+                                inString = !inString;
+                                fixed += ch;
+                                continue;
+                            }
+                            if (inString) {
+                                if (ch === '\n') {
+                                    fixed += '\\n';
+                                    continue;
+                                }
+                                if (ch === '\r') {
+                                    fixed += '\\r';
+                                    continue;
+                                }
+                                if (ch === '\t') {
+                                    fixed += '\\t';
+                                    continue;
+                                }
+                            }
+                            fixed += ch;
+                        }
+                        parsedJson = JSON.parse(fixed);
                     } catch (pe3) {
-                        console.warn('Sanitized JSON parse failed, falling back to regex extraction:', pe3.message);
+                        console.warn('Escaped JSON parse failed, falling back to field extraction:', pe3.message);
                     }
                 }
 
-                // 4th attempt: Bulletproof Regex Field Extractor (never fails)
+                // 4th attempt: Non-destructive field extraction fallback
                 if (!parsedJson || typeof parsedJson !== 'object' || !parsedJson.contentHtml) {
-                    console.warn('Extracting article fields via resilient regex fallback');
+                    console.warn('Extracting article fields via safe non-destructive extraction');
                     const extractField = (key, text) => {
-                        const regex = new RegExp(`"${key}"\\s*:\\s*"([\\s\\S]*?)(?="\\s*,\\s*"[a-zA-Z0-9_]+"\\s*:|"\\s*\\}\\s*$)`, 'i');
-                        const m = text.match(regex);
-                        if (m && m[1]) {
-                            return m[1].replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\r/g, '\r').replace(/\\\\/g, '\\');
+                        const startMarker = `"${key}"`;
+                        const startIdx = text.indexOf(startMarker);
+                        if (startIdx === -1) return '';
+                        const colonIdx = text.indexOf(':', startIdx + startMarker.length);
+                        if (colonIdx === -1) return '';
+                        const openQuote = text.indexOf('"', colonIdx + 1);
+                        if (openQuote === -1) return '';
+
+                        let val = '';
+                        let escaped = false;
+                        for (let i = openQuote + 1; i < text.length; i++) {
+                            const ch = text[i];
+                            if (escaped) {
+                                val += ch;
+                                escaped = false;
+                                continue;
+                            }
+                            if (ch === '\\') {
+                                escaped = true;
+                                continue;
+                            }
+                            if (ch === '"') {
+                                const rest = text.substring(i + 1).trim();
+                                if (rest.startsWith(',') || rest.startsWith('}')) {
+                                    return val;
+                                }
+                            }
+                            val += ch;
                         }
-                        return '';
+                        return val;
                     };
 
                     const title = (parsedJson && parsedJson.title) || extractField('title', cleanText) || topic;
@@ -1499,18 +1694,31 @@ ${instructions}
                 if (thumbInput) thumbInput.value = currentGeneratedPost.thumbnail;
                 if (summaryInput) summaryInput.value = currentGeneratedPost.summary;
 
-                if (quill) {
-                    quill.root.innerHTML = currentGeneratedPost.contentHtml;
-                }
-
-                updateThumbPreview(currentGeneratedPost.thumbnail, 'AI 자동 생성 이미지');
-
+                // Open postModal FIRST so Quill has visible layout dimensions
                 if (postModal) {
                     postModal.style.display = 'flex';
                     postModal.scrollIntoView({ behavior: 'smooth' });
                 }
 
-                alert('AI 생성 글이 에디터에 성공적으로 반영되었습니다!\n내용을 검토하신 후 [저장하기]를 누르면 블로그에 즉시 발행됩니다.');
+                // If currently in HTML source mode, reset to visual mode
+                if (isHtmlSourceMode && toggleHtmlBtn) {
+                    toggleHtmlBtn.click();
+                }
+
+                const rawHtml = currentGeneratedPost.contentHtml || '<p>내용이 생성되었습니다.</p>';
+                if (htmlTextarea) {
+                    htmlTextarea.value = rawHtml;
+                }
+
+                if (quill) {
+                    const safeHtml = typeof htmlToQuillSafe === 'function' ? htmlToQuillSafe(rawHtml) : rawHtml;
+                    quill.clipboard.dangerouslyPasteHTML(safeHtml);
+                    quill.update();
+                }
+
+                updateThumbPreview(currentGeneratedPost.thumbnail, 'AI 자동 생성 이미지');
+
+                alert('AI 생성 글이 에디터에 100% 온전히 반영되었습니다!\n내용을 검토하신 후 [저장하기]를 누르면 블로그에 즉시 발행됩니다.');
             });
         }
     }
