@@ -601,6 +601,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── 5. Blog & Board Management Module ──
     let quill;
     let allAdminPosts = [];
+    let isHtmlSourceMode = false;
+    let toggleHtmlBtn = null;
+    let toggleHtmlIcon = null;
+    let toggleHtmlText = null;
+    let quillEditorElem = null;
+    let htmlTextarea = null;
     const postModal = document.getElementById('postModal');
     const openNewPostModalBtn = document.getElementById('openNewPostModalBtn');
     const closePostModalBtn = document.getElementById('closePostModalBtn');
@@ -861,12 +867,12 @@ document.addEventListener('DOMContentLoaded', () => {
         initEditorAiImageGenerator();
 
         // HTML Source Code Mode vs WYSIWYG Toggle
-        let isHtmlSourceMode = false;
-        const toggleHtmlBtn = document.getElementById('toggleEditorHtmlModeBtn');
-        const toggleHtmlIcon = document.getElementById('toggleEditorHtmlIcon');
-        const toggleHtmlText = document.getElementById('toggleEditorHtmlText');
-        const quillEditorElem = document.getElementById('quillEditor');
-        const htmlTextarea = document.getElementById('postHtmlSourceTextarea');
+        isHtmlSourceMode = false;
+        toggleHtmlBtn = document.getElementById('toggleEditorHtmlModeBtn');
+        toggleHtmlIcon = document.getElementById('toggleEditorHtmlIcon');
+        toggleHtmlText = document.getElementById('toggleEditorHtmlText');
+        quillEditorElem = document.getElementById('quillEditor');
+        htmlTextarea = document.getElementById('postHtmlSourceTextarea');
 
         if (toggleHtmlBtn && htmlTextarea && quillEditorElem) {
             toggleHtmlBtn.addEventListener('click', () => {
@@ -1127,7 +1133,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isHtmlSourceMode && toggleHtmlBtn) toggleHtmlBtn.click();
                 if (htmlTextarea) htmlTextarea.value = post.contentHtml || '';
                 if (quill) {
-                    quill.clipboard.dangerouslyPasteHTML(htmlToQuillSafe(post.contentHtml || ''));
+                    quill.root.innerHTML = htmlToQuillSafe(post.contentHtml || '');
                     quill.update();
                 }
                 updateThumbPreview(post.thumbnail || 'assets/stay_balcony.jpg');
@@ -1712,7 +1718,7 @@ ${instructions}
 
                 if (quill) {
                     const safeHtml = typeof htmlToQuillSafe === 'function' ? htmlToQuillSafe(rawHtml) : rawHtml;
-                    quill.clipboard.dangerouslyPasteHTML(safeHtml);
+                    quill.root.innerHTML = safeHtml;
                     quill.update();
                 }
 
