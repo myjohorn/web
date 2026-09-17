@@ -712,32 +712,42 @@ document.addEventListener('DOMContentLoaded', () => {
     function htmlToQuillSafe(html) {
         if (!html) return '';
         try {
+            // Add separating space/colon if closing strong/b tag is directly followed by text so they don't merge
+            html = html.replace(/<\/(strong|b)>([^\s\<\,\.\:\;\!\?\)\}\]\"\'])/gi, '</$1> : $2');
+
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
 
-            // 1. Convert tables into semantic structured blocks so Quill does not delete table rows/cells
+            // 1. Convert tables into clean, readable paragraph lines so Quill natively preserves all rows and data
             const tables = doc.querySelectorAll('table');
             tables.forEach(table => {
-                const container = doc.createElement('blockquote');
-                container.style.borderLeft = '4px solid #C5A059';
-                container.style.background = '#FBF9F5';
-                container.style.padding = '12px 16px';
-                container.style.margin = '16px 0';
-
+                const fragment = doc.createDocumentFragment();
                 const rows = table.querySelectorAll('tr');
+                let headerTexts = [];
                 rows.forEach(tr => {
                     const ths = tr.querySelectorAll('th');
                     const tds = tr.querySelectorAll('td');
-                    const p = doc.createElement('p');
                     if (ths.length > 0) {
-                        p.innerHTML = '<strong>' + Array.from(ths).map(th => th.innerText.trim()).join(' | ') + '</strong>';
-                        container.appendChild(p);
+                        headerTexts = Array.from(ths).map(th => th.innerText.trim());
+                        const p = doc.createElement('p');
+                        p.innerHTML = '<strong>[ ' + headerTexts.join(' | ') + ' ]</strong>';
+                        fragment.appendChild(p);
                     } else if (tds.length > 0) {
-                        p.innerHTML = Array.from(tds).map(td => td.innerHTML.trim()).join(' — ');
-                        container.appendChild(p);
+                        const p = doc.createElement('p');
+                        const cellTexts = Array.from(tds).map(td => td.innerText.trim());
+                        if (headerTexts.length >= cellTexts.length && cellTexts.length >= 2) {
+                            const details = cellTexts.map((txt, i) => {
+                                const h = headerTexts[i] ? `<strong>${headerTexts[i]}:</strong> ` : '';
+                                return `${h}${txt}`;
+                            }).join(' &nbsp;|&nbsp; ');
+                            p.innerHTML = `• ${details}`;
+                        } else {
+                            p.innerHTML = `• <strong>${cellTexts[0] || ''}</strong>: ${cellTexts.slice(1).join(' — ')}`;
+                        }
+                        fragment.appendChild(p);
                     }
                 });
-                table.parentNode.replaceChild(container, table);
+                table.parentNode.replaceChild(fragment, table);
             });
 
             // 2. Protect CTA cards (ensure they have post-cta-card class)
@@ -1367,8 +1377,15 @@ ${instructions}
   4. 완벽한 시맨틱 HTML 본문 (contentHtml):
      - <h2> 소제목과 단락 <p>들
      - 핵심 요약 인용구 <blockquote>
-     - 중요한 정보는 <ul> <li> 리스트로 구조화
-     - Perplexity, ChatGPT 등이 직접 인용하기 좋은 "자주 묻는 질문 (Q&A)" 섹션 (<h2>자주 묻는 질문 (FAQ)</h2>)
+     - [★ 본문 서식 필수 규칙 (절대 준수)]
+       1) <table>(HTML 표) 태그는 절대 사용하지 마세요! 학비, 커리큘럼, 학교 비교 등 모든 수치와 비교 정보는 아래 예시처럼 단락(<p>)과 불릿 기호(•) 및 굵은 글씨(<strong>)를 활용하여 모바일과 웹 에디터에서 완벽하게 호환되는 깔끔한 형식으로 작성하세요:
+          <p><strong>[학년별 연간 학비 안내]</strong></p>
+          <p>• <strong>유치부 (Early Years):</strong> 연간 약 RM 14,000 ~ 18,000 (약 420만 ~ 540만 원)</p>
+          <p>• <strong>초등부 (Primary):</strong> 연간 약 RM 22,000 ~ 28,000 (약 660만 ~ 840만 원)</p>
+          <p>• <strong>중·고등부 (Secondary):</strong> 연간 약 RM 32,000 ~ 38,000 (약 960만 ~ 1,140만 원)</p>
+       2) 번호가 매겨진 절차나 단계는 <strong>1단계: ...</strong> 바로 뒤에 공백과 대시(-) 또는 콜론(:)을 반드시 넣어 본문 설명과 글자가 붙지 않도록 작성하세요:
+          <p><strong>1단계: 입학 원서 접수 및 서류 제출</strong> - 최근 2년간의 생활기록부...</p>
+     - Perplexity, ChatGPT 등이 직접 인용하기 좋은 "자주 묻는 질문 (FAQ)" 섹션 (<h2>자주 묻는 질문 (FAQ)</h2>)
      - 마지막 콜투액션(CTA): 주제에 맞는 맞춤형 1:1 상담 안내 박스 (<div class="post-cta-card" style="background:#FAF8F5; border:1px solid #E5E0D8; border-radius:8px; padding:20px; margin-top:30px;">...</div>) (※ 국제학교 글이거나 숙소 배제 지시가 있는 경우 숙소 예약 유도는 제외하고 학교 입학 및 1:1 현지 상담으로만 유도할 것)
 
 [출력 형식]
@@ -1381,28 +1398,26 @@ ${instructions}
 }
 `;
 
-                // ── STEP 1: Gemini Text Generation with Auto-Fallback ──
-                const candidateTextModels = [
-                    textModel,
-                    'gemini-3.8-flash',
-                    'gemini-3.7-flash',
-                    'gemini-3.5-flash',
-                    'gemini-3.1-pro-preview',
-                    'gemini-flash-latest'
-                ];
-                const uniqueTextModels = [...new Set(candidateTextModels)];
-
+                // ── STEP 1: Gemini Text Generation with Dedicated Retry (No Fallback) ──
+                const targetModel = textModel || 'gemini-3.8-flash';
+                const maxRetries = 4;
                 let rawText = '';
-                let successfulModel = '';
                 let lastError = null;
 
-                for (let i = 0; i < uniqueTextModels.length; i++) {
-                    const currentModel = uniqueTextModels[i];
+                for (let attempt = 1; attempt <= maxRetries; attempt++) {
                     try {
-                        if (i > 0 && progressStepText) {
-                            progressStepText.textContent = `${uniqueTextModels[i - 1]} 일시적 혼잡으로 ${currentModel}(으)로 자동 전환하여 생성 중입니다...`;
+                        if (attempt > 1) {
+                            if (progressStepText) {
+                                progressStepText.textContent = `${targetModel} 최신 플래그십 엔진 접속 중입니다. 잠시 대기 후 재시도합니다... (${attempt}/${maxRetries}회)`;
+                            }
+                            await new Promise(r => setTimeout(r, 3000));
+                        } else {
+                            if (progressStepText) {
+                                progressStepText.textContent = `${targetModel} 최신 플래그십 엔진이 고품질 본문과 Q&A를 작성 중입니다...`;
+                            }
                         }
-                        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
+
+                        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${apiKey}`;
                         const textRes = await fetch(geminiUrl, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -1420,22 +1435,25 @@ ${instructions}
                             const textData = await textRes.json();
                             rawText = textData.candidates?.[0]?.content?.parts?.[0]?.text || '';
                             if (rawText) {
-                                successfulModel = currentModel;
                                 break;
                             }
                         } else {
                             const errData = await textRes.json().catch(() => ({}));
-                            lastError = new Error(`모델 ${currentModel} (${textRes.status}): ${errData.error ? errData.error.message : textRes.statusText}`);
-                            console.warn(`Model ${currentModel} failed (${textRes.status}), trying next fallback...`);
+                            const errMsg = errData.error ? errData.error.message : textRes.statusText;
+                            lastError = new Error(`모델 ${targetModel} (${textRes.status}): ${errMsg}`);
+                            console.warn(`Attempt ${attempt} on ${targetModel} failed (${textRes.status}):`, errMsg);
+                            if (textRes.status !== 429 && textRes.status < 500) {
+                                throw lastError;
+                            }
                         }
                     } catch (netErr) {
                         lastError = netErr;
-                        console.warn(`Network/Fetch error on ${currentModel}:`, netErr.message);
+                        console.warn(`Attempt ${attempt} error on ${targetModel}:`, netErr.message);
                     }
                 }
 
                 if (!rawText) {
-                    throw lastError || new Error('모든 AI 모델에서 일시적 응답 지연이 발생했습니다. 잠시 후 다시 시도해 주세요.');
+                    throw lastError || new Error(`${targetModel} 최신 엔진의 일시적 응답 지연입니다. 잠시 후 다시 시도해 주세요.`);
                 }
 
                 // Strip possible markdown fences
