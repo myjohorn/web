@@ -749,19 +749,16 @@
                     <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">텍스트 모델</label>
                     <select id="aiTextModelSelect" class="form-control" style="font-size: 13px; padding: 8px 10px;">
                         <optgroup label="NVIDIA Build (최상급 품질 추천 ⭐️)">
-                            <option value="nvidia/deepseek-ai/deepseek-v4.1-flash" selected>DeepSeek V4.1 Flash [NVIDIA 최신 플래그십 ⭐️]</option>
-                            <option value="nvidia/google/gemma-4-31b-it">Google Gemma 4 31B [NVIDIA 고지능 ⭐️]</option>
-                            <option value="nvidia/meta/llama-3.2-11b-vision-instruct">Llama 3.2 11B [NVIDIA 경량 실시간]</option>
+                            <option value="nvidia/deepseek-ai/deepseek-v4.1-flash" selected>DeepSeek V4.1 Flash [NVIDIA 고품질 최신 ⭐️]</option>
+                        </optgroup>
+                        <optgroup label="Google AI Studio (Gemini - 최고 정확도/한국어/현지 정보 추천 ⭐️)">
+                            <option value="gemini/gemini-2.5-flash">Gemini 2.5 Flash [안정형 고정밀 무료 ⭐️]</option>
+                            <option value="gemini/gemini-3.7-flash">Gemini 3.7 Flash [Google 최신 고지능]</option>
+                            <option value="gemini/gemini-3.8-flash">Gemini 3.8 Flash [Google 플래그십]</option>
                         </optgroup>
                         <optgroup label="Groq Cloud (상시 무료 / 초고속 ⚡️)">
-                            <option value="groq/openai/gpt-oss-120b">GPT-OSS 120B [Groq 초고속 120B 플래그십 ⚡️]</option>
                             <option value="groq/qwen/qwen3.8-27b">Qwen 3.8 27B [Groq 무료 고지능 ⚡️]</option>
                             <option value="groq/groq/compound">Groq Compound [Groq 복합 추론 ⚡️]</option>
-                        </optgroup>
-                        <optgroup label="Google AI Studio (Gemini)">
-                            <option value="gemini/gemini-3.8-flash">Gemini 3.8 Flash [Google 플래그십]</option>
-                            <option value="gemini/gemini-3.7-flash">Gemini 3.7 Flash [Google 최신 고지능]</option>
-                            <option value="gemini/gemini-2.5-flash">Gemini 2.5 Flash [Google 안정형 무료]</option>
                         </optgroup>
                     </select>
                 </div>
@@ -924,6 +921,6 @@
     <!-- Quill.js Library -->
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <!-- Admin Content & Blog Logic -->
-    <script src="admin-content.js?v=20260922_v3"></script>
+    <script src="admin-content.js?v=20260922_v4"></script>
 </body>
 </html>

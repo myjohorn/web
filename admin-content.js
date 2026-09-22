@@ -1358,37 +1358,60 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // OpenAI-Compatible Generator (NVIDIA NIM, Groq Cloud)
+        // OpenAI-Compatible Generator (NVIDIA NIM via Proxy to bypass CORS, Groq Cloud)
         async function callOpenAICompatible({ endpoint, apiKey, model, prompt, providerName }) {
             const payload = {
                 model: model,
                 messages: [
                     {
                         role: "system",
-                        content: "당신은 말레이시아 조호바루(Johor Bahru) 전문 네이버 프리미엄 블로그 및 구글 검색 최적화(AEO/GEO) 최고 수준의 전문 에디터입니다. 반드시 요청된 JSON 포맷으로만 답변하세요."
+                        content: "당신은 말레이시아 조호바루(Johor Bahru) 현지 6년 거주 전문성을 보유한 네이버 프리미엄 블로그 및 구글/AEO 최고 수준의 전문 에디터입니다. 지리 및 정보의 정확성이 최우선이며, 반드시 요청된 JSON 포맷으로만 답변하세요."
                     },
                     {
                         role: "user",
                         content: prompt
                     }
                 ],
-                temperature: 0.6,
+                temperature: 0.5,
                 max_tokens: 4096
             };
 
             // Non-reasoning models support json_object mode
-            if (!model.includes('deepseek-r1')) {
+            if (!model.includes('deepseek') && !model.includes('r1')) {
                 payload.response_format = { type: "json_object" };
             }
 
-            const res = await fetch(endpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify(payload)
-            });
+            let res;
+            const isNvidia = endpoint.includes('nvidia.com') || providerName === 'NVIDIA';
+
+            // NVIDIA Build API does not send browser CORS headers. Route through Vercel serverless proxy.
+            if (isNvidia) {
+                const proxyUrl = (window.location && window.location.hostname && window.location.hostname.includes('johorn.kr'))
+                    ? '/api/ai-proxy'
+                    : 'https://www.johorn.kr/api/ai-proxy';
+
+                try {
+                    res = await fetch(proxyUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ endpoint, apiKey, payload })
+                    });
+                } catch (proxyErr) {
+                    console.warn('NVIDIA proxy call failed, attempting direct fetch:', proxyErr.message);
+                }
+            }
+
+            // Direct fetch (for Groq Cloud or fallback)
+            if (!res) {
+                res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+            }
 
             if (!res.ok) {
                 const errData = await res.json().catch(() => ({}));
@@ -1502,6 +1525,13 @@ ${instructions ? `[★ 작성 시 특별 요청 / 제약사항 (최우선 반영
      - Perplexity, ChatGPT 등이 직접 인용하기 좋은 "자주 묻는 질문 (FAQ)" 섹션 (<h2>자주 묻는 질문 (FAQ)</h2>)
      - 마지막 콜투액션(CTA): 주제에 맞는 맞춤형 1:1 상담 안내 박스 (<div class="post-cta-card" style="background:#FAF8F5; border:1px solid #E5E0D8; border-radius:8px; padding:20px; margin-top:30px;">...</div>) (※ 국제학교 글이거나 숙소 배제 지시가 있는 경우 숙소 예약 유도는 제외하고 학교 입학 및 1:1 현지 상담으로만 유도할 것)
 
+[조호엔 현지 전문성 및 팩트체크 필수 지침]
+- 지리적 정확성: '수트라' 관련 내용은 코타키나발루의 '수트라하버'가 아니라 조호바루 스쿠다이의 '수트라 몰(Sutera Mall)' 및 '수트라 우타마(Sutera Utama)' 중심 상권입니다.
+- 푸테리하버(Puteri Harbour): 안전하고 깨끗한 해안 신도시로 티가 레지던스, 요트 마리나, 레고랜드 및 국제학교 접근성이 뛰어납니다.
+- 티가 레지던스: 조호엔이 직접 운영하는 풀필터(올필터 수질정화 시스템), 한국 실시간 방송, 전담 클리닝이 완비된 최고 인기 숙소입니다.
+- 에듀시티/이스칸다르 푸테리: 말보로 칼리지, 래플스 아메리칸 스쿨 등 영국/미국 명문 국제학교가 밀집해 있습니다.
+- 맹목적인 과장이나 잘못된 지명 정보를 배제하고 조호엔 6년 현지 거주 실무 노하우 기반의 신뢰할 수 있는 정보를 제공하세요.
+
 [출력 형식]
 반드시 아래 JSON 형식 그대로만 출력하세요 (Markdown 코드 블록 기호 없이 순수 JSON만):
 {
@@ -1526,24 +1556,24 @@ ${instructions ? `[★ 작성 시 특별 요청 / 제약사항 (최우선 반영
                             label: `NVIDIA ${modelName}`
                         });
                     }
-                    // 1차 백업: Groq Cloud (상시 무료 / 초고속)
-                    if (groqKey) {
-                        const groqModel = 'openai/gpt-oss-120b';
-                        executionPlan.push({
-                            provider: 'GROQ',
-                            endpoint: 'https://api.groq.com/openai/v1/chat/completions',
-                            model: groqModel,
-                            apiKey: groqKey,
-                            label: `Groq Cloud GPT-OSS 120B (상시 무료 백업 ⚡️)`
-                        });
-                    }
-                    // 2차 백업: Google Gemini
+                    // 1차 백업: Google Gemini (최고 정확도 / 현지 정보 완벽 / 안정형)
                     if (geminiKey) {
                         executionPlan.push({
                             provider: 'GEMINI',
                             model: 'gemini-2.5-flash',
                             apiKey: geminiKey,
-                            label: 'Google Gemini 2.5 Flash (안정형 무료)'
+                            label: 'Google Gemini 2.5 Flash (고정밀 백업 ⭐️)'
+                        });
+                    }
+                    // 2차 백업: Groq Cloud Qwen 3.8 (초고속 고지능)
+                    if (groqKey) {
+                        const groqModel = 'qwen/qwen3.8-27b';
+                        executionPlan.push({
+                            provider: 'GROQ',
+                            endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+                            model: groqModel,
+                            apiKey: groqKey,
+                            label: `Groq Cloud Qwen 3.8 27B (초고속 무료 백업 ⚡️)`
                         });
                     }
                 } else if (textModel.startsWith('groq/')) {
@@ -1557,7 +1587,16 @@ ${instructions ? `[★ 작성 시 특별 요청 / 제약사항 (최우선 반영
                             label: `Groq ${modelName}`
                         });
                     }
-                    // 1차 백업: NVIDIA
+                    // 1차 백업: Gemini
+                    if (geminiKey) {
+                        executionPlan.push({
+                            provider: 'GEMINI',
+                            model: 'gemini-2.5-flash',
+                            apiKey: geminiKey,
+                            label: 'Google Gemini 2.5 Flash'
+                        });
+                    }
+                    // 2차 백업: NVIDIA
                     if (nvidiaKey) {
                         const nModel = 'deepseek-ai/deepseek-v4.1-flash';
                         executionPlan.push({
@@ -1566,15 +1605,6 @@ ${instructions ? `[★ 작성 시 특별 요청 / 제약사항 (최우선 반영
                             model: nModel,
                             apiKey: nvidiaKey,
                             label: `NVIDIA ${nModel}`
-                        });
-                    }
-                    // 2차 백업: Gemini
-                    if (geminiKey) {
-                        executionPlan.push({
-                            provider: 'GEMINI',
-                            model: 'gemini-2.5-flash',
-                            apiKey: geminiKey,
-                            label: 'Google Gemini 2.5 Flash'
                         });
                     }
                 } else {
@@ -1596,14 +1626,14 @@ ${instructions ? `[★ 작성 시 특별 요청 / 제약사항 (최우선 반영
                             });
                         }
                     }
-                    // 백업: Groq Cloud
+                    // 백업: Groq Cloud Qwen 3.8
                     if (groqKey) {
                         executionPlan.push({
                             provider: 'GROQ',
                             endpoint: 'https://api.groq.com/openai/v1/chat/completions',
-                            model: 'openai/gpt-oss-120b',
+                            model: 'qwen/qwen3.8-27b',
                             apiKey: groqKey,
-                            label: 'Groq GPT-OSS 120B (상시 무료 백업 ⚡️)'
+                            label: 'Groq Qwen 3.8 27B (상시 무료 백업 ⚡️)'
                         });
                     }
                 }
