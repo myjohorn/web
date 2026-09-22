@@ -1400,8 +1400,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const data = await res.json();
-            let text = data.choices?.[0]?.message?.content || '';
-            // Strip DeepSeek R1 reasoning tags if present
+            let text = data.choices?.[0]?.message?.content || data.choices?.[0]?.message?.reasoning_content || '';
+            // Strip DeepSeek reasoning tags if present
             text = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
             return text;
         }
@@ -1457,7 +1457,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const category = categorySelect ? categorySelect.value : '국제학교';
             const keywords = keywordsInput ? keywordsInput.value.trim() : '';
             const instructions = instructionsInput ? instructionsInput.value.trim() : '';
-            const textModel = (textModelSelect && textModelSelect.value) ? textModelSelect.value : 'nvidia/meta/llama-3.3-70b-instruct';
+            const textModel = (textModelSelect && textModelSelect.value) ? textModelSelect.value : 'nvidia/deepseek-ai/deepseek-v4.1-flash';
             const imageModel = (imageModelSelect && imageModelSelect.value) ? imageModelSelect.value : 'imagen-4.0-generate';
             const shouldGenImage = genImageCheck ? genImageCheck.checked : true;
             const imageStyle = imageStyleSelect ? imageStyleSelect.value : 'photorealistic';
