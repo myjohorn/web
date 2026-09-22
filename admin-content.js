@@ -1528,13 +1528,13 @@ ${instructions ? `[★ 작성 시 특별 요청 / 제약사항 (최우선 반영
                     }
                     // 1차 백업: Groq Cloud (상시 무료 / 초고속)
                     if (groqKey) {
-                        const groqModel = modelName.includes('deepseek') ? 'deepseek-r1-distill-llama-70b' : 'llama-3.3-70b-versatile';
+                        const groqModel = 'openai/gpt-oss-120b';
                         executionPlan.push({
                             provider: 'GROQ',
                             endpoint: 'https://api.groq.com/openai/v1/chat/completions',
                             model: groqModel,
                             apiKey: groqKey,
-                            label: `Groq Cloud ${groqModel} (상시 무료 백업 ⚡️)`
+                            label: `Groq Cloud GPT-OSS 120B (상시 무료 백업 ⚡️)`
                         });
                     }
                     // 2차 백업: Google Gemini
@@ -1559,7 +1559,7 @@ ${instructions ? `[★ 작성 시 특별 요청 / 제약사항 (최우선 반영
                     }
                     // 1차 백업: NVIDIA
                     if (nvidiaKey) {
-                        const nModel = modelName.includes('deepseek') ? 'deepseek-ai/deepseek-r1' : 'meta/llama-3.3-70b-instruct';
+                        const nModel = 'deepseek-ai/deepseek-v4.1-flash';
                         executionPlan.push({
                             provider: 'NVIDIA',
                             endpoint: 'https://integrate.api.nvidia.com/v1/chat/completions',
@@ -1601,9 +1601,9 @@ ${instructions ? `[★ 작성 시 특별 요청 / 제약사항 (최우선 반영
                         executionPlan.push({
                             provider: 'GROQ',
                             endpoint: 'https://api.groq.com/openai/v1/chat/completions',
-                            model: 'llama-3.3-70b-versatile',
+                            model: 'openai/gpt-oss-120b',
                             apiKey: groqKey,
-                            label: 'Groq Llama 3.3 70B (상시 무료 백업 ⚡️)'
+                            label: 'Groq GPT-OSS 120B (상시 무료 백업 ⚡️)'
                         });
                     }
                 }
