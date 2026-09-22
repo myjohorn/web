@@ -676,7 +676,7 @@
             <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px 18px; margin-bottom: 18px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
                     <div style="font-size: 13px; font-weight: 700; color: #1E293B; display: flex; align-items: center; gap: 8px;">
-                        <i class="fa-solid fa-microchip" style="color: #4F46E5;"></i> 멀티 AI 엔진 API 키 설정 (NVIDIA + Groq + Google)
+                        <i class="fa-solid fa-microchip" style="color: #4F46E5;"></i> 멀티 AI 엔진 API 키 설정 (Google AI Studio + NVIDIA Build)
                     </div>
                     <button type="button" id="saveAllAiKeysBtn" class="btn btn-secondary" style="padding: 6px 14px; font-size: 12px; font-weight: 700; background: #4F46E5; color: white; border: none; border-radius: 6px;">
                         <i class="fa-solid fa-floppy-disk"></i> API 키 일괄 저장
@@ -684,11 +684,27 @@
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Google AI Studio Key (Primary) -->
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <label style="font-size: 11px; font-weight: 700; color: #334155; margin: 0; display: flex; align-items: center; gap: 5px;">
+                                <i class="fa-brands fa-google" style="color: #4285F4;"></i> 1. Google AI Studio Key (Gemini 본문 작성 & Imagen 3 썸네일 - 팩트 최고 정확도 / 적극 추천 ⭐️)
+                            </label>
+                            <span id="geminiKeyBadge" style="font-size: 10px; padding: 1px 7px; border-radius: 8px; font-weight: 600; background: #FEE2E2; color: #DC2626;">미등록</span>
+                        </div>
+                        <div style="position: relative;">
+                            <input type="password" id="geminiApiKeyInput" class="form-control" placeholder="AIzaSy... (Google AI Studio에서 발급받은 키)" style="font-size: 12px; padding: 6px 32px 6px 8px; font-family: monospace;">
+                            <button type="button" id="toggleApiKeyVisibilityBtn" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94A3B8; cursor: pointer; font-size: 12px;">
+                                <i class="fa-solid fa-eye" id="apiKeyEyeIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- NVIDIA Build Key -->
                     <div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                             <label style="font-size: 11px; font-weight: 700; color: #334155; margin: 0; display: flex; align-items: center; gap: 5px;">
-                                <i class="fa-solid fa-microchip" style="color: #76B900;"></i> 1. NVIDIA Build Key (Llama 3.3 70B & DeepSeek R1 최고품질 ⭐️)
+                                <i class="fa-solid fa-microchip" style="color: #76B900;"></i> 2. NVIDIA Build Key (Meta Llama 3.3 70B & Mistral Large 700억급 고지능 ⭐️)
                             </label>
                             <span id="nvidiaKeyBadge" style="font-size: 10px; padding: 1px 7px; border-radius: 8px; font-weight: 600; background: #FEE2E2; color: #DC2626;">미등록</span>
                         </div>
@@ -699,84 +715,62 @@
                             </button>
                         </div>
                     </div>
-
-                    <!-- Groq Cloud Key -->
-                    <div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                            <label style="font-size: 11px; font-weight: 700; color: #334155; margin: 0; display: flex; align-items: center; gap: 5px;">
-                                <i class="fa-solid fa-bolt" style="color: #F55036;"></i> 2. Groq Cloud Key (상시 무료 초고속 백업 / 일일 리셋 ⚡️)
-                            </label>
-                            <span id="groqKeyBadge" style="font-size: 10px; padding: 1px 7px; border-radius: 8px; font-weight: 600; background: #FEE2E2; color: #DC2626;">미등록</span>
-                        </div>
-                        <div style="position: relative;">
-                            <input type="password" id="groqApiKeyInput" class="form-control" placeholder="gsk_... (Groq Cloud에서 발급받은 무료 키)" style="font-size: 12px; padding: 6px 32px 6px 8px; font-family: monospace;">
-                            <button type="button" id="toggleGroqKeyVisibilityBtn" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94A3B8; cursor: pointer; font-size: 12px;">
-                                <i class="fa-solid fa-eye" id="groqEyeIcon"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Google AI Studio Key -->
-                    <div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                            <label style="font-size: 11px; font-weight: 700; color: #334155; margin: 0; display: flex; align-items: center; gap: 5px;">
-                                <i class="fa-brands fa-google" style="color: #4285F4;"></i> 3. Google AI Studio Key (Imagen 3 썸네일 이미지 & Gemini 보조)
-                            </label>
-                            <span id="geminiKeyBadge" style="font-size: 10px; padding: 1px 7px; border-radius: 8px; font-weight: 600; background: #FEE2E2; color: #DC2626;">미등록</span>
-                        </div>
-                        <div style="position: relative;">
-                            <input type="password" id="geminiApiKeyInput" class="form-control" placeholder="AIzaSy... (Google AI Studio 발급 키)" style="font-size: 12px; padding: 6px 32px 6px 8px; font-family: monospace;">
-                            <button type="button" id="toggleApiKeyVisibilityBtn" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94A3B8; cursor: pointer; font-size: 12px;">
-                                <i class="fa-solid fa-eye" id="apiKeyEyeIcon"></i>
-                            </button>
-                        </div>
-                    </div>
                 </div>
 
                 <div style="font-size: 11px; color: #64748B; margin-top: 8px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
                     <span>* 키는 브라우저 및 관리자 데이터베이스에 안전하게 동기화 보관됩니다.</span>
-                    <div style="display: flex; gap: 10px;">
-                        <a href="https://build.nvidia.com/" target="_blank" style="color: #76B900; text-decoration: underline; font-weight: 600;">NVIDIA 키 발급</a>
-                        <a href="https://console.groq.com/keys" target="_blank" style="color: #F55036; text-decoration: underline; font-weight: 600;">Groq 무료 키 발급</a>
-                        <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #4285F4; text-decoration: underline; font-weight: 600;">Google 키 발급</a>
+                    <div style="display: flex; gap: 12px;">
+                        <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #4285F4; text-decoration: underline; font-weight: 600;">Google AI Studio 무료 키 발급 ⭐️</a>
+                        <a href="https://build.nvidia.com/" target="_blank" style="color: #76B900; text-decoration: underline; font-weight: 600;">NVIDIA Build 키 발급</a>
                     </div>
                 </div>
             </div>
 
-            <!-- 2. AI Model Selector & Category Row -->
-            <div style="display: grid; grid-template-columns: 1.2fr 1fr 0.8fr; gap: 12px; margin-bottom: 16px;">
+            <!-- 2. AI Model Selector, Writing Style & Category Row -->
+            <div style="display: grid; grid-template-columns: 1.1fr 0.9fr 1.1fr 0.9fr; gap: 10px; margin-bottom: 16px;">
                 <div class="form-group" style="margin: 0;">
-                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">텍스트 모델</label>
-                    <select id="aiTextModelSelect" class="form-control" style="font-size: 13px; padding: 8px 10px;">
-                        <optgroup label="NVIDIA Build (최상급 품질 추천 ⭐️)">
-                            <option value="nvidia/deepseek-ai/deepseek-v4.1-flash" selected>DeepSeek V4.1 Flash [NVIDIA 고품질 최신 ⭐️]</option>
-                        </optgroup>
-                        <optgroup label="Google AI Studio (Gemini - 최고 정확도/한국어/현지 정보 추천 ⭐️)">
-                            <option value="gemini/gemini-2.5-flash">Gemini 2.5 Flash [안정형 고정밀 무료 ⭐️]</option>
-                            <option value="gemini/gemini-3.7-flash">Gemini 3.7 Flash [Google 최신 고지능]</option>
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">텍스트 AI 모델</label>
+                    <select id="aiTextModelSelect" class="form-control" style="font-size: 12px; padding: 7px 8px;">
+                        <optgroup label="Google AI Studio (Gemini - 조호바루 팩트 최고 정확도 & 신뢰성 ⭐️)">
+                            <option value="gemini/gemini-2.5-flash" selected>Gemini 2.5 Flash [안정형 고정밀 & 신뢰도 최상 - 추천 ⭐️]</option>
+                            <option value="gemini/gemini-3.7-flash">Gemini 3.7 Flash [Google 최신 고지능 사고력 ⭐️]</option>
+                            <option value="gemini/gemini-2.5-pro">Gemini 2.5 Pro [심층 분석 & 최고 추론 품질]</option>
                             <option value="gemini/gemini-3.8-flash">Gemini 3.8 Flash [Google 플래그십]</option>
                         </optgroup>
-                        <optgroup label="Groq Cloud (상시 무료 / 초고속 ⚡️)">
-                            <option value="groq/qwen/qwen3.8-27b">Qwen 3.8 27B [Groq 무료 고지능 ⚡️]</option>
-                            <option value="groq/groq/compound">Groq Compound [Groq 복합 추론 ⚡️]</option>
+                        <optgroup label="NVIDIA Build (Meta & Mistral 70B급 고지능 ⭐️)">
+                            <option value="nvidia/meta/llama-3.3-70b-instruct">Meta Llama 3.3 70B [Meta 700억 파라미터 / 팩트 신뢰도 ⭐️]</option>
+                            <option value="nvidia/mistralai/mistral-large-2411">Mistral Large 2411 [유럽 최고 지능 모델]</option>
+                            <option value="nvidia/deepseek-ai/deepseek-v3">DeepSeek V3 [NVIDIA 671B 대형 모델]</option>
                         </optgroup>
-                    </select>
-                </div>
-                <div class="form-group" style="margin: 0;">
-                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">이미지 생성 모델</label>
-                    <select id="aiImageModelSelect" class="form-control" style="font-size: 13px; padding: 8px 10px;">
-                        <option value="imagen-3.0-generate-002" selected>Google Imagen 3 (정식 고화질/추천)</option>
-                        <option value="imagen-4.0-generate">Google Imagen 4 (차세대 실사)</option>
                     </select>
                 </div>
                 <div class="form-group" style="margin: 0;">
                     <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">카테고리</label>
-                    <select id="aiPostCategory" class="form-control" style="font-size: 13px; padding: 8px 10px;">
+                    <select id="aiPostCategory" class="form-control" style="font-size: 12px; padding: 7px 8px;">
                         <option value="국제학교">국제학교 소식</option>
                         <option value="이주정착">이주정착 가이드</option>
                         <option value="생활정보">조호바루 생활정보</option>
                         <option value="숙소여행">숙소 &amp; 여행</option>
                         <option value="공지사항">공지사항</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin: 0;">
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px; color: #4F46E5;">
+                        <i class="fa-solid fa-pen-nib"></i> 글 전개 방식 (스토리텔링)
+                    </label>
+                    <select id="aiWritingStyleSelect" class="form-control" style="font-size: 12px; padding: 7px 8px; border-color: #A5B4FC; font-weight: 600;">
+                        <option value="dynamic" selected>자유로운 현지 에디터 톤 (자연스러운 맞춤 흐름 ⭐️)</option>
+                        <option value="story">생생한 현장 체험 &amp; 후기형 (경험담 스토리텔링)</option>
+                        <option value="qna">솔직 담백한 고민 해결형 (궁금증/불안 즉답 &amp; 공감)</option>
+                        <option value="practical">실속 비교 &amp; 알짜 가이드형 (핵심 팩트 정리)</option>
+                        <option value="column">따뜻한 현지 라이프 에세이 (친근한 대화형 컬럼)</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin: 0;">
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">AI 이미지 엔진</label>
+                    <select id="aiImageModelSelect" class="form-control" style="font-size: 12px; padding: 7px 8px;">
+                        <option value="imagen-3.0-generate-002" selected>Google Imagen 3 (정식 추천)</option>
+                        <option value="imagen-4.0-generate">Google Imagen 4 (차세대 실사)</option>
                     </select>
                 </div>
             </div>
@@ -837,17 +831,34 @@
                 </div>
             </div>
 
-            <!-- 6. Imagen 4 Options -->
-            <div style="background: #FAF5FF; border: 1px solid #E9D5FF; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: #6B21A8; margin: 0;">
-                    <input type="checkbox" id="aiGenImageCheck" checked style="width: 16px; height: 16px; accent-color: #7C3AED;">
-                    <span>Google Imagen 4 고화질 대표 썸네일 및 본문 이미지 자동 생성</span>
-                </label>
-                <select id="aiImageStyleSelect" class="form-control" style="font-size: 12px; width: auto; padding: 6px 10px; background: #fff; border-color: #D8B4FE;">
-                    <option value="photorealistic" selected>스타일: 포토리얼리스틱 실사 (Photorealistic)</option>
-                    <option value="luxury_interior">스타일: 모던 럭셔리 인테리어 (Modern Luxury)</option>
-                    <option value="sunny_drone">스타일: 화창한 드론 항공뷰 (Sunny Aerial View)</option>
-                </select>
+            <!-- 6. Thumbnail Image Strategy Controls -->
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px 16px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                    <label style="font-size: 12px; font-weight: 700; color: #1E293B; margin: 0; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-image" style="color: #7C3AED;"></i> 대표 썸네일 이미지 전략
+                    </label>
+                    <span style="font-size: 11px; color: #64748B;">글 주제와 100% 일치하는 시각 자료를 배치합니다</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 10px;">
+                    <div>
+                        <select id="aiImageSourceMode" class="form-control" style="font-size: 12px; padding: 8px 10px; font-weight: 600; color: #1E293B; border-color: #CBD5E1;">
+                            <option value="smart_photo" selected>✨ [강력 추천] 주제 맞춤 고화질 실사 매칭 (조호엔 실사 &amp; 정밀 큐레이션)</option>
+                            <option value="ai_imagen">🎨 Google Imagen AI 실사 생성 (주제 맞춤 정밀 렌더링)</option>
+                            <option value="none">🚫 이미지 자동 생성 안 함 (작성 후 수동 지정)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <select id="aiImageStyleSelect" class="form-control" style="font-size: 12px; padding: 8px 10px; background: #fff; border-color: #CBD5E1;">
+                            <option value="photorealistic" selected>비주얼: 현장감 넘치는 생생한 실사 포토</option>
+                            <option value="modern_editorial">비주얼: 모던 감성 에디토리얼 / 비즈니스</option>
+                            <option value="warm_interior">비주얼: 아늑하고 따뜻한 공간 / 인테리어</option>
+                            <option value="sunny_aerial">비주얼: 화창한 스카이라인 / 항공뷰</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="font-size: 11px; color: #64748B; margin-top: 6px;">
+                    * <strong>주제 맞춤 실사 매칭</strong>을 선택하시면 실제 조호바루 학교, 상담, 숙소, 도심 사진이 100% 어울리게 자동 배치되어 엉뚱한 가상 이미지를 방지합니다.
+                </div>
             </div>
 
             <!-- 6. Generate Action Button & Progress Indicator -->

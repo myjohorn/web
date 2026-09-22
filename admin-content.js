@@ -635,7 +635,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ── Themed High-Definition Visual Image Pool ──
+    // ── Themed High-Definition Visual Image Pool (Genuine JohorN Assets & Curated HD Photos) ──
     const JOHORN_IMAGE_POOLS = {
         school: [
             { url: 'assets/admission_consult.jpg', title: '국제학교 입학 1:1 심층 상담' },
@@ -644,14 +644,14 @@ document.addEventListener('DOMContentLoaded', () => {
             { url: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=80', title: '현대적인 국제학교 친환경 캠퍼스 전경' },
             { url: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=80', title: '최신 스마트 교실과 인터랙티브 수업' },
             { url: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80', title: '글로벌 학생들의 활기찬 캠퍼스 라이프' },
-            { url: 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=1200&q=80', title: '국제학교 도서관 & 자기주도 학습 센터' }
+            { url: 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=1200&q=80', title: '국제학교 도서관 & 자기주도 학습 공간' }
         ],
-        marina: [
-            { url: 'assets/stay_balcony.jpg', title: '티가 레지던스 테라스 파노라마 오션뷰' },
-            { url: 'assets/20251130-22.jpg', title: '푸테리하버 마리나 요트 선착장 & 바다' },
-            { url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80', title: '에메랄드빛 바다와 싱그러운 열대 해변' },
-            { url: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80', title: '푸테리하버 워터프론트 럭셔리 단지' },
-            { url: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1200&q=80', title: '마리나 요트 클럽과 맑은 푸른 하늘' }
+        visa_consult: [
+            { url: 'assets/admission_ready.jpg', title: '말레이시아 비자 공증 및 이민성 접수 서류' },
+            { url: 'assets/admission_consult.jpg', title: '조호엔 1:1 현지 이주정착 & 비자 전문 상담' },
+            { url: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=1200&q=80', title: '전문적이고 신뢰할 수 있는 해외 정착 컨설팅 데스크' },
+            { url: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=1200&q=80', title: '여권 및 비자 신청 서류 검토' },
+            { url: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1200&q=80', title: '고객 맞춤형 1:1 정착 케어' }
         ],
         stay: [
             { url: 'assets/teega_living.jpg', title: '티가 레지던스 넓고 화사한 거실 인테리어' },
@@ -659,12 +659,14 @@ document.addEventListener('DOMContentLoaded', () => {
             { url: 'assets/stay_bedroom.jpg', title: '채광 좋은 프라이빗 침실' },
             { url: 'assets/stay_room1.jpg', title: '모던 프리미엄 다이닝 & 키친' },
             { url: 'assets/stay_room2.jpg', title: '여유로운 수납과 깔끔한 구조' },
+            { url: 'assets/stay_balcony.jpg', title: '티가 레지던스 발코니 파노라마 오션뷰' },
             { url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80', title: '화이트톤 럭셔리 레지던스 리빙룸' },
             { url: 'https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=1200&q=80', title: '통창 너머 햇살이 가득한 모던 하우스' }
         ],
         resort: [
             { url: 'assets/teega_exterior.jpg', title: '티가 레지던스 외관 & 열대 조경' },
             { url: 'assets/stay_exterior.jpg', title: '워터프론트 하이엔드 레지던스' },
+            { url: 'assets/20251130-22.jpg', title: '푸테리하버 마리나 요트 선착장 & 바다' },
             { url: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80', title: '야자수와 대형 인피니티 풀 휴양 시설' },
             { url: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1200&q=80', title: '조호바루 고급 리조트 라이프스타일' }
         ],
@@ -673,39 +675,69 @@ document.addEventListener('DOMContentLoaded', () => {
             { url: 'assets/stay_car2.jpg', title: '싱가포르-조호바루 픽업 & 일일 투어 전용차' },
             { url: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1200&q=80', title: '쾌적하고 안전한 패밀리 차량 이동' }
         ],
-        city: [
+        cafe_dining: [
+            { url: 'assets/DDepeGgSal-.jpg', title: '조호바루 감성 브런치 & 레스토랑' },
+            { url: 'assets/DDT4SoJyvNo.jpg', title: '조호바루 현지 생활 편의 & 다이닝' },
+            { url: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1200&q=80', title: '여유로운 햇살 가득한 조호바루 카페 테라스' },
+            { url: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1200&q=80', title: '따뜻한 모던 브런치 & 커피' }
+        ],
+        city_lifestyle: [
             { url: 'assets/C96kGbEyw58.jpg', title: '조호바루 이스칸다르 푸트리 도심 풍경' },
             { url: 'assets/C9866JiSgxH.jpg', title: '푸테리하버 카페거리 & 쇼핑 산책로' },
-            { url: 'assets/DDepeGgSal-.jpg', title: '조호바루 감성 브런치 & 레스토랑' },
-            { url: 'assets/DDT4SoJyvNo.jpg', title: '조호바루 현지 생활 편의시설' },
-            { url: 'https://images.unsplash.com/photo-1477959858617-67f30bc75b82?auto=format&fit=crop&w=1200&q=80', title: '조호바루의 활기찬 도시 스카이라인' }
+            { url: 'https://images.unsplash.com/photo-1477959858617-67f30bc75b82?auto=format&fit=crop&w=1200&q=80', title: '조호바루 신도시의 활기찬 스카이라인' },
+            { url: 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1200&q=80', title: '안전하고 깨끗한 이스칸다르 푸테리 주거 단지' }
+        ],
+        medical_living: [
+            { url: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1200&q=80', title: '글렌이글스 메디니 수준의 최신 종합 병원 의료 시설' },
+            { url: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=1200&q=80', title: '친절하고 쾌적한 현지 의료 상담 및 헬스케어' }
         ]
     };
 
     function getSmartThemedImage(query = '', category = '', style = '', avoidUrl = '') {
         const text = ((query || '') + ' ' + (category || '') + ' ' + (style || '')).toLowerCase();
-        let targetKey = 'marina';
+        
+        // Define keyword scoring profiles
+        const profiles = {
+            school: ['학교', '말보로', '래플스', '썬웨이', '크레센도', '페어뷰', '입학', '교실', '학습', 'cat4', 'school', '학비', '캠퍼스', '선생', '학생', '영어', '수업', '교육', '국제학교', 'mcm', 'ras', 'sis'],
+            visa_consult: ['비자', '가디언', '학생비자', '여권', '공증', '서류', '이민성', 'moe', 'emgs', '상담', '수속', '정착', '컨설팅', '오퍼레터', '이주', '신체검사', 'visa', 'passport'],
+            car: ['차량', '렌트', '카니발', '스타렉스', '교통', '픽업', '공항', '국경', '코즈웨이', '세컨링크', '투아스', '그랩', 'car', '운전'],
+            stay: ['거실', '침실', '인테리어', '레지던스', '아파트', '숙소', '티가', 'teega', '룸', '한달살기', '수질', '필터', 'stay', 'room', 'interior'],
+            resort: ['수영장', '인피니티', '풀', '호캉스', '리조트', '휴양', '외관', '바다', '요트', '마리나', 'beach', 'pool', 'resort'],
+            cafe_dining: ['카페', '맛집', '브런치', '식당', '음식', '커피', '레스토랑', '다이닝', 'cafe', 'food', 'coffee', '먹거리', '외식'],
+            medical_living: ['병원', '의료', '약국', '글렌이글스', '컬럼비아', '응급실', '치과', '건강', 'medical', 'hospital', 'doctor', 'clinic'],
+            city_lifestyle: ['도심', '쇼핑', '마트', '빅박스', '이온몰', '수트라', '생활', '치안', '인프라', '푸테리', '메디니', 'city', 'mall', 'street', '도시']
+        };
 
-        if (text.includes('학교') || text.includes('말보로') || text.includes('래플스') || text.includes('썬웨이') || text.includes('입학') || text.includes('교실') || text.includes('학습') || text.includes('cat4') || text.includes('school')) {
-            targetKey = 'school';
-        } else if (text.includes('수영장') || text.includes('인피니티') || text.includes('풀') || text.includes('호캉스') || text.includes('리조트') || text.includes('외관') || text.includes('exterior')) {
-            targetKey = 'resort';
-        } else if (text.includes('거실') || text.includes('침실') || text.includes('인테리어') || text.includes('레지던스') || text.includes('아파트') || text.includes('숙소') || text.includes('interior') || text.includes('room')) {
-            targetKey = 'stay';
-        } else if (text.includes('차량') || text.includes('렌트') || text.includes('카니발') || text.includes('스타렉스') || text.includes('교통') || text.includes('픽업') || text.includes('공항') || text.includes('car')) {
-            targetKey = 'car';
-        } else if (text.includes('도심') || text.includes('이주') || text.includes('정착') || text.includes('생활') || text.includes('쇼핑') || text.includes('마트') || text.includes('city') || text.includes('street')) {
-            targetKey = 'city';
-        } else {
-            targetKey = 'marina';
+        let bestTheme = '';
+        let maxScore = 0;
+
+        for (const [theme, keywords] of Object.entries(profiles)) {
+            let score = 0;
+            for (const kw of keywords) {
+                if (text.includes(kw)) score += kw.length > 2 ? 2 : 1;
+            }
+            if (score > maxScore) {
+                maxScore = score;
+                bestTheme = theme;
+            }
         }
 
-        const pool = JOHORN_IMAGE_POOLS[targetKey] || JOHORN_IMAGE_POOLS.marina;
+        // Semantic category fallback if keyword match score is too low
+        if (maxScore < 2) {
+            const cat = (category || '').toLowerCase();
+            if (cat.includes('학교')) bestTheme = 'school';
+            else if (cat.includes('정착') || cat.includes('비자')) bestTheme = 'visa_consult';
+            else if (cat.includes('숙소') || cat.includes('여행')) bestTheme = 'stay';
+            else if (cat.includes('생활')) bestTheme = 'city_lifestyle';
+            else bestTheme = 'school'; // default fallback for education/general
+        }
+
+        const pool = JOHORN_IMAGE_POOLS[bestTheme] || JOHORN_IMAGE_POOLS.school;
         let candidates = pool.filter(item => item.url !== avoidUrl);
         if (candidates.length === 0) candidates = pool;
 
         const selected = candidates[Math.floor(Math.random() * candidates.length)];
-        return { ...selected, theme: targetKey };
+        return { ...selected, theme: bestTheme };
     }
 
     // Helper to safely convert rich HTML into Quill-compatible format without losing table, card, or text data
@@ -1192,6 +1224,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const textModelSelect = document.getElementById('aiTextModelSelect');
         const imageModelSelect = document.getElementById('aiImageModelSelect');
         const categorySelect = document.getElementById('aiPostCategory');
+        const writingStyleSelect = document.getElementById('aiWritingStyleSelect');
+        const imageSourceModeSelect = document.getElementById('aiImageSourceMode');
         const topicChips = document.querySelectorAll('#aiQuickTopicChips .ai-topic-chip');
         const topicInput = document.getElementById('aiTopicInput');
         const keywordsInput = document.getElementById('aiKeywordsInput');
@@ -1460,13 +1494,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Generate Post Execution
         async function runGeneration() {
-            const nvidiaKey = (nvidiaKeyInput ? nvidiaKeyInput.value.trim() : '') || localStorage.getItem('johorn_nvidia_api_key') || '';
-            const groqKey = (groqKeyInput ? groqKeyInput.value.trim() : '') || localStorage.getItem('johorn_groq_api_key') || '';
             const geminiKey = (apiKeyInput ? apiKeyInput.value.trim() : '') || localStorage.getItem('johorn_gemini_api_key') || '';
+            const nvidiaKey = (nvidiaKeyInput ? nvidiaKeyInput.value.trim() : '') || localStorage.getItem('johorn_nvidia_api_key') || '';
 
-            if (!nvidiaKey && !groqKey && !geminiKey) {
-                alert('AI 글 생성을 위해 최소 1개 이상의 API 키(NVIDIA Build, Groq Cloud, 또는 Google AI Studio)를 상단에 입력하고 저장해 주세요.');
-                if (nvidiaKeyInput) nvidiaKeyInput.focus();
+            if (!geminiKey && !nvidiaKey) {
+                alert('AI 글 생성을 위해 API 키(Google AI Studio 또는 NVIDIA Build)를 상단에 입력하고 저장해 주세요.\n(특히 조호바루 현지 팩트 일치도와 신뢰성이 가장 높은 Google AI Studio 키를 적극 권장합니다)');
+                if (apiKeyInput) apiKeyInput.focus();
                 return;
             }
 
@@ -1480,9 +1513,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const category = categorySelect ? categorySelect.value : '국제학교';
             const keywords = keywordsInput ? keywordsInput.value.trim() : '';
             const instructions = instructionsInput ? instructionsInput.value.trim() : '';
-            const textModel = (textModelSelect && textModelSelect.value) ? textModelSelect.value : 'nvidia/deepseek-ai/deepseek-v4.1-flash';
-            const imageModel = (imageModelSelect && imageModelSelect.value) ? imageModelSelect.value : 'imagen-4.0-generate';
-            const shouldGenImage = genImageCheck ? genImageCheck.checked : true;
+            const writingStyle = (writingStyleSelect && writingStyleSelect.value) ? writingStyleSelect.value : 'dynamic';
+            const imageSourceMode = (imageSourceModeSelect && imageSourceModeSelect.value) ? imageSourceModeSelect.value : 'smart_photo';
+            const textModel = (textModelSelect && textModelSelect.value) ? textModelSelect.value : 'gemini/gemini-2.5-flash';
+            const imageModel = (imageModelSelect && imageModelSelect.value) ? imageModelSelect.value : 'imagen-3.0-generate-002';
             const imageStyle = imageStyleSelect ? imageStyleSelect.value : 'photorealistic';
 
             // UI State: Loading Progress
@@ -1491,9 +1525,66 @@ document.addEventListener('DOMContentLoaded', () => {
             if (resultArea) resultArea.style.display = 'none';
             if (progressBox) progressBox.style.display = 'block';
             if (progressBar) progressBar.style.width = '20%';
-            if (progressStepText) progressStepText.textContent = `AEO/GEO에 최적화된 고품질 콘텐츠 엔진을 준비 중입니다...`;
+            if (progressStepText) progressStepText.textContent = `다채로운 스토리텔링과 현지 팩트 기반 콘텐츠 엔진을 준비 중입니다...`;
 
             try {
+                // Style directive according to writingStyle
+                let styleDirective = '';
+                if (writingStyle === 'story') {
+                    styleDirective = `
+[★ 글 전개 방식: 생생한 현장 체험 & 후기형 스토리텔링]
+- 전형적인 AI 개요식 설명문을 탈피하세요. 학부모나 현지 거주자가 실제 발로 뛰며 체감한 생생한 에피소드로 글을 시작하세요.
+- 교문에 들어섰을 때의 첫인상, 아이의 반응, 현지 날씨와 거리 분위기, 겪었던 시행착오 등을 따뜻한 1인칭 관찰자 어조로 풀어내어 독자의 깊은 공감을 이끌어내세요.
+- 억지스러운 FAQ나 정형화된 서식 대신, 이야기의 자연스러운 호흡 속에 실질적인 팁과 유용한 팩트를 유기적으로 녹여내세요.`;
+                } else if (writingStyle === 'qna') {
+                    styleDirective = `
+[★ 글 전개 방식: 솔직 담백한 고민 해결형 (궁금증 즉답 & 공감)]
+- 학부모나 이주를 고민하는 분들이 밤마다 맘카페나 검색창을 두드리며 가장 불안해하는 현실적인 질문 하나(예: "영어를 못하는 아이인데 국제학교 입학이 진짜 될까요?", "현지 치안이나 병원은 안전할까요?")를 서두에 던지며 시작하세요.
+- 겉치레나 막연한 장점만 나열하지 말고, 6년 차 현지 실무자의 입장에서 현실적인 한계와 이를 극복하는 구체적인 해법을 시원하고 솔직하게 제시하세요.`;
+                } else if (writingStyle === 'practical') {
+                    styleDirective = `
+[★ 글 전개 방식: 실속 비교 & 알짜 팩트 집중형]
+- 미사여구를 줄이고, 독자가 실제로 메모하고 스크랩해두고 싶을 만큼 실용적인 팩트와 가이드에 집중하세요.
+- 학비(RM 및 한화 환산), 커리큘럼별 차이점, 비자 수속 단계별 필수 서류 등 명확한 수치와 체크리스트 형태로 군더더기 없이 깔끔하게 정리하세요.`;
+                } else if (writingStyle === 'column') {
+                    styleDirective = `
+[★ 글 전개 방식: 따뜻한 현지 라이프 에세이 / 친근한 대화형 컬럼]
+- 독자와 조호바루의 한적한 카페 테라스에 마주 앉아 따뜻한 커피 한 잔 나누며 이야기하듯 친근하고 다정한 문체로 작성하세요.
+- 여유로운 일상의 풍경, 아이들이 자연 속에서 웃는 모습, 현지에서의 삶에 대한 진솔한 생각들을 곁들여 마음에 와닿는 여운을 남겨주세요.`;
+                } else {
+                    styleDirective = `
+[★ 글 전개 방식: 자유로운 현지 전문 에디터 톤 (다채롭고 매력적인 맞춤 흐름)]
+- 모든 글이 똑같은 템플릿(H1 -> 1줄요약 -> 소제목3개 -> FAQ -> CTA)으로 찍혀 나오는 기계적이고 지루한 구조를 엄격히 금지합니다!
+- 주제의 성격에 맞추어 가장 몰입도 높고 흥미로운 독자 맞춤형 흐름(호기심을 끄는 질문, 현장 스케치, 솔직한 현실 조언 등)을 자유롭게 구성하세요.
+- FAQ나 소제목 개수도 획일화하지 말고 글의 자연스러운 흐름에 맞춰 필요한 부분만 유기적으로 배치하세요.`;
+                }
+
+                // Domain knowledge injection
+                let categoryDomainFacts = '';
+                if (category === '국제학교') {
+                    categoryDomainFacts = `
+[조호바루 국제학교 전문 팩트 가이드]
+- 명문 학교군: 말보로 칼리지 말레이시아(MCM, 영국 정통 명문), 래플스 아메리칸 스쿨(RAS, 미국 커리큘럼/보딩), 썬웨이 국제학교(SIS, 캐나다 온타리오/IB), 크레센도-HELP(영국계 높은 가성비 명문), 페어뷰(Fairview, IB 월드스쿨), 텐비(Tenby).
+- 학비 실무 감각: 프리미엄(말보로/래플스: 연간 약 RM 60,000 ~ 120,000+), 준프리미엄(썬웨이/크레센도: 연간 약 RM 25,000 ~ 55,000), 가성비형(연간 약 RM 15,000 ~ 25,000).
+- 입학 절차: 여권, 최근 2~3년 영문 생활기록부, CAT4 인지능력검사, 영어/수학 필기 및 인터뷰, 조호엔의 100% 입학 오퍼레터 수령 노하우.`;
+                } else if (category === '이주정착') {
+                    categoryDomainFacts = `
+[조호바루 이주정착 전문 팩트 가이드]
+- 비자: 학생비자(Student Pass, 학교 입학 후 발급), 가디언비자(학부모 1인 동반, 출생증명서/가족관계증명서 영문 번역공증 및 외교부/아포스티유 인증 필수).
+- 정착 인프라: 현지 은행 계좌 개설, Touch 'n Go 전자지갑, TIME/Unifi 광인터넷 설치, 국제운전면허증 및 현지 차량 렌트/구매 노하우.`;
+                } else if (category === '숙소여행') {
+                    categoryDomainFacts = `
+[조호바루 숙소 & 여행 전문 팩트 가이드]
+- 티가 레지던스(Teega Residence): 푸테리하버 도보 3분 초역세권, 요트 마리나 오션뷰, 에듀시티 국제학교 통학 8~12분.
+- 조호엔 직영 프리미엄: 전 세대 대용량 올필터(수질정화 시스템 - 샤워실/싱크대 수질 완벽 케어), 한국 실시간 TV 셋톱박스 완비, 주 1회 정기 클리닝 및 침구 세탁 서비스.`;
+                } else if (category === '생활정보') {
+                    categoryDomainFacts = `
+[조호바루 생활정보 전문 팩트 가이드]
+- 병원/의료: 글렌이글스 메디니(Gleneagles Medini, 최첨단 시설, 24시간 응급실), 컬럼비아 아시아(Columbia Asia).
+- 쇼핑/마트: 썬웨이 빅박스(Sunway Big Box, 대형 창고형 마트), 부킷인다 이온몰(AEON Bukit Indah), 스쿠다이 수트라 몰(Sutera Mall - 코타키나발루 수트라하버와 혼동 절대 금지).
+- 국경 이동: 싱가포르 투아스(Second Link) 체크포인트 연계, 우드랜즈 코즈웨이 이동 팁.`;
+                }
+
                 // ── STEP 1: Multi-Provider Text Generation with Smart Failover ──
                 const promptContent = `
 당신은 말레이시아 조호바루 전문 이주정착 & 국제학교 컨설팅 및 Teega Residence 숙소 운영 전문 브랜드 "조호엔(JohorN)"의 수석 콘텐츠 에디터이자 AEO/GEO 검색 최적화 최고 전문가입니다.
@@ -1505,25 +1596,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
 ${instructions ? `[★ 작성 시 특별 요청 / 제약사항 (최우선 반영 지침)]\n${instructions}\n\n※ 위 특별 요청사항은 다른 어떤 지침보다 최우선하여 반드시 100% 반영되어야 합니다!\n(예: 숙소 언급 배제 요청 시 숙소 관련 내용 및 상담 유도는 본문/CTA에서 완전히 제외할 것)\n` : ''}
 
-[글 작성 원칙 (AEO/GEO 검색엔진 인용 최적화)]
-1. 톤앤매너: 전문가의 신뢰성과 실제 현지 거주자의 생생하고 따뜻한 어조 (말레이시아 현지 6년 거주 팩트 기반).
-2. 구조:
-  1. 시선 강탈 매력적인 H1 제목 (네이버/구글 검색 상위 노출형 제목)
-  2. 1~2줄 핵심 요약 (Perplexity, ChatGPT 검색 시 첫 문단에 인용될 명확한 답변)
-  3. 썸네일 이미지 프롬프트 (imagePrompt): 영문 작성, 고화질 8k 사진 스타일 (조호바루 특화)
-  4. 완벽한 시맨틱 HTML 본문 (contentHtml):
-     - <h2> 소제목과 단락 <p>들
-     - 핵심 요약 인용구 <blockquote>
-     - [★ 본문 서식 필수 규칙 (절대 준수)]
-       1) <table>(HTML 표) 태그는 절대 사용하지 마세요! 학비, 커리큘럼, 학교 비교 등 모든 수치와 비교 정보는 아래 예시처럼 단락(<p>)과 불릿 기호(•) 및 굵은 글씨(<strong>)를 활용하여 모바일과 웹 에디터에서 완벽하게 호환되는 깔끔한 형식으로 작성하세요:
-          <p><strong>[학년별 연간 학비 안내]</strong></p>
-          <p>• <strong>유치부 (Early Years):</strong> 연간 약 RM 14,000 ~ 18,000 (약 420만 ~ 540만 원)</p>
-          <p>• <strong>초등부 (Primary):</strong> 연간 약 RM 22,000 ~ 28,000 (약 660만 ~ 840만 원)</p>
-          <p>• <strong>중·고등부 (Secondary):</strong> 연간 약 RM 32,000 ~ 38,000 (약 960만 ~ 1,140만 원)</p>
-       2) 번호가 매겨진 절차나 단계는 <strong>1단계: ...</strong> 바로 뒤에 공백과 대시(-) 또는 콜론(:)을 반드시 넣어 본문 설명과 글자가 붙지 않도록 작성하세요:
-          <p><strong>1단계: 입학 원서 접수 및 서류 제출</strong> - 최근 2년간의 생활기록부...</p>
-     - Perplexity, ChatGPT 등이 직접 인용하기 좋은 "자주 묻는 질문 (FAQ)" 섹션 (<h2>자주 묻는 질문 (FAQ)</h2>)
-     - 마지막 콜투액션(CTA): 주제에 맞는 맞춤형 1:1 상담 안내 박스 (<div class="post-cta-card" style="background:#FAF8F5; border:1px solid #E5E0D8; border-radius:8px; padding:20px; margin-top:30px;">...</div>) (※ 국제학교 글이거나 숙소 배제 지시가 있는 경우 숙소 예약 유도는 제외하고 학교 입학 및 1:1 현지 상담으로만 유도할 것)
+${styleDirective}
+
+${categoryDomainFacts}
+
+[글 작성 원칙 (AEO/GEO 검색 최적화 & 고품질 가독성)]
+1. 톤앤매너: 전문가의 신뢰성과 실제 현지 거주자의 생생하고 따뜻한 어조 (말레이시아 현지 6년 거주 팩트 기반). 기계적이고 틀에 박힌 말투("~에 대해 알아보았습니다", "지금까지 ~였습니다" 등)를 지양하고 자연스러운 호흡으로 전개하세요.
+2. 구조 및 서식:
+   - 시선을 사로잡는 매력적인 제목 (title)
+   - 첫 문단에서 핵심을 짚어주는 1~2줄 요약 (summary)
+   - 썸네일 이미지 프롬프트 (imagePrompt): 글의 구체적 주제에 부합하는 고화질 영문 프롬프트 (★ 푸테리하버 숙소 글이 아닌 경우 무조건 Puteri Harbour나 marina를 넣지 마세요!)
+   - 시맨틱 HTML 본문 (contentHtml):
+     * <h2> 소제목과 유려한 단락 <p>들
+     * [본문 서식 필수 규칙] <table>(HTML 표) 태그는 절대 사용하지 마세요! 수치와 비교 정보는 단락(<p>)과 불릿 기호(•) 및 굵은 글씨(<strong>)를 활용해 깔끔하게 작성하세요.
+     * 단계 번호는 <strong>1단계: ...</strong> 바로 뒤에 대시(-)나 콜론(:)을 넣어 글자가 붙지 않도록 작성하세요.
+     * 글의 흐름에 어울리는 경우에만 유용한 팁이나 FAQ를 자연스럽게 배치하세요.
+     * 마지막 콜투액션(CTA): 주제에 맞는 맞춤형 1:1 상담 안내 박스 (<div class="post-cta-card" style="background:#FAF8F5; border:1px solid #E5E0D8; border-radius:8px; padding:20px; margin-top:30px;">...</div>) (※ 숙소 배제 지시가 있는 경우 숙소 언급 없이 학교 입학 및 1:1 현지 상담으로만 유도할 것)
 
 [조호엔 현지 전문성 및 팩트체크 필수 지침]
 - 지리적 정확성: '수트라' 관련 내용은 코타키나발루의 '수트라하버'가 아니라 조호바루 스쿠다이의 '수트라 몰(Sutera Mall)' 및 '수트라 우타마(Sutera Utama)' 중심 상권입니다.
@@ -1537,7 +1625,7 @@ ${instructions ? `[★ 작성 시 특별 요청 / 제약사항 (최우선 반영
 {
   "title": "게시글 제목",
   "summary": "1~2줄 핵심 요약 문장",
-  "imagePrompt": "A high-end photorealistic 8k photo of ... in Puteri Harbour Johor Bahru with cinematic natural lighting, highly detailed",
+  "imagePrompt": "A high-resolution editorial photograph of [specific subject related to this article], warm natural lighting, highly detailed, 8k",
   "contentHtml": "<h2>...</h2><p>...</p>..."
 }
 `;
@@ -1545,7 +1633,35 @@ ${instructions ? `[★ 작성 시 특별 요청 / 제약사항 (최우선 반영
                 // Build multi-provider failover execution plan
                 const executionPlan = [];
 
-                if (textModel.startsWith('nvidia/')) {
+                if (textModel.startsWith('gemini/')) {
+                    const modelName = textModel.replace('gemini/', '');
+                    if (geminiKey) {
+                        executionPlan.push({
+                            provider: 'GEMINI',
+                            model: modelName,
+                            apiKey: geminiKey,
+                            label: `Google ${modelName} (최고 신뢰성 & 팩트 일치 ⭐️)`
+                        });
+                        if (modelName !== 'gemini-2.5-flash') {
+                            executionPlan.push({
+                                provider: 'GEMINI',
+                                model: 'gemini-2.5-flash',
+                                apiKey: geminiKey,
+                                label: 'Google Gemini 2.5 Flash (안정형 고정밀 백업 ⭐️)'
+                            });
+                        }
+                    }
+                    // Failover: NVIDIA Meta Llama 3.3 70B if available
+                    if (nvidiaKey) {
+                        executionPlan.push({
+                            provider: 'NVIDIA',
+                            endpoint: 'https://integrate.api.nvidia.com/v1/chat/completions',
+                            model: 'meta/llama-3.3-70b-instruct',
+                            apiKey: nvidiaKey,
+                            label: 'NVIDIA Meta Llama 3.3 70B (고지능 백업 ⭐️)'
+                        });
+                    }
+                } else if (textModel.startsWith('nvidia/')) {
                     const modelName = textModel.replace('nvidia/', '');
                     if (nvidiaKey) {
                         executionPlan.push({
@@ -1565,75 +1681,23 @@ ${instructions ? `[★ 작성 시 특별 요청 / 제약사항 (최우선 반영
                             label: 'Google Gemini 2.5 Flash (고정밀 백업 ⭐️)'
                         });
                     }
-                    // 2차 백업: Groq Cloud Qwen 3.8 (초고속 고지능)
-                    if (groqKey) {
-                        const groqModel = 'qwen/qwen3.8-27b';
-                        executionPlan.push({
-                            provider: 'GROQ',
-                            endpoint: 'https://api.groq.com/openai/v1/chat/completions',
-                            model: groqModel,
-                            apiKey: groqKey,
-                            label: `Groq Cloud Qwen 3.8 27B (초고속 무료 백업 ⚡️)`
-                        });
-                    }
-                } else if (textModel.startsWith('groq/')) {
-                    const modelName = textModel.replace('groq/', '');
-                    if (groqKey) {
-                        executionPlan.push({
-                            provider: 'GROQ',
-                            endpoint: 'https://api.groq.com/openai/v1/chat/completions',
-                            model: modelName,
-                            apiKey: groqKey,
-                            label: `Groq ${modelName}`
-                        });
-                    }
-                    // 1차 백업: Gemini
+                } else {
+                    // Default fallback
                     if (geminiKey) {
                         executionPlan.push({
                             provider: 'GEMINI',
                             model: 'gemini-2.5-flash',
                             apiKey: geminiKey,
-                            label: 'Google Gemini 2.5 Flash'
+                            label: 'Google Gemini 2.5 Flash (기본 추천 ⭐️)'
                         });
                     }
-                    // 2차 백업: NVIDIA
                     if (nvidiaKey) {
-                        const nModel = 'deepseek-ai/deepseek-v4.1-flash';
                         executionPlan.push({
                             provider: 'NVIDIA',
                             endpoint: 'https://integrate.api.nvidia.com/v1/chat/completions',
-                            model: nModel,
+                            model: 'meta/llama-3.3-70b-instruct',
                             apiKey: nvidiaKey,
-                            label: `NVIDIA ${nModel}`
-                        });
-                    }
-                } else {
-                    // Google Gemini
-                    const modelName = textModel.replace('gemini/', '');
-                    if (geminiKey) {
-                        executionPlan.push({
-                            provider: 'GEMINI',
-                            model: modelName,
-                            apiKey: geminiKey,
-                            label: `Google ${modelName}`
-                        });
-                        if (modelName !== 'gemini-2.5-flash') {
-                            executionPlan.push({
-                                provider: 'GEMINI',
-                                model: 'gemini-2.5-flash',
-                                apiKey: geminiKey,
-                                label: 'Google Gemini 2.5 Flash (안정형 무료)'
-                            });
-                        }
-                    }
-                    // 백업: Groq Cloud Qwen 3.8
-                    if (groqKey) {
-                        executionPlan.push({
-                            provider: 'GROQ',
-                            endpoint: 'https://api.groq.com/openai/v1/chat/completions',
-                            model: 'qwen/qwen3.8-27b',
-                            apiKey: groqKey,
-                            label: 'Groq Qwen 3.8 27B (상시 무료 백업 ⚡️)'
+                            label: 'NVIDIA Meta Llama 3.3 70B'
                         });
                     }
                 }
@@ -1823,52 +1887,94 @@ ${instructions ? `[★ 작성 시 특별 요청 / 제약사항 (최우선 반영
 
                 if (progressBar) progressBar.style.width = '65%';
 
-                // ── STEP 2: Google Imagen Image Generation with Auto-Fallback ──
-                let finalThumbnail = getSmartThemedImage(topic + ' ' + (parsedJson.imagePrompt || keywords), category, imageStyle).url;
+                // ── STEP 2: Strategic Visual Image Handling ──
+                let finalThumbnail = '';
+                const queryForImage = `${topic} ${keywords} ${category} ${parsedJson.title || ''}`;
 
-                if (shouldGenImage && geminiKey) {
+                if (imageSourceMode === 'smart_photo') {
+                    if (progressStepText) progressStepText.textContent = '글 주제와 100% 일치하는 조호엔 고화질 실사 사진을 매칭하고 있습니다...';
+                    if (progressBar) progressBar.style.width = '85%';
+                    const matched = getSmartThemedImage(queryForImage + ' ' + (parsedJson.imagePrompt || ''), category, imageStyle);
+                    finalThumbnail = matched.url;
+                } else if (imageSourceMode === 'ai_imagen') {
+                    if (progressStepText) progressStepText.textContent = 'Google Imagen 엔진으로 글 주제에 맞춘 AI 실사 이미지를 생성 중입니다...';
                     if (progressBar) progressBar.style.width = '80%';
 
-                    let imgPrompt = parsedJson.imagePrompt || `Modern luxury residence in Puteri Harbour Johor Bahru, sunny sea view balcony, tropical atmosphere, photorealistic 8k`;
-                    if (imageStyle === 'luxury_interior') {
-                        imgPrompt += ', modern luxury clean interior design, warm ambient light';
-                    } else if (imageStyle === 'sunny_drone') {
-                        imgPrompt += ', aerial drone view of Puteri Harbour marina and coastline, bright blue sky';
-                    }
+                    // Compose dynamic, context-accurate image prompt
+                    let cleanImgPrompt = (parsedJson.imagePrompt && parsedJson.imagePrompt.length > 15)
+                        ? parsedJson.imagePrompt.trim()
+                        : '';
 
-                    const candidateImgModels = [imageModel, 'imagen-3.0-generate-002'];
-                    const uniqueImgModels = [...new Set(candidateImgModels)];
-
-                    for (const curImgModel of uniqueImgModels) {
-                        try {
-                            if (progressStepText) progressStepText.textContent = `${curImgModel} 이미지를 렌더링하고 있습니다...`;
-                            const imgUrl = `https://generativelanguage.googleapis.com/v1beta/models/${curImgModel}:predict?key=${geminiKey}`;
-                            const imgRes = await fetch(imgUrl, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    instances: [{ prompt: imgPrompt }],
-                                    parameters: {
-                                        sampleCount: 1,
-                                        aspectRatio: "16:9"
-                                    }
-                                })
-                            });
-
-                            if (imgRes.ok) {
-                                const imgData = await imgRes.json();
-                                const b64 = imgData.predictions?.[0]?.bytesBase64Encoded;
-                                if (b64) {
-                                    finalThumbnail = `data:image/jpeg;base64,${b64}`;
-                                    break;
-                                }
-                            } else {
-                                console.warn(`Image model ${curImgModel} failed (${imgRes.status}), fallback...`);
-                            }
-                        } catch (imgErr) {
-                            console.warn(`Image generation fetch error for ${curImgModel}:`, imgErr);
+                    if (!cleanImgPrompt) {
+                        if (category === '국제학교') {
+                            cleanImgPrompt = 'High-resolution realistic photograph of modern British international school campus, students with backpacks in bright hallway, palm trees, sunny day, 8k';
+                        } else if (category === '이주정착') {
+                            cleanImgPrompt = 'Warm aesthetic professional office consultation desk with passport, international visa paperwork, coffee cup, laptop, 8k';
+                        } else if (category === '숙소여행') {
+                            cleanImgPrompt = 'Spacious modern luxury apartment living room, large panoramic windows, warm afternoon sunlight, clean interior, 8k';
+                        } else if (category === '생활정보') {
+                            cleanImgPrompt = 'Vibrant modern city street and aesthetic cafe in sunny Johor Bahru, tropical atmosphere, relaxed lifestyle, 8k';
+                        } else {
+                            cleanImgPrompt = 'Clean modern lifestyle scene in sunny Johor Bahru Malaysia, authentic high resolution photograph, 8k';
                         }
                     }
+
+                    // Append visual style modifier
+                    if (imageStyle === 'warm_interior') {
+                        cleanImgPrompt += ', warm ambient indoor lighting, cozy interior aesthetic, architectural detail';
+                    } else if (imageStyle === 'sunny_aerial') {
+                        cleanImgPrompt += ', aerial drone perspective, bright blue sky, clear tropical sunlight';
+                    } else if (imageStyle === 'modern_editorial') {
+                        cleanImgPrompt += ', magazine editorial photography, clean sharp focus, Leica color tone';
+                    } else {
+                        cleanImgPrompt += ', realistic photograph, natural cinematic light, highly detailed 8k';
+                    }
+
+                    if (geminiKey) {
+                        const candidateImgModels = [imageModel, 'imagen-3.0-generate-002'];
+                        const uniqueImgModels = [...new Set(candidateImgModels)];
+
+                        for (const curImgModel of uniqueImgModels) {
+                            try {
+                                if (progressStepText) progressStepText.textContent = `${curImgModel} 이미지를 렌더링하고 있습니다...`;
+                                const imgUrl = `https://generativelanguage.googleapis.com/v1beta/models/${curImgModel}:predict?key=${geminiKey}`;
+                                const imgRes = await fetch(imgUrl, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        instances: [{ prompt: cleanImgPrompt }],
+                                        parameters: {
+                                            sampleCount: 1,
+                                            aspectRatio: "16:9"
+                                        }
+                                    })
+                                });
+
+                                if (imgRes.ok) {
+                                    const imgData = await imgRes.json();
+                                    const b64 = imgData.predictions?.[0]?.bytesBase64Encoded;
+                                    if (b64) {
+                                        finalThumbnail = `data:image/jpeg;base64,${b64}`;
+                                        break;
+                                    }
+                                } else {
+                                    console.warn(`Image model ${curImgModel} failed (${imgRes.status}), fallback...`);
+                                }
+                            } catch (imgErr) {
+                                console.warn(`Image generation fetch error for ${curImgModel}:`, imgErr);
+                            }
+                        }
+                    }
+
+                    // Fallback to smart photo if AI generation fails or no Gemini key provided
+                    if (!finalThumbnail) {
+                        console.info('Imagen generation not available or failed; using smart themed real photo match.');
+                        const fallbackMatched = getSmartThemedImage(queryForImage + ' ' + (parsedJson.imagePrompt || ''), category, imageStyle);
+                        finalThumbnail = fallbackMatched.url;
+                    }
+                } else {
+                    // imageSourceMode === 'none'
+                    finalThumbnail = '';
                 }
 
                 // ── STEP 3: Render Result & Live Preview ──
