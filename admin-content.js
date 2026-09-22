@@ -1515,7 +1515,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const instructions = instructionsInput ? instructionsInput.value.trim() : '';
             const writingStyle = (writingStyleSelect && writingStyleSelect.value) ? writingStyleSelect.value : 'dynamic';
             const imageSourceMode = (imageSourceModeSelect && imageSourceModeSelect.value) ? imageSourceModeSelect.value : 'smart_photo';
-            const textModel = (textModelSelect && textModelSelect.value) ? textModelSelect.value : 'gemini/gemini-3.6-flash';
+            const textModel = (textModelSelect && textModelSelect.value) ? textModelSelect.value : 'gemini/gemini-3.8-flash';
             const imageModel = (imageModelSelect && imageModelSelect.value) ? imageModelSelect.value : 'imagen-3.0-generate-002';
             const imageStyle = imageStyleSelect ? imageStyleSelect.value : 'photorealistic';
 
@@ -1645,12 +1645,12 @@ ${categoryDomainFacts}
                             apiKey: geminiKey,
                             label: `Google ${modelName} (최고 신뢰성 & 팩트 일치 ⭐️)`
                         });
-                        if (modelName !== 'gemini-3.6-flash') {
+                        if (modelName !== 'gemini-3.8-flash') {
                             executionPlan.push({
                                 provider: 'GEMINI',
-                                model: 'gemini-3.6-flash',
+                                model: 'gemini-3.8-flash',
                                 apiKey: geminiKey,
-                                label: 'Google Gemini 3.6 Flash (안정형 고정밀 백업 ⭐️)'
+                                label: 'Google Gemini 3.8 Flash (최고 지능 백업 ⭐️)'
                             });
                         }
                     }
@@ -1679,9 +1679,9 @@ ${categoryDomainFacts}
                     if (geminiKey) {
                         executionPlan.push({
                             provider: 'GEMINI',
-                            model: 'gemini-3.6-flash',
+                            model: 'gemini-3.8-flash',
                             apiKey: geminiKey,
-                            label: 'Google Gemini 3.6 Flash (고정밀 백업 ⭐️)'
+                            label: 'Google Gemini 3.8 Flash (최고 지능 백업 ⭐️)'
                         });
                     }
                 } else {
@@ -1689,9 +1689,9 @@ ${categoryDomainFacts}
                     if (geminiKey) {
                         executionPlan.push({
                             provider: 'GEMINI',
-                            model: 'gemini-3.6-flash',
+                            model: 'gemini-3.8-flash',
                             apiKey: geminiKey,
-                            label: 'Google Gemini 3.6 Flash (기본 추천 ⭐️)'
+                            label: 'Google Gemini 3.8 Flash (기본 추천 ⭐️)'
                         });
                     }
                     if (nvidiaKey) {
