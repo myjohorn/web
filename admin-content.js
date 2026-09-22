@@ -1410,13 +1410,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 max_tokens: 4096
             };
 
-            // Non-reasoning models support json_object mode
-            if (!model.includes('deepseek') && !model.includes('r1')) {
-                payload.response_format = { type: "json_object" };
-            }
-
             let res;
             const isNvidia = endpoint.includes('nvidia.com') || providerName === 'NVIDIA';
+
+            // Non-reasoning models support json_object mode (exclude NVIDIA NIM endpoints which reject generic json_object)
+            if (!isNvidia && !model.includes('deepseek') && !model.includes('r1')) {
+                payload.response_format = { type: "json_object" };
+            }
 
             // NVIDIA Build API does not send browser CORS headers. Route through Vercel serverless proxy.
             if (isNvidia) {
@@ -1515,7 +1515,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const instructions = instructionsInput ? instructionsInput.value.trim() : '';
             const writingStyle = (writingStyleSelect && writingStyleSelect.value) ? writingStyleSelect.value : 'dynamic';
             const imageSourceMode = (imageSourceModeSelect && imageSourceModeSelect.value) ? imageSourceModeSelect.value : 'smart_photo';
-            const textModel = (textModelSelect && textModelSelect.value) ? textModelSelect.value : 'gemini/gemini-2.5-flash';
+            const textModel = (textModelSelect && textModelSelect.value) ? textModelSelect.value : 'gemini/gemini-3.6-flash';
             const imageModel = (imageModelSelect && imageModelSelect.value) ? imageModelSelect.value : 'imagen-3.0-generate-002';
             const imageStyle = imageStyleSelect ? imageStyleSelect.value : 'photorealistic';
 
@@ -1642,12 +1642,12 @@ ${categoryDomainFacts}
                             apiKey: geminiKey,
                             label: `Google ${modelName} (최고 신뢰성 & 팩트 일치 ⭐️)`
                         });
-                        if (modelName !== 'gemini-2.5-flash') {
+                        if (modelName !== 'gemini-3.6-flash') {
                             executionPlan.push({
                                 provider: 'GEMINI',
-                                model: 'gemini-2.5-flash',
+                                model: 'gemini-3.6-flash',
                                 apiKey: geminiKey,
-                                label: 'Google Gemini 2.5 Flash (안정형 고정밀 백업 ⭐️)'
+                                label: 'Google Gemini 3.6 Flash (안정형 고정밀 백업 ⭐️)'
                             });
                         }
                     }
@@ -1676,9 +1676,9 @@ ${categoryDomainFacts}
                     if (geminiKey) {
                         executionPlan.push({
                             provider: 'GEMINI',
-                            model: 'gemini-2.5-flash',
+                            model: 'gemini-3.6-flash',
                             apiKey: geminiKey,
-                            label: 'Google Gemini 2.5 Flash (고정밀 백업 ⭐️)'
+                            label: 'Google Gemini 3.6 Flash (고정밀 백업 ⭐️)'
                         });
                     }
                 } else {
@@ -1686,9 +1686,9 @@ ${categoryDomainFacts}
                     if (geminiKey) {
                         executionPlan.push({
                             provider: 'GEMINI',
-                            model: 'gemini-2.5-flash',
+                            model: 'gemini-3.6-flash',
                             apiKey: geminiKey,
-                            label: 'Google Gemini 2.5 Flash (기본 추천 ⭐️)'
+                            label: 'Google Gemini 3.6 Flash (기본 추천 ⭐️)'
                         });
                     }
                     if (nvidiaKey) {
@@ -1707,7 +1707,7 @@ ${categoryDomainFacts}
                 }
 
                 let rawText = '';
-                let lastError = null;
+                const stepErrors = [];
 
                 for (let i = 0; i < executionPlan.length; i++) {
                     const step = executionPlan[i];
@@ -1716,7 +1716,7 @@ ${categoryDomainFacts}
                             if (i === 0) {
                                 progressStepText.textContent = `${step.label} 엔진이 최고 품질 본문과 Q&A를 작성 중입니다...`;
                             } else {
-                                progressStepText.textContent = `이전 엔진 한도/크레딧 부족으로 ${step.label} 엔진으로 자동 전환하여 작성 중입니다...`;
+                                progressStepText.textContent = `이전 엔진 오류로 ${step.label} 엔진으로 자동 전환하여 작성 중입니다...`;
                             }
                         }
 
@@ -1740,13 +1740,14 @@ ${categoryDomainFacts}
                             break;
                         }
                     } catch (err) {
-                        lastError = err;
-                        console.warn(`Execution step ${i} (${step.label}) failed:`, err.message);
+                        stepErrors.push(`[${step.label}] ${err.message || err}`);
+                        console.warn(`Execution step ${i} (${step.label}) failed:`, err.message || err);
                     }
                 }
 
                 if (!rawText) {
-                    throw lastError || new Error('모든 AI 엔진에서 일시적 지연이 발생했습니다. API 키 및 크레딧 상태를 확인해 주세요.');
+                    const errorDetails = stepErrors.length > 0 ? '\n\n[상세 오류 내역]\n' + stepErrors.join('\n') : '';
+                    throw new Error(`모든 AI 엔진 호출에 실패했습니다.${errorDetails}\n\nAPI 키 및 크레딧 상태를 확인해 주세요.`);
                 }
 
                 // Strip possible markdown fences
@@ -2293,7 +2294,7 @@ ${categoryDomainFacts}
                         }
                     }
 
-                    const candidateImgModels = ['imagen-3.0-generate-002', 'gemini-2.5-flash-image'];
+                    const candidateImgModels = ['imagen-3.0-generate-002'];
                     for (const model of candidateImgModels) {
                         try {
                             const imgUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:predict?key=${apiKey}`;
