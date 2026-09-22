@@ -1175,10 +1175,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const aiModal = document.getElementById('aiBlogGenModal');
         const openBtn = document.getElementById('openAiBlogModalBtn');
         const closeBtn = document.getElementById('closeAiBlogModalBtn');
+        // Multi-AI Provider API Key Elements
+        const nvidiaKeyInput = document.getElementById('nvidiaApiKeyInput');
+        const toggleNvidiaKeyBtn = document.getElementById('toggleNvidiaKeyVisibilityBtn');
+        const nvidiaKeyBadge = document.getElementById('nvidiaKeyBadge');
+
+        const groqKeyInput = document.getElementById('groqApiKeyInput');
+        const toggleGroqKeyBtn = document.getElementById('toggleGroqKeyVisibilityBtn');
+        const groqKeyBadge = document.getElementById('groqKeyBadge');
+
         const apiKeyInput = document.getElementById('geminiApiKeyInput');
-        const saveKeyBtn = document.getElementById('saveGeminiApiKeyBtn');
         const toggleKeyBtn = document.getElementById('toggleApiKeyVisibilityBtn');
-        const keyBadge = document.getElementById('apiKeyStatusBadge');
+        const keyBadge = document.getElementById('geminiKeyBadge');
+        const saveAllKeysBtn = document.getElementById('saveAllAiKeysBtn');
         
         const textModelSelect = document.getElementById('aiTextModelSelect');
         const imageModelSelect = document.getElementById('aiImageModelSelect');
@@ -1208,72 +1217,107 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let currentGeneratedPost = null;
 
-        // Load Stored API Key (from LocalStorage or Firebase Settings)
-        function updateApiKeyBadge(key) {
-            if (!keyBadge) return;
-            if (key && key.trim().length > 10) {
-                keyBadge.style.background = '#DCFCE7';
-                keyBadge.style.color = '#15803D';
-                keyBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> API 키 연동 활성화됨';
+        // Key Badge Helper
+        function updateSingleBadge(badgeEl, key) {
+            if (!badgeEl) return;
+            if (key && key.trim().length > 5) {
+                badgeEl.style.background = '#DCFCE7';
+                badgeEl.style.color = '#15803D';
+                badgeEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> 등록 완료';
             } else {
-                keyBadge.style.background = '#FEE2E2';
-                keyBadge.style.color = '#DC2626';
-                keyBadge.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> 키 등록 필요';
+                badgeEl.style.background = '#FEE2E2';
+                badgeEl.style.color = '#DC2626';
+                badgeEl.innerHTML = '미등록';
             }
         }
 
-        let savedApiKey = localStorage.getItem('johorn_gemini_api_key') || '';
-        if (apiKeyInput && savedApiKey) {
-            apiKeyInput.value = savedApiKey;
-            updateApiKeyBadge(savedApiKey);
+        // Load Stored Keys (localStorage & Firebase)
+        let savedNvidiaKey = localStorage.getItem('johorn_nvidia_api_key') || '';
+        let savedGroqKey = localStorage.getItem('johorn_groq_api_key') || '';
+        let savedGeminiKey = localStorage.getItem('johorn_gemini_api_key') || '';
+
+        if (nvidiaKeyInput && savedNvidiaKey) {
+            nvidiaKeyInput.value = savedNvidiaKey;
+            updateSingleBadge(nvidiaKeyBadge, savedNvidiaKey);
+        }
+        if (groqKeyInput && savedGroqKey) {
+            groqKeyInput.value = savedGroqKey;
+            updateSingleBadge(groqKeyBadge, savedGroqKey);
+        }
+        if (apiKeyInput && savedGeminiKey) {
+            apiKeyInput.value = savedGeminiKey;
+            updateSingleBadge(keyBadge, savedGeminiKey);
         }
 
-        // Also fetch from Firebase settings if not in localStorage
-        db.ref('settings/gemini_api_key').once('value', (snap) => {
-            const fbKey = snap.val();
-            if (fbKey && !savedApiKey) {
-                savedApiKey = fbKey;
-                if (apiKeyInput) apiKeyInput.value = fbKey;
-                localStorage.setItem('johorn_gemini_api_key', fbKey);
-                updateApiKeyBadge(fbKey);
+        // Fetch missing keys from Firebase settings
+        db.ref('settings').once('value', (snap) => {
+            const val = snap.val() || {};
+            if (val.nvidia_api_key && !savedNvidiaKey) {
+                savedNvidiaKey = val.nvidia_api_key;
+                if (nvidiaKeyInput) nvidiaKeyInput.value = savedNvidiaKey;
+                localStorage.setItem('johorn_nvidia_api_key', savedNvidiaKey);
+                updateSingleBadge(nvidiaKeyBadge, savedNvidiaKey);
+            }
+            if (val.groq_api_key && !savedGroqKey) {
+                savedGroqKey = val.groq_api_key;
+                if (groqKeyInput) groqKeyInput.value = savedGroqKey;
+                localStorage.setItem('johorn_groq_api_key', savedGroqKey);
+                updateSingleBadge(groqKeyBadge, savedGroqKey);
+            }
+            if (val.gemini_api_key && !savedGeminiKey) {
+                savedGeminiKey = val.gemini_api_key;
+                if (apiKeyInput) apiKeyInput.value = savedGeminiKey;
+                localStorage.setItem('johorn_gemini_api_key', savedGeminiKey);
+                updateSingleBadge(keyBadge, savedGeminiKey);
             }
         });
 
-        // Save API Key Handler
-        if (saveKeyBtn && apiKeyInput) {
-            saveKeyBtn.addEventListener('click', () => {
-                const key = apiKeyInput.value.trim();
-                if (!key) {
-                    alert('Google AI Studio API 키를 입력해 주세요.');
-                    return;
-                }
-                localStorage.setItem('johorn_gemini_api_key', key);
-                db.ref('settings/gemini_api_key').set(key)
-                    .then(() => {
-                        updateApiKeyBadge(key);
-                        alert('API 키가 안전하게 저장되었습니다!');
-                    })
+        // Save All Keys Handler
+        if (saveAllKeysBtn) {
+            saveAllKeysBtn.addEventListener('click', () => {
+                const nKey = nvidiaKeyInput ? nvidiaKeyInput.value.trim() : '';
+                const gKey = groqKeyInput ? groqKeyInput.value.trim() : '';
+                const mKey = apiKeyInput ? apiKeyInput.value.trim() : '';
+
+                if (nKey) localStorage.setItem('johorn_nvidia_api_key', nKey);
+                if (gKey) localStorage.setItem('johorn_groq_api_key', gKey);
+                if (mKey) localStorage.setItem('johorn_gemini_api_key', mKey);
+
+                updateSingleBadge(nvidiaKeyBadge, nKey);
+                updateSingleBadge(groqKeyBadge, gKey);
+                updateSingleBadge(keyBadge, mKey);
+
+                const updates = {};
+                if (nKey) updates['settings/nvidia_api_key'] = nKey;
+                if (gKey) updates['settings/groq_api_key'] = gKey;
+                if (mKey) updates['settings/gemini_api_key'] = mKey;
+
+                db.ref().update(updates)
+                    .then(() => alert('API 키가 안전하게 저장 및 동기화되었습니다!'))
                     .catch(err => {
-                        console.warn('Firebase key sync failed, saved locally:', err);
-                        updateApiKeyBadge(key);
-                        alert('API 키가 브라우저에 저장되었습니다.');
+                        console.warn('Firebase key sync error:', err);
+                        alert('API 키가 브라우저에 안전하게 저장되었습니다.');
                     });
             });
         }
 
-        // Toggle API Key Visibility
-        if (toggleKeyBtn && apiKeyInput) {
-            toggleKeyBtn.addEventListener('click', () => {
-                const eye = document.getElementById('apiKeyEyeIcon');
-                if (apiKeyInput.type === 'password') {
-                    apiKeyInput.type = 'text';
+        // Toggle Key Visibilities
+        function setupToggleVisibility(btn, input, iconId) {
+            if (!btn || !input) return;
+            btn.addEventListener('click', () => {
+                const eye = document.getElementById(iconId);
+                if (input.type === 'password') {
+                    input.type = 'text';
                     if (eye) eye.className = 'fa-solid fa-eye-slash';
                 } else {
-                    apiKeyInput.type = 'password';
+                    input.type = 'password';
                     if (eye) eye.className = 'fa-solid fa-eye';
                 }
             });
         }
+        setupToggleVisibility(toggleNvidiaKeyBtn, nvidiaKeyInput, 'nvidiaEyeIcon');
+        setupToggleVisibility(toggleGroqKeyBtn, groqKeyInput, 'groqEyeIcon');
+        setupToggleVisibility(toggleKeyBtn, apiKeyInput, 'apiKeyEyeIcon');
 
         // Modal Open / Close
         if (openBtn && aiModal) {
@@ -1314,12 +1358,92 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
+        // OpenAI-Compatible Generator (NVIDIA NIM, Groq Cloud)
+        async function callOpenAICompatible({ endpoint, apiKey, model, prompt, providerName }) {
+            const payload = {
+                model: model,
+                messages: [
+                    {
+                        role: "system",
+                        content: "당신은 말레이시아 조호바루(Johor Bahru) 전문 네이버 프리미엄 블로그 및 구글 검색 최적화(AEO/GEO) 최고 수준의 전문 에디터입니다. 반드시 요청된 JSON 포맷으로만 답변하세요."
+                    },
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ],
+                temperature: 0.6,
+                max_tokens: 4096
+            };
+
+            // Non-reasoning models support json_object mode
+            if (!model.includes('deepseek-r1')) {
+                payload.response_format = { type: "json_object" };
+            }
+
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                const errMsg = errData.error?.message || errData.message || res.statusText;
+                const err = new Error(`[${providerName} ${model}] (${res.status}): ${errMsg}`);
+                err.status = res.status;
+                err.provider = providerName;
+                throw err;
+            }
+
+            const data = await res.json();
+            let text = data.choices?.[0]?.message?.content || '';
+            // Strip DeepSeek R1 reasoning tags if present
+            text = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+            return text;
+        }
+
+        // Google Gemini Generator
+        async function callGeminiApi({ apiKey, model, prompt }) {
+            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            const textRes = await fetch(geminiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        temperature: 0.7,
+                        maxOutputTokens: 8192,
+                        responseMimeType: 'application/json'
+                    }
+                })
+            });
+
+            if (!textRes.ok) {
+                const errData = await textRes.json().catch(() => ({}));
+                const errMsg = errData.error ? errData.error.message : textRes.statusText;
+                const err = new Error(`[Google Gemini ${model}] (${textRes.status}): ${errMsg}`);
+                err.status = textRes.status;
+                err.provider = 'Gemini';
+                throw err;
+            }
+
+            const textData = await textRes.json();
+            return textData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        }
+
         // Generate Post Execution
         async function runGeneration() {
-            const apiKey = (apiKeyInput ? apiKeyInput.value.trim() : '') || localStorage.getItem('johorn_gemini_api_key');
-            if (!apiKey) {
-                alert('Google AI Studio API 키를 먼저 입력하고 저장해 주세요.\n(무료 키 발급: https://aistudio.google.com/app/apikey)');
-                if (apiKeyInput) apiKeyInput.focus();
+            const nvidiaKey = (nvidiaKeyInput ? nvidiaKeyInput.value.trim() : '') || localStorage.getItem('johorn_nvidia_api_key') || '';
+            const groqKey = (groqKeyInput ? groqKeyInput.value.trim() : '') || localStorage.getItem('johorn_groq_api_key') || '';
+            const geminiKey = (apiKeyInput ? apiKeyInput.value.trim() : '') || localStorage.getItem('johorn_gemini_api_key') || '';
+
+            if (!nvidiaKey && !groqKey && !geminiKey) {
+                alert('AI 글 생성을 위해 최소 1개 이상의 API 키(NVIDIA Build, Groq Cloud, 또는 Google AI Studio)를 상단에 입력하고 저장해 주세요.');
+                if (nvidiaKeyInput) nvidiaKeyInput.focus();
                 return;
             }
 
@@ -1333,7 +1457,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const category = categorySelect ? categorySelect.value : '국제학교';
             const keywords = keywordsInput ? keywordsInput.value.trim() : '';
             const instructions = instructionsInput ? instructionsInput.value.trim() : '';
-            const textModel = (textModelSelect && textModelSelect.value) ? textModelSelect.value : 'gemini-3.8-flash';
+            const textModel = (textModelSelect && textModelSelect.value) ? textModelSelect.value : 'nvidia/meta/llama-3.3-70b-instruct';
             const imageModel = (imageModelSelect && imageModelSelect.value) ? imageModelSelect.value : 'imagen-4.0-generate';
             const shouldGenImage = genImageCheck ? genImageCheck.checked : true;
             const imageStyle = imageStyleSelect ? imageStyleSelect.value : 'photorealistic';
@@ -1344,36 +1468,26 @@ document.addEventListener('DOMContentLoaded', () => {
             if (resultArea) resultArea.style.display = 'none';
             if (progressBox) progressBox.style.display = 'block';
             if (progressBar) progressBar.style.width = '20%';
-            if (progressStepText) progressStepText.textContent = `${textModel}이(가) AEO/GEO에 최적화된 전문 본문을 작성 중입니다...`;
+            if (progressStepText) progressStepText.textContent = `AEO/GEO에 최적화된 고품질 콘텐츠 엔진을 준비 중입니다...`;
 
             try {
-                // ── STEP 1: Gemini Text Generation ──
+                // ── STEP 1: Multi-Provider Text Generation with Smart Failover ──
                 const promptContent = `
 당신은 말레이시아 조호바루 전문 이주정착 & 국제학교 컨설팅 및 Teega Residence 숙소 운영 전문 브랜드 "조호엔(JohorN)"의 수석 콘텐츠 에디터이자 AEO/GEO 검색 최적화 최고 전문가입니다.
 
 [블로그 발행 정보]
+- 글 주제 / 메인 타이틀 키워드: ${topic}
 - 카테고리: ${category}
-- 주제: ${topic}
-- 필수 포함 키워드: ${keywords || '조호바루, 국제학교, 이주정착, 조호엔'}
-${instructions ? `
-[★ 관리자 특별 요청 및 필수 준수사항 (STRICT REQUIREMENT - 최우선 순위 준수!)]
-${instructions}
-※ 경고: 위 관리자 특별 지시사항(예: 특정 주제/숙소/렌트카 언급 배제, 특정 톤앤매너, 특정 내용 집중 등)은 본문의 모든 규칙보다 절대적인 최우선권을 가집니다. 금지되거나 배제하도록 요청된 내용은 본문 본문과 FAQ, 콜투액션(CTA) 어디에도 절대 단 한 줄도 언급하지 마세요.
-` : ''}
-[조호엔 브랜드 핵심 역량 (주제 및 관리자 지시사항에 부합하는 항목만 선별하여 자연스럽게 녹여낼 것)]
-1. 현지 거주 6년차 이상의 실제 생활자 기반 전문성과 빈틈없는 케어
-2. 50세대 이상의 성공적인 이주정착 실적
-3. 조호바루 국제학교 입학 지원 100% 합격률 (원서 접수부터 CAT4 시험 준비, 오퍼레터, 학생/가디언 비자 완벽 지원)
-4. 주요 연계 학교: 말보로 칼리지 말레이시아(MCM), 래플스 아메리칸 스쿨(RAS), 선웨이(Sunway), 크레센도-헬프, 페어뷰 등
-5. (숙소 관련 주제이거나 숙소 배제 지시가 없는 경우에만 한함) 푸테리 하버 티가 레지던스(Teega Residence) 3베드룸 오션뷰 풀옵션 숙소 직영 (전 구역 올필터 수질 정화 시스템 완비, 한국 실시간 방송 무료 시청, 주 1회 청소 및 정기 방역 기본 제공)
+- 주요 타겟 키워드: ${keywords || '조호바루 한달살기, 국제학교 입학상담, 말레이시아 조호바루'}
 
-[AEO / GEO 최적화 작성 규칙]
-- 독자층: 말레이시아 조호바루 유학, 이주, 한달살기, 자녀 국제학교 입학을 계획 중인 한국인 학부모
-- 톤앤매너: 전문적이며 신뢰감 있고, 다정하면서도 명확한 해결책을 제시하는 문체
-- 구성:
-  1. 독자의 시선을 사로잡는 매력적인 제목 (title)
-  2. SNS 및 검색 결과에 노출될 1~2줄 핵심 요약문 (summary)
-  3. 이미지 생성을 위한 고해상도 영문 프롬프트 (imagePrompt) - ※ 만약 숙소 제외 요청이 있다면 프롬프트 역시 숙소 대신 학교 캠퍼스나 교실, 현지 풍경 등으로만 묘사할 것
+${instructions ? `[★ 작성 시 특별 요청 / 제약사항 (최우선 반영 지침)]\n${instructions}\n\n※ 위 특별 요청사항은 다른 어떤 지침보다 최우선하여 반드시 100% 반영되어야 합니다!\n(예: 숙소 언급 배제 요청 시 숙소 관련 내용 및 상담 유도는 본문/CTA에서 완전히 제외할 것)\n` : ''}
+
+[글 작성 원칙 (AEO/GEO 검색엔진 인용 최적화)]
+1. 톤앤매너: 전문가의 신뢰성과 실제 현지 거주자의 생생하고 따뜻한 어조 (말레이시아 현지 6년 거주 팩트 기반).
+2. 구조:
+  1. 시선 강탈 매력적인 H1 제목 (네이버/구글 검색 상위 노출형 제목)
+  2. 1~2줄 핵심 요약 (Perplexity, ChatGPT 검색 시 첫 문단에 인용될 명확한 답변)
+  3. 썸네일 이미지 프롬프트 (imagePrompt): 영문 작성, 고화질 8k 사진 스타일 (조호바루 특화)
   4. 완벽한 시맨틱 HTML 본문 (contentHtml):
      - <h2> 소제목과 단락 <p>들
      - 핵심 요약 인용구 <blockquote>
@@ -1389,7 +1503,7 @@ ${instructions}
      - 마지막 콜투액션(CTA): 주제에 맞는 맞춤형 1:1 상담 안내 박스 (<div class="post-cta-card" style="background:#FAF8F5; border:1px solid #E5E0D8; border-radius:8px; padding:20px; margin-top:30px;">...</div>) (※ 국제학교 글이거나 숙소 배제 지시가 있는 경우 숙소 예약 유도는 제외하고 학교 입학 및 1:1 현지 상담으로만 유도할 것)
 
 [출력 형식]
-반드시 유효한 JSON 형식으로만 응답하세요. contentHtml 내부의 큰따옴표나 개행문자가 올바르게 JSON 이스케이프(JSON escape)되어야 합니다:
+반드시 아래 JSON 형식 그대로만 출력하세요 (Markdown 코드 블록 기호 없이 순수 JSON만):
 {
   "title": "게시글 제목",
   "summary": "1~2줄 핵심 요약 문장",
@@ -1398,117 +1512,147 @@ ${instructions}
 }
 `;
 
-                // ── STEP 1: Gemini Text Generation (3.8 Flash -> fallback to 3.7 Flash) ──
-                let candidateModels = [textModel || 'gemini-3.8-flash'];
-                if (candidateModels[0] === 'gemini-3.8-flash') {
-                    candidateModels.push('gemini-3.7-flash');
+                // Build multi-provider failover execution plan
+                const executionPlan = [];
+
+                if (textModel.startsWith('nvidia/')) {
+                    const modelName = textModel.replace('nvidia/', '');
+                    if (nvidiaKey) {
+                        executionPlan.push({
+                            provider: 'NVIDIA',
+                            endpoint: 'https://integrate.api.nvidia.com/v1/chat/completions',
+                            model: modelName,
+                            apiKey: nvidiaKey,
+                            label: `NVIDIA ${modelName}`
+                        });
+                    }
+                    // 1차 백업: Groq Cloud (상시 무료 / 초고속)
+                    if (groqKey) {
+                        const groqModel = modelName.includes('deepseek') ? 'deepseek-r1-distill-llama-70b' : 'llama-3.3-70b-versatile';
+                        executionPlan.push({
+                            provider: 'GROQ',
+                            endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+                            model: groqModel,
+                            apiKey: groqKey,
+                            label: `Groq Cloud ${groqModel} (상시 무료 백업 ⚡️)`
+                        });
+                    }
+                    // 2차 백업: Google Gemini
+                    if (geminiKey) {
+                        executionPlan.push({
+                            provider: 'GEMINI',
+                            model: 'gemini-2.5-flash',
+                            apiKey: geminiKey,
+                            label: 'Google Gemini 2.5 Flash (안정형 무료)'
+                        });
+                    }
+                } else if (textModel.startsWith('groq/')) {
+                    const modelName = textModel.replace('groq/', '');
+                    if (groqKey) {
+                        executionPlan.push({
+                            provider: 'GROQ',
+                            endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+                            model: modelName,
+                            apiKey: groqKey,
+                            label: `Groq ${modelName}`
+                        });
+                    }
+                    // 1차 백업: NVIDIA
+                    if (nvidiaKey) {
+                        const nModel = modelName.includes('deepseek') ? 'deepseek-ai/deepseek-r1' : 'meta/llama-3.3-70b-instruct';
+                        executionPlan.push({
+                            provider: 'NVIDIA',
+                            endpoint: 'https://integrate.api.nvidia.com/v1/chat/completions',
+                            model: nModel,
+                            apiKey: nvidiaKey,
+                            label: `NVIDIA ${nModel}`
+                        });
+                    }
+                    // 2차 백업: Gemini
+                    if (geminiKey) {
+                        executionPlan.push({
+                            provider: 'GEMINI',
+                            model: 'gemini-2.5-flash',
+                            apiKey: geminiKey,
+                            label: 'Google Gemini 2.5 Flash'
+                        });
+                    }
+                } else {
+                    // Google Gemini
+                    const modelName = textModel.replace('gemini/', '');
+                    if (geminiKey) {
+                        executionPlan.push({
+                            provider: 'GEMINI',
+                            model: modelName,
+                            apiKey: geminiKey,
+                            label: `Google ${modelName}`
+                        });
+                        if (modelName !== 'gemini-2.5-flash') {
+                            executionPlan.push({
+                                provider: 'GEMINI',
+                                model: 'gemini-2.5-flash',
+                                apiKey: geminiKey,
+                                label: 'Google Gemini 2.5 Flash (안정형 무료)'
+                            });
+                        }
+                    }
+                    // 백업: Groq Cloud
+                    if (groqKey) {
+                        executionPlan.push({
+                            provider: 'GROQ',
+                            endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+                            model: 'llama-3.3-70b-versatile',
+                            apiKey: groqKey,
+                            label: 'Groq Llama 3.3 70B (상시 무료 백업 ⚡️)'
+                        });
+                    }
                 }
-                const uniqueModels = [...new Set(candidateModels)];
+
+                if (executionPlan.length === 0) {
+                    throw new Error('선택하신 AI 모델을 호출할 수 있는 API 키가 없습니다. 상단에서 해당 프로바이더 키를 등록해 주세요.');
+                }
 
                 let rawText = '';
                 let lastError = null;
-                let usedModel = uniqueModels[0];
 
-                modelLoop:
-                for (let m = 0; m < uniqueModels.length; m++) {
-                    const currentModel = uniqueModels[m];
-                    usedModel = currentModel;
-                    const maxAttempts = 2; // 2 attempts per model (initial + 1 cooldown wait retry)
-
-                    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-                        try {
-                            if (progressStepText) {
-                                if (m > 0) {
-                                    progressStepText.textContent = `${uniqueModels[m - 1]} 일시 혼잡으로 최신 고지능 ${currentModel} 엔진으로 자동 전환하여 작성 중입니다...`;
-                                } else if (attempt === 1) {
-                                    progressStepText.textContent = `${currentModel} 최신 플래그십 엔진이 고품질 본문과 Q&A를 작성 중입니다...`;
-                                }
-                            }
-
-                            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
-                            const textRes = await fetch(geminiUrl, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    contents: [{ parts: [{ text: promptContent }] }],
-                                    generationConfig: {
-                                        temperature: 0.7,
-                                        maxOutputTokens: 8192,
-                                        responseMimeType: 'application/json'
-                                    }
-                                })
-                            });
-
-                            if (textRes.ok) {
-                                const textData = await textRes.json();
-                                rawText = textData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                                if (rawText) {
-                                    break modelLoop;
-                                }
+                for (let i = 0; i < executionPlan.length; i++) {
+                    const step = executionPlan[i];
+                    try {
+                        if (progressStepText) {
+                            if (i === 0) {
+                                progressStepText.textContent = `${step.label} 엔진이 최고 품질 본문과 Q&A를 작성 중입니다...`;
                             } else {
-                                const errData = await textRes.json().catch(() => ({}));
-                                const errMsg = errData.error ? errData.error.message : textRes.statusText;
-                                lastError = new Error(`모델 ${currentModel} (${textRes.status}): ${errMsg}`);
-                                console.warn(`Attempt ${attempt} on ${currentModel} failed (${textRes.status}):`, errMsg);
-
-                                if (textRes.status !== 429 && textRes.status < 500) {
-                                    throw lastError;
-                                }
-
-                                if (attempt < maxAttempts) {
-                                    let waitSec = 8;
-                                    if (errData.error && Array.isArray(errData.error.details)) {
-                                        const retryInfo = errData.error.details.find(d => d['@type'] && d['@type'].includes('RetryInfo'));
-                                        if (retryInfo && retryInfo.retryDelay) {
-                                            const parsed = parseFloat(retryInfo.retryDelay);
-                                            if (!isNaN(parsed) && parsed > 0) {
-                                                waitSec = Math.ceil(parsed) + 1;
-                                            }
-                                        }
-                                    }
-                                    if (waitSec === 8 && errMsg) {
-                                        const match = errMsg.match(/retry (?:in|after) ([\d\.]+)s/i);
-                                        if (match && match[1]) {
-                                            const parsed = parseFloat(match[1]);
-                                            if (!isNaN(parsed) && parsed > 0) {
-                                                waitSec = Math.ceil(parsed) + 1;
-                                            }
-                                        }
-                                    }
-                                    if (waitSec <= 8) {
-                                        waitSec = 8;
-                                    }
-
-                                    for (let s = waitSec; s > 0; s--) {
-                                        if (progressStepText) {
-                                            progressStepText.textContent = `${currentModel} 요청 제한 쿨다운 대기 중: ${s}초 후 재시도합니다...`;
-                                        }
-                                        await new Promise(r => setTimeout(r, 1000));
-                                    }
-                                }
-                            }
-                        } catch (netErr) {
-                            lastError = netErr;
-                            console.warn(`Attempt ${attempt} error on ${currentModel}:`, netErr.message);
-                            if (attempt < maxAttempts) {
-                                await new Promise(r => setTimeout(r, 3000));
+                                progressStepText.textContent = `이전 엔진 한도/크레딧 부족으로 ${step.label} 엔진으로 자동 전환하여 작성 중입니다...`;
                             }
                         }
+
+                        if (step.provider === 'NVIDIA' || step.provider === 'GROQ') {
+                            rawText = await callOpenAICompatible({
+                                endpoint: step.endpoint,
+                                apiKey: step.apiKey,
+                                model: step.model,
+                                prompt: promptContent,
+                                providerName: step.provider
+                            });
+                        } else if (step.provider === 'GEMINI') {
+                            rawText = await callGeminiApi({
+                                apiKey: step.apiKey,
+                                model: step.model,
+                                prompt: promptContent
+                            });
+                        }
+
+                        if (rawText && rawText.trim()) {
+                            break;
+                        }
+                    } catch (err) {
+                        lastError = err;
+                        console.warn(`Execution step ${i} (${step.label}) failed:`, err.message);
                     }
                 }
 
                 if (!rawText) {
-                    let friendlyMsg = `최신 엔진(${usedModel})의 일시적 응답 지연입니다. 잠시 후 다시 시도해 주세요.`;
-                    if (lastError && lastError.message) {
-                        if (lastError.message.includes('429') || lastError.message.includes('quota') || lastError.message.includes('RESOURCE_EXHAUSTED')) {
-                            friendlyMsg = `Google AI Studio의 무료 분당 요청 한도(Rate Limit)에 일시적으로 도달했습니다.\n\n` +
-                                `• 약 20~30초 후 다시 [AI 글 생성]을 클릭해 주세요.\n` +
-                                `• 3.8 Flash 및 3.7 Flash 모두 요청량이 일시 집중되었습니다.`;
-                        } else {
-                            friendlyMsg = lastError.message;
-                        }
-                    }
-                    throw new Error(friendlyMsg);
+                    throw lastError || new Error('모든 AI 엔진에서 일시적 지연이 발생했습니다. API 키 및 크레딧 상태를 확인해 주세요.');
                 }
 
                 // Strip possible markdown fences
@@ -1652,7 +1796,7 @@ ${instructions}
                 // ── STEP 2: Google Imagen Image Generation with Auto-Fallback ──
                 let finalThumbnail = getSmartThemedImage(topic + ' ' + (parsedJson.imagePrompt || keywords), category, imageStyle).url;
 
-                if (shouldGenImage) {
+                if (shouldGenImage && geminiKey) {
                     if (progressBar) progressBar.style.width = '80%';
 
                     let imgPrompt = parsedJson.imagePrompt || `Modern luxury residence in Puteri Harbour Johor Bahru, sunny sea view balcony, tropical atmosphere, photorealistic 8k`;
@@ -1668,7 +1812,7 @@ ${instructions}
                     for (const curImgModel of uniqueImgModels) {
                         try {
                             if (progressStepText) progressStepText.textContent = `${curImgModel} 이미지를 렌더링하고 있습니다...`;
-                            const imgUrl = `https://generativelanguage.googleapis.com/v1beta/models/${curImgModel}:predict?key=${apiKey}`;
+                            const imgUrl = `https://generativelanguage.googleapis.com/v1beta/models/${curImgModel}:predict?key=${geminiKey}`;
                             const imgRes = await fetch(imgUrl, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
