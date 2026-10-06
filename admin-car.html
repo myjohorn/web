@@ -183,12 +183,13 @@
                             <div class="car-cal-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
                                 <div class="car-cal-header-left" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                                     <h3 style="font-size: 18px; font-weight: 600; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 8px; white-space: nowrap;">
-                                        <i class="fa-solid fa-calendar-days" style="color: var(--accent-color);"></i> <span id="carCalMonthTitle">2026년 8월</span> 차량 예약 현황
+                                        <i class="fa-solid fa-calendar-days" style="color: var(--accent-color);"></i> 차량 예약 현황 <span id="carCalMonthTitle" style="display: none;"></span>
                                     </h3>
-                                    <div style="display: flex; gap: 4px;">
-                                        <button type="button" id="carCalPrevBtn" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;"><i class="fa-solid fa-chevron-left"></i></button>
-                                        <button type="button" id="carCalTodayBtn" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">오늘</button>
-                                        <button type="button" id="carCalNextBtn" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;"><i class="fa-solid fa-chevron-right"></i></button>
+                                    <div class="month-picker-ctrl" style="display: inline-flex; align-items: center; gap: 4px; background: #F8F9FA; padding: 3px 6px; border: 1px solid var(--border-color); border-radius: 6px;">
+                                        <button type="button" id="carCalPrevBtn" class="btn btn-secondary month-picker-btn" style="padding: 6px 10px; font-size: 12px; height: 34px; border-radius: 4px; background: #FFF;" title="이전 달"><i class="fa-solid fa-chevron-left"></i></button>
+                                        <input type="month" id="carCalMonthPicker" class="form-control month-picker-input" style="font-size: 13px; font-weight: 600; padding: 6px 8px; width: 135px; height: 34px; cursor: pointer; text-align: center; border: 1px solid #D1D5DB; border-radius: 4px; background: #FFF;">
+                                        <button type="button" id="carCalNextBtn" class="btn btn-secondary month-picker-btn" style="padding: 6px 10px; font-size: 12px; height: 34px; border-radius: 4px; background: #FFF;" title="다음 달"><i class="fa-solid fa-chevron-right"></i></button>
+                                        <button type="button" id="carCalTodayBtn" class="btn btn-secondary month-picker-btn" style="padding: 6px 10px; font-size: 12px; height: 34px; border-radius: 4px; background: #FFF; font-weight: 600;" title="이번 달로 이동">당월</button>
                                     </div>
                                     <!-- View Switcher Toggle & Fast Action Buttons -->
                                     <div style="display: flex; gap: 4px; margin-left: 6px; align-items: center;">
@@ -249,7 +250,18 @@
                                     <option value="revenue">매출만 (+)</option>
                                     <option value="expense">비용만 (-)</option>
                                 </select>
-                                <input type="month" id="ledgerMonthFilter" class="form-control" style="font-size: 13px; padding: 8px 10px; width: 135px; cursor: pointer;">
+                                <div class="month-picker-ctrl" style="display: inline-flex; align-items: center; gap: 4px; background: #F8F9FA; padding: 3px 6px; border: 1px solid var(--border-color); border-radius: 6px;">
+                                    <button type="button" id="prevLedgerMonthBtn" class="btn btn-secondary month-picker-btn" style="padding: 6px 10px; font-size: 12px; height: 34px; border-radius: 4px; background: #FFF;" title="이전 달">
+                                        <i class="fa-solid fa-chevron-left"></i>
+                                    </button>
+                                    <input type="month" id="ledgerMonthFilter" class="form-control month-picker-input" style="font-size: 13px; font-weight: 600; padding: 6px 8px; width: 135px; height: 34px; cursor: pointer; text-align: center; border: 1px solid #D1D5DB; border-radius: 4px; background: #FFF;">
+                                    <button type="button" id="nextLedgerMonthBtn" class="btn btn-secondary month-picker-btn" style="padding: 6px 10px; font-size: 12px; height: 34px; border-radius: 4px; background: #FFF;" title="다음 달">
+                                        <i class="fa-solid fa-chevron-right"></i>
+                                    </button>
+                                    <button type="button" id="todayLedgerMonthBtn" class="btn btn-secondary month-picker-btn" style="padding: 6px 10px; font-size: 12px; height: 34px; border-radius: 4px; background: #FFF; font-weight: 600;" title="이번 달로 이동">
+                                        당월
+                                    </button>
+                                </div>
                             </div>
                             <div class="ledger-actions admin-only" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-left: auto;">
                                 <button type="button" id="openRevenueModalBtn" class="btn btn-primary" style="padding: 8px 14px; font-size: 13px; background: #2E7D32; border-color: #2E7D32; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
@@ -293,15 +305,15 @@
                             </div>
                             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                 <label for="settlementTargetMonth" style="font-size: 13px; font-weight: 600; color: var(--text-primary);">정산 월:</label>
-                                <div style="display: inline-flex; align-items: center; gap: 4px; background: #F8F9FA; padding: 3px 6px; border: 1px solid var(--border-color); border-radius: 6px;">
-                                    <button type="button" id="prevSettleMonthBtn" class="btn btn-secondary" style="padding: 6px 10px; font-size: 12px; height: 34px; border-radius: 4px;" title="이전 달">
+                                <div class="month-picker-ctrl" style="display: inline-flex; align-items: center; gap: 4px; background: #F8F9FA; padding: 3px 6px; border: 1px solid var(--border-color); border-radius: 6px;">
+                                    <button type="button" id="prevSettleMonthBtn" class="btn btn-secondary month-picker-btn" style="padding: 6px 10px; font-size: 12px; height: 34px; border-radius: 4px; background: #FFF;" title="이전 달">
                                         <i class="fa-solid fa-chevron-left"></i>
                                     </button>
-                                    <input type="month" id="settlementTargetMonth" class="form-control" style="font-size: 13px; font-weight: 600; padding: 6px 8px; width: 135px; height: 34px; cursor: pointer; text-align: center; border: 1px solid #D1D5DB; border-radius: 4px; background: #FFF;">
-                                    <button type="button" id="nextSettleMonthBtn" class="btn btn-secondary" style="padding: 6px 10px; font-size: 12px; height: 34px; border-radius: 4px;" title="다음 달">
+                                    <input type="month" id="settlementTargetMonth" class="form-control month-picker-input" style="font-size: 13px; font-weight: 600; padding: 6px 8px; width: 135px; height: 34px; cursor: pointer; text-align: center; border: 1px solid #D1D5DB; border-radius: 4px; background: #FFF;">
+                                    <button type="button" id="nextSettleMonthBtn" class="btn btn-secondary month-picker-btn" style="padding: 6px 10px; font-size: 12px; height: 34px; border-radius: 4px; background: #FFF;" title="다음 달">
                                         <i class="fa-solid fa-chevron-right"></i>
                                     </button>
-                                    <button type="button" id="todaySettleMonthBtn" class="btn btn-secondary" style="padding: 6px 10px; font-size: 12px; height: 34px; border-radius: 4px; font-weight: 600;" title="이번 달로 이동">
+                                    <button type="button" id="todaySettleMonthBtn" class="btn btn-secondary month-picker-btn" style="padding: 6px 10px; font-size: 12px; height: 34px; border-radius: 4px; background: #FFF; font-weight: 600;" title="이번 달로 이동">
                                         당월
                                     </button>
                                 </div>

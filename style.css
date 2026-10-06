@@ -3860,3 +3860,54 @@ input, textarea {
     box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.4);
 }
 
+/* Unified Month Picker Controller */
+.month-picker-ctrl {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #F8F9FA;
+    padding: 3px 6px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+}
+
+.month-picker-ctrl .month-picker-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+    height: 34px;
+    border-radius: 4px;
+    background: #FFFFFF;
+    border: 1px solid #D1D5DB;
+    color: var(--text-primary);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.month-picker-ctrl .month-picker-btn:hover {
+    background: #F3F4F6;
+    border-color: #9CA3AF;
+}
+
+.month-picker-ctrl .month-picker-input {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 8px;
+    width: 135px;
+    height: 34px;
+    cursor: pointer;
+    text-align: center;
+    border: 1px solid #D1D5DB;
+    border-radius: 4px;
+    background: #FFFFFF;
+    color: var(--text-primary);
+    outline: none;
+}
+
+.month-picker-ctrl .month-picker-input:focus {
+    border-color: var(--accent-color);
+}
+
+

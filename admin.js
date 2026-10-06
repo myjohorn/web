@@ -618,7 +618,11 @@ document.addEventListener('DOMContentLoaded', () => {
         adminCalendarDates.innerHTML = '';
 
         const monthNames = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
-        adminCalendarMonthYear.textContent = `${adminYear}년 ${monthNames[adminMonth]}`;
+        if (adminCalendarMonthYear) adminCalendarMonthYear.textContent = `${adminYear}년 ${monthNames[adminMonth]}`;
+        const adminCalendarMonthPicker = document.getElementById('adminCalendarMonthPicker');
+        if (adminCalendarMonthPicker) {
+            adminCalendarMonthPicker.value = `${adminYear}-${String(adminMonth + 1).padStart(2, '0')}`;
+        }
 
         const firstDayIndex = new Date(adminYear, adminMonth, 1).getDay();
         const lastDay = new Date(adminYear, adminMonth + 1, 0).getDate();
@@ -764,6 +768,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Month Navigation
+    const adminCalendarMonthPicker = document.getElementById('adminCalendarMonthPicker');
+    const adminTodayMonthBtn = document.getElementById('adminTodayMonthBtn');
+
+    if (adminCalendarMonthPicker) {
+        adminCalendarMonthPicker.addEventListener('change', () => {
+            if (adminCalendarMonthPicker.value) {
+                const [y, m] = adminCalendarMonthPicker.value.split('-').map(Number);
+                adminYear = y;
+                adminMonth = m - 1;
+                currentMonth = adminMonth;
+                currentYear = adminYear;
+                loadGcalEventsForCurrentMonth();
+                renderAdminCalendar();
+            }
+        });
+        adminCalendarMonthPicker.addEventListener('click', () => {
+            try {
+                if (typeof adminCalendarMonthPicker.showPicker === 'function') adminCalendarMonthPicker.showPicker();
+            } catch (e) {}
+        });
+    }
+
+    if (adminTodayMonthBtn) {
+        adminTodayMonthBtn.addEventListener('click', () => {
+            const now = new Date();
+            adminYear = now.getFullYear();
+            adminMonth = now.getMonth();
+            currentMonth = adminMonth;
+            currentYear = adminYear;
+            loadGcalEventsForCurrentMonth();
+            renderAdminCalendar();
+        });
+    }
+
     if (adminPrevMonthBtn && adminNextMonthBtn) {
         adminPrevMonthBtn.addEventListener('click', () => {
             adminMonth--;
@@ -789,6 +827,59 @@ document.addEventListener('DOMContentLoaded', () => {
             renderAdminCalendar();
         });
     }
+
+    const calendarNavCtrl = document.querySelector('.calendar-nav.month-picker-ctrl');
+    if (calendarNavCtrl) calendarNavCtrl.dataset.monthPickerInit = 'true';
+
+    document.querySelectorAll('.month-picker-ctrl').forEach(ctrl => {
+        if (ctrl.dataset.monthPickerInit === 'true') return;
+        ctrl.dataset.monthPickerInit = 'true';
+
+        const input = ctrl.querySelector('input[type="month"]');
+        const buttons = ctrl.querySelectorAll('button');
+        const prevBtn = buttons[0];
+        const nextBtn = buttons[1];
+        const todayBtn = buttons[2];
+
+        if (!input) return;
+
+        input.addEventListener('click', () => {
+            try {
+                if (typeof input.showPicker === 'function') input.showPicker();
+            } catch (e) {}
+        });
+
+        const shift = (delta) => {
+            const now = new Date();
+            const fallback = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const curVal = input.value || fallback;
+            const [y, m] = curVal.split('-').map(Number);
+            const target = new Date(y, m - 1 + delta, 1);
+            input.value = `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, '0')}`;
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        };
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                shift(-1);
+            });
+        }
+        if (nextBtn) {
+            nextBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                shift(1);
+            });
+        }
+        if (todayBtn) {
+            todayBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const now = new Date();
+                input.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+        }
+    });
 
     // ----------------------------------------------------
     // 7. Save and Delete Reservation Buttons Actions

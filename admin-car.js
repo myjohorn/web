@@ -1351,9 +1351,47 @@ document.addEventListener('DOMContentLoaded', () => {
     const ledgerCarFilter = document.getElementById('ledgerCarFilter');
     const ledgerTypeFilter = document.getElementById('ledgerTypeFilter');
 
+    const prevLedgerMonthBtn = document.getElementById('prevLedgerMonthBtn');
+    const nextLedgerMonthBtn = document.getElementById('nextLedgerMonthBtn');
+    const todayLedgerMonthBtn = document.getElementById('todayLedgerMonthBtn');
+
     if (ledgerCarFilter) ledgerCarFilter.addEventListener('change', renderLedger);
     if (ledgerTypeFilter) ledgerTypeFilter.addEventListener('change', renderLedger);
-    if (ledgerMonthFilter) ledgerMonthFilter.addEventListener('change', renderLedger);
+    if (ledgerMonthFilter) {
+        ledgerMonthFilter.addEventListener('change', renderLedger);
+        ledgerMonthFilter.addEventListener('click', () => {
+            try {
+                if (typeof ledgerMonthFilter.showPicker === 'function') ledgerMonthFilter.showPicker();
+            } catch (e) {}
+        });
+    }
+
+    if (prevLedgerMonthBtn && ledgerMonthFilter) {
+        prevLedgerMonthBtn.addEventListener('click', () => {
+            const curVal = ledgerMonthFilter.value || currentYearMonth;
+            const [y, m] = curVal.split('-').map(Number);
+            const prevDate = new Date(y, m - 2, 1);
+            ledgerMonthFilter.value = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
+            renderLedger();
+        });
+    }
+
+    if (nextLedgerMonthBtn && ledgerMonthFilter) {
+        nextLedgerMonthBtn.addEventListener('click', () => {
+            const curVal = ledgerMonthFilter.value || currentYearMonth;
+            const [y, m] = curVal.split('-').map(Number);
+            const nextDate = new Date(y, m, 1);
+            ledgerMonthFilter.value = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}`;
+            renderLedger();
+        });
+    }
+
+    if (todayLedgerMonthBtn && ledgerMonthFilter) {
+        todayLedgerMonthBtn.addEventListener('click', () => {
+            ledgerMonthFilter.value = currentYearMonth;
+            renderLedger();
+        });
+    }
 
     function renderLedger() {
         const tbody = document.getElementById('ledgerTableBody');
@@ -2470,6 +2508,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const carCalTodayBtn = document.getElementById('carCalTodayBtn');
     const carCalFilter = document.getElementById('carCalFilter');
 
+    const carCalMonthPicker = document.getElementById('carCalMonthPicker');
+    if (carCalMonthPicker) {
+        carCalMonthPicker.addEventListener('change', () => {
+            if (carCalMonthPicker.value) {
+                const [y, m] = carCalMonthPicker.value.split('-').map(Number);
+                carCalYear = y;
+                carCalMonth = m - 1;
+                renderCarCalendar();
+            }
+        });
+        carCalMonthPicker.addEventListener('click', () => {
+            try {
+                if (typeof carCalMonthPicker.showPicker === 'function') carCalMonthPicker.showPicker();
+            } catch (e) {}
+        });
+    }
+
     if (carCalPrevBtn) {
         carCalPrevBtn.addEventListener('click', () => {
             carCalMonth--;
@@ -2508,9 +2563,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderCarCalendar() {
         const grid = document.getElementById('carCalDatesGrid');
         const monthTitle = document.getElementById('carCalMonthTitle');
-        if (!grid || !monthTitle) return;
+        if (!grid) return;
 
-        monthTitle.textContent = `${carCalYear}년 ${carCalMonth + 1}월`;
+        if (monthTitle) monthTitle.textContent = `${carCalYear}년 ${carCalMonth + 1}월`;
+        if (carCalMonthPicker) {
+            carCalMonthPicker.value = `${carCalYear}-${String(carCalMonth + 1).padStart(2, '0')}`;
+        }
 
         const firstDay = new Date(carCalYear, carCalMonth, 1);
         const lastDay = new Date(carCalYear, carCalMonth + 1, 0);

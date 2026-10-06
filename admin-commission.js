@@ -2687,6 +2687,54 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         });
     }
 
+    function bindMonthPickerControls(inputId, prevId, nextId, todayId, onChange) {
+        const input = document.getElementById(inputId);
+        const prev = document.getElementById(prevId);
+        const next = document.getElementById(nextId);
+        const today = document.getElementById(todayId);
+
+        if (!input) return;
+
+        input.addEventListener('click', () => {
+            try {
+                if (typeof input.showPicker === 'function') input.showPicker();
+            } catch (e) {}
+        });
+
+        const shift = (delta) => {
+            const now = new Date();
+            const fallback = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const curVal = input.value || fallback;
+            const [y, m] = curVal.split('-').map(Number);
+            const target = new Date(y, m - 1 + delta, 1);
+            input.value = `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, '0')}`;
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+            if (typeof onChange === 'function') onChange(input.value);
+        };
+
+        if (prev) {
+            prev.addEventListener('click', (e) => {
+                e.preventDefault();
+                shift(-1);
+            });
+        }
+        if (next) {
+            next.addEventListener('click', (e) => {
+                e.preventDefault();
+                shift(1);
+            });
+        }
+        if (today) {
+            today.addEventListener('click', (e) => {
+                e.preventDefault();
+                const now = new Date();
+                input.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+                if (typeof onChange === 'function') onChange(input.value);
+            });
+        }
+    }
+
     if (btnAutoGenerateMonthlyInvoices) {
         btnAutoGenerateMonthlyInvoices.addEventListener('click', () => {
             const m = autoGenMonthInput ? autoGenMonthInput.value : currentYearMonth;
@@ -2697,6 +2745,11 @@ Email / Contact: ${ent.contact || '-'}`.trim();
         autoGenMonthInput.value = currentYearMonth;
         autoGenMonthInput.addEventListener('change', updateUnbilledSummaryBanner);
     }
+
+    bindMonthPickerControls('autoGenMonthInput', 'prevAutoGenMonthBtn', 'nextAutoGenMonthBtn', 'todayAutoGenMonthBtn', updateUnbilledSummaryBanner);
+    bindMonthPickerControls('paymentMonthFilter', 'prevPaymentMonthBtn', 'nextPaymentMonthBtn', 'todayPaymentMonthBtn', renderPayments);
+    bindMonthPickerControls('monthlyInvoiceMonthInput', 'prevMonthlyInvoiceMonthBtn', 'nextMonthlyInvoiceMonthBtn', 'todayMonthlyInvoiceMonthBtn', loadEligibleStudentsForMonthlyInvoice);
+    bindMonthPickerControls('editInvoiceBillingMonth', 'prevEditInvoiceMonthBtn', 'nextEditInvoiceMonthBtn', 'todayEditInvoiceMonthBtn');
 
     // ----------------------------------------------------
     // INVOICE REVIEW & EDIT MODAL CONTROLLER

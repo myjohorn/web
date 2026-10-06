@@ -259,7 +259,18 @@
                                     </div>
                                     <div style="display: flex; align-items: center; gap: 6px;">
                                         <label for="autoGenMonthInput" style="font-size: 12px; font-weight: 600; color: var(--text-secondary); margin: 0;">청구월:</label>
-                                        <input type="month" id="autoGenMonthInput" class="form-control" style="font-size: 13px; width: auto; padding: 6px 10px; font-weight: 700; background: var(--white);">
+                                        <div class="month-picker-ctrl" style="display: inline-flex; align-items: center; gap: 4px; background: #F8F9FA; padding: 3px 6px; border: 1px solid var(--border-color); border-radius: 6px;">
+                                            <button type="button" id="prevAutoGenMonthBtn" class="btn btn-secondary month-picker-btn" style="padding: 6px 10px; font-size: 12px; height: 34px; border-radius: 4px; background: #FFF;" title="이전 달">
+                                                <i class="fa-solid fa-chevron-left"></i>
+                                            </button>
+                                            <input type="month" id="autoGenMonthInput" class="form-control month-picker-input" style="font-size: 13px; font-weight: 600; padding: 6px 8px; width: 135px; height: 34px; cursor: pointer; text-align: center; border: 1px solid #D1D5DB; border-radius: 4px; background: #FFF;">
+                                            <button type="button" id="nextAutoGenMonthBtn" class="btn btn-secondary month-picker-btn" style="padding: 6px 10px; font-size: 12px; height: 34px; border-radius: 4px; background: #FFF;" title="다음 달">
+                                                <i class="fa-solid fa-chevron-right"></i>
+                                            </button>
+                                            <button type="button" id="todayAutoGenMonthBtn" class="btn btn-secondary month-picker-btn" style="padding: 6px 10px; font-size: 12px; height: 34px; border-radius: 4px; background: #FFF; font-weight: 600;" title="이번 달로 이동">
+                                                당월
+                                            </button>
+                                        </div>
                                     </div>
                                     <div id="unbilledSummaryBadge" style="font-size: 12px; padding: 4px 10px; border-radius: 20px; background: #FFF3E0; color: #E65100; font-weight: 600; border: 1px solid #FFE0B2;">
                                         <i class="fa-solid fa-circle-info"></i> 미청구 대상 계산 중...
@@ -326,7 +337,18 @@
                         <div class="admin-panel" style="background: var(--white); padding: 18px 20px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 20px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap;">
                                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1;">
-                                    <input type="month" id="paymentMonthFilter" class="form-control" style="font-size: 13px; width: auto; padding: 8px 12px;">
+                                    <div class="month-picker-ctrl" style="display: inline-flex; align-items: center; gap: 4px; background: #F8F9FA; padding: 3px 6px; border: 1px solid var(--border-color); border-radius: 6px;">
+                                        <button type="button" id="prevPaymentMonthBtn" class="btn btn-secondary month-picker-btn" style="padding: 6px 10px; font-size: 12px; height: 34px; border-radius: 4px; background: #FFF;" title="이전 달">
+                                            <i class="fa-solid fa-chevron-left"></i>
+                                        </button>
+                                        <input type="month" id="paymentMonthFilter" class="form-control month-picker-input" style="font-size: 13px; font-weight: 600; padding: 6px 8px; width: 135px; height: 34px; cursor: pointer; text-align: center; border: 1px solid #D1D5DB; border-radius: 4px; background: #FFF;">
+                                        <button type="button" id="nextPaymentMonthBtn" class="btn btn-secondary month-picker-btn" style="padding: 6px 10px; font-size: 12px; height: 34px; border-radius: 4px; background: #FFF;" title="다음 달">
+                                            <i class="fa-solid fa-chevron-right"></i>
+                                        </button>
+                                        <button type="button" id="todayPaymentMonthBtn" class="btn btn-secondary month-picker-btn" style="padding: 6px 10px; font-size: 12px; height: 34px; border-radius: 4px; background: #FFF; font-weight: 600;" title="이번 달로 이동">
+                                            당월
+                                        </button>
+                                    </div>
                                     <select id="paymentSchoolFilter" class="form-control" style="font-size: 13px; width: auto; min-width: 170px; padding: 8px 12px;">
                                         <option value="all">전체 학교</option>
                                     </select>
@@ -719,7 +741,18 @@
                 <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
                     <div class="form-group" style="margin: 0;">
                         <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">청구 대상 년월</label>
-                        <input type="month" id="editInvoiceBillingMonth" class="form-control" style="font-size: 13px; padding: 8px 10px;">
+                        <div class="month-picker-ctrl" style="display: inline-flex; align-items: center; gap: 4px; background: #F8F9FA; padding: 3px 6px; border: 1px solid var(--border-color); border-radius: 6px; width: 100%; box-sizing: border-box;">
+                            <button type="button" id="prevEditInvoiceMonthBtn" class="btn btn-secondary month-picker-btn" style="padding: 6px 8px; font-size: 11px; height: 34px; border-radius: 4px; background: #FFF;" title="이전 달">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <input type="month" id="editInvoiceBillingMonth" class="form-control month-picker-input" style="font-size: 12px; font-weight: 600; padding: 6px 4px; flex: 1; min-width: 0; height: 34px; cursor: pointer; text-align: center; border: 1px solid #D1D5DB; border-radius: 4px; background: #FFF;">
+                            <button type="button" id="nextEditInvoiceMonthBtn" class="btn btn-secondary month-picker-btn" style="padding: 6px 8px; font-size: 11px; height: 34px; border-radius: 4px; background: #FFF;" title="다음 달">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                            <button type="button" id="todayEditInvoiceMonthBtn" class="btn btn-secondary month-picker-btn" style="padding: 6px 8px; font-size: 11px; height: 34px; border-radius: 4px; background: #FFF; font-weight: 600;" title="이번 달로 이동">
+                                당월
+                            </button>
+                        </div>
                     </div>
                     <div class="form-group" style="margin: 0;">
                         <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">발행 일자</label>
@@ -1262,7 +1295,18 @@
                     </div>
                     <div class="form-group" style="margin: 0;">
                         <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">청구 대상 년월 (Billing Month) <span style="color: #C62828;">*</span></label>
-                        <input type="month" id="monthlyInvoiceMonthInput" class="form-control" style="font-size: 13px; padding: 8px 10px;">
+                        <div class="month-picker-ctrl" style="display: inline-flex; align-items: center; gap: 4px; background: #F8F9FA; padding: 3px 6px; border: 1px solid var(--border-color); border-radius: 6px; width: 100%; box-sizing: border-box;">
+                            <button type="button" id="prevMonthlyInvoiceMonthBtn" class="btn btn-secondary month-picker-btn" style="padding: 6px 8px; font-size: 11px; height: 34px; border-radius: 4px; background: #FFF;" title="이전 달">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <input type="month" id="monthlyInvoiceMonthInput" class="form-control month-picker-input" style="font-size: 12px; font-weight: 600; padding: 6px 4px; flex: 1; min-width: 0; height: 34px; cursor: pointer; text-align: center; border: 1px solid #D1D5DB; border-radius: 4px; background: #FFF;">
+                            <button type="button" id="nextMonthlyInvoiceMonthBtn" class="btn btn-secondary month-picker-btn" style="padding: 6px 8px; font-size: 11px; height: 34px; border-radius: 4px; background: #FFF;" title="다음 달">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                            <button type="button" id="todayMonthlyInvoiceMonthBtn" class="btn btn-secondary month-picker-btn" style="padding: 6px 8px; font-size: 11px; height: 34px; border-radius: 4px; background: #FFF; font-weight: 600;" title="이번 달로 이동">
+                                당월
+                            </button>
+                        </div>
                     </div>
                     <div class="form-group" style="margin: 0;">
                         <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">발행 법인 (Issuer Entity) <span style="color: #C62828;">*</span></label>
