@@ -1690,6 +1690,93 @@ document.addEventListener('DOMContentLoaded', () => {
         return false;
     }
 
+    // Helper: calculate cumulative unsettled history and breakdown up to targetMonth for a car
+    function getCarUnsettledHistory(carId, targetMonth) {
+        const car = delegatedCars.find(c => c.id === carId || (c.plateNumber && c.plateNumber === carId));
+        if (!car) return { pastUnsettledList: [], pastUnsettledTotal: 0, totalUnsettledPayout: 0 };
+
+        const feeRate = getCarFeeRate(car);
+        const allMonths = new Set();
+
+        delegatedRevenues.forEach(r => {
+            const matchCar = (r.carId === car.id) || (car.plateNumber && r.carId === car.plateNumber);
+            if (matchCar) {
+                let d = r.startDate || r.date;
+                if (d) {
+                    d = String(d).trim().replace(/[\.\/]/g, '-');
+                    const m = d.substring(0, 7);
+                    if (m <= targetMonth) allMonths.add(m);
+                }
+                if (r.settledMonth && r.settledMonth <= targetMonth) allMonths.add(r.settledMonth);
+            }
+        });
+
+        delegatedExpenses.forEach(e => {
+            const matchCar = (e.carId === car.id) || (car.plateNumber && e.carId === car.plateNumber);
+            if (matchCar) {
+                let d = e.expenseDate || e.date;
+                if (d) {
+                    d = String(d).trim().replace(/[\.\/]/g, '-');
+                    const m = d.substring(0, 7);
+                    if (m <= targetMonth) allMonths.add(m);
+                }
+                if (e.settledMonth && e.settledMonth <= targetMonth) allMonths.add(e.settledMonth);
+            }
+        });
+
+        if (targetMonth) allMonths.add(targetMonth);
+
+        const pastUnsettledList = [];
+        let pastUnsettledTotal = 0;
+        let totalUnsettledPayout = 0;
+
+        const sortedMonths = Array.from(allMonths).sort();
+        sortedMonths.forEach(m => {
+            if (m > targetMonth) return;
+            const sObj = getSettlementForCarMonth(car.id, m);
+            const isMonthDone = sObj && sObj.status === 'completed';
+
+            if (!isMonthDone) {
+                const mRevs = delegatedRevenues.filter(r => {
+                    const isValidStatus = !r.paymentStatus || r.paymentStatus === 'completed' || r.paymentStatus === 'paid';
+                    return isValidStatus && isItemAssignedToMonth(r, m, car.id);
+                });
+                const mGross = mRevs.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+                const mFee = mGross * (feeRate / 100);
+
+                const mExps = delegatedExpenses.filter(e => {
+                    const isDeductible = e.deductibleFromOwner === true || e.deductibleFromOwner === 'true';
+                    return isDeductible && isItemAssignedToMonth(e, m, car.id);
+                });
+                const mExpSum = mExps.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+                const mNet = mGross - mFee - mExpSum;
+
+                totalUnsettledPayout += mNet;
+
+                if (m < targetMonth) {
+                    if (mGross !== 0 || mExpSum !== 0 || mNet !== 0 || mRevs.length > 0 || mExps.length > 0) {
+                        pastUnsettledList.push({
+                            month: m,
+                            grossRevenue: mGross,
+                            feeAmount: mFee,
+                            totalExpenses: mExpSum,
+                            netPayout: mNet,
+                            revs: mRevs,
+                            exps: mExps
+                        });
+                        pastUnsettledTotal += mNet;
+                    }
+                }
+            }
+        });
+
+        return {
+            pastUnsettledList,
+            pastUnsettledTotal,
+            totalUnsettledPayout
+        };
+    }
+
     if (settlementTargetMonth) {
         settlementTargetMonth.addEventListener('change', () => {
             renderSettlements();
@@ -1812,60 +1899,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Calculate Cumulative Unsettled Total Payout for this car up to targetMonth (past & current only, never future)
-            let carUnsettledTotalPayout = 0;
-            const allMonths = new Set();
-
-            delegatedRevenues.forEach(r => {
-                const matchCar = (r.carId === car.id) || (r.carId === car.plateNumber);
-                if (matchCar) {
-                    let d = r.startDate || r.date;
-                    if (d) {
-                        d = String(d).trim().replace(/[\.\/]/g, '-');
-                        const m = d.substring(0, 7);
-                        if (m <= targetMonth) allMonths.add(m);
-                    }
-                    if (r.settledMonth && r.settledMonth <= targetMonth) allMonths.add(r.settledMonth);
-                }
-            });
-
-            delegatedExpenses.forEach(e => {
-                const matchCar = (e.carId === car.id) || (e.carId === car.plateNumber);
-                if (matchCar) {
-                    let d = e.expenseDate || e.date;
-                    if (d) {
-                        d = String(d).trim().replace(/[\.\/]/g, '-');
-                        const m = d.substring(0, 7);
-                        if (m <= targetMonth) allMonths.add(m);
-                    }
-                    if (e.settledMonth && e.settledMonth <= targetMonth) allMonths.add(e.settledMonth);
-                }
-            });
-
-            if (targetMonth) allMonths.add(targetMonth);
-
-            allMonths.forEach(m => {
-                if (m > targetMonth) return; // Strict: Never include future months in unsettled total!
-                const sObj = getSettlementForCarMonth(car.id, m);
-                const isMonthDone = sObj && sObj.status === 'completed';
-
-                if (!isMonthDone) {
-                    const mRevs = delegatedRevenues.filter(r => {
-                        const isValidStatus = !r.paymentStatus || r.paymentStatus === 'completed' || r.paymentStatus === 'paid';
-                        return isValidStatus && isItemAssignedToMonth(r, m, car.id);
-                    });
-                    const mGross = mRevs.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
-                    const mFee = mGross * (feeRate / 100);
-
-                    const mExps = delegatedExpenses.filter(e => {
-                        const isDeductible = e.deductibleFromOwner === true || e.deductibleFromOwner === 'true';
-                        return isDeductible && isItemAssignedToMonth(e, m, car.id);
-                    });
-                    const mExpSum = mExps.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
-
-                    carUnsettledTotalPayout += (mGross - mFee - mExpSum);
-                }
-            });
+            // Calculate Cumulative Unsettled Total Payout and past unsettled list for this car up to targetMonth
+            const { pastUnsettledList, pastUnsettledTotal, totalUnsettledPayout: carUnsettledTotalPayout } = getCarUnsettledHistory(car.id, targetMonth);
 
             const isNoActivity = (grossRevenue === 0 && totalExpenses === 0 && carRolloverExpenses === 0);
 
@@ -1879,7 +1914,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `;
             } else if (isNoActivity) {
-                statusBadge = '<span class="status-badge" style="background: #F3F4F6; color: #6B7280; border: 1px solid #E5E7EB; font-weight: 500;"><i class="fa-solid fa-minus" style="font-size: 10px; margin-right: 3px;"></i> 실적 없음</span>';
+                if (pastUnsettledList.length > 0) {
+                    statusBadge = `<span class="status-badge" style="background: #FFF3E0; color: #E65100; border: 1px solid #FFE0B2; font-weight: 600;"><i class="fa-solid fa-clock" style="font-size: 10px; margin-right: 3px;"></i> 이전 미정산 (${pastUnsettledTotal.toLocaleString()})</span>`;
+                } else {
+                    statusBadge = '<span class="status-badge" style="background: #F3F4F6; color: #6B7280; border: 1px solid #E5E7EB; font-weight: 500;"><i class="fa-solid fa-minus" style="font-size: 10px; margin-right: 3px;"></i> 실적 없음</span>';
+                }
+            } else if (pastUnsettledList.length > 0) {
+                statusBadge = `
+                    <div>
+                        <span class="status-badge status-pending">미정산 (대기)</span>
+                        <div style="font-size: 11px; color: #E65100; margin-top: 2px; font-weight: 500;">+이전 미정산 ${pastUnsettledList.length}건</div>
+                    </div>
+                `;
             }
 
             const payoutColor = netOwnerPayout >= 0 ? '#1565C0' : '#C62828';
@@ -1954,6 +2000,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const existingSettlement = getSettlementForCarMonth(car.id, targetMonth);
         const isCompleted = existingSettlement && existingSettlement.status === 'completed';
 
+        // Check past unsettled history
+        const { pastUnsettledList, pastUnsettledTotal } = getCarUnsettledHistory(car.id, targetMonth);
+        const pastIncludedAmount = (existingSettlement && existingSettlement.includedPastUnsettledAmount) ? parseFloat(existingSettlement.includedPastUnsettledAmount) : 0;
+        const pastSettledMonths = (existingSettlement && Array.isArray(existingSettlement.pastSettledMonths)) ? existingSettlement.pastSettledMonths : [];
+        const hasPastUnsettled = (pastUnsettledList.length > 0) || (isCompleted && pastSettledMonths.length > 0);
+        const displayPastTotal = isCompleted ? pastIncludedAmount : pastUnsettledTotal;
+
         const stmtContentSheet = document.getElementById('stmtContentSheet');
         const confirmStmtBtn = document.getElementById('confirmStmtBtn');
 
@@ -1961,10 +2014,18 @@ document.addEventListener('DOMContentLoaded', () => {
         let settledStatusHtml = '';
         if (isCompleted) {
             settledStatusHtml = `<span style="color: #2E7D32; font-weight: 700;"><i class="fa-solid fa-circle-check"></i> 정산 완료 (${formatDateTime(existingSettlement.settledAt)})</span>`;
-        } else if (isNoActivity) {
+            if (pastSettledMonths.length > 0) {
+                settledStatusHtml += `<div style="font-size: 11px; color: #2E7D32; margin-top: 3px; font-weight: 500;">(이전 미정산 ${pastSettledMonths.join(', ')}월 포함 정산)</div>`;
+            }
+        } else if (isNoActivity && pastUnsettledList.length === 0) {
             settledStatusHtml = `<span style="color: #6B7280; font-weight: 600;"><i class="fa-solid fa-minus"></i> 실적 없음 (정산 대상 없음)</span>`;
+        } else if (isNoActivity && pastUnsettledList.length > 0) {
+            settledStatusHtml = `<span style="color: #E65100; font-weight: 700;"><i class="fa-solid fa-clock"></i> 당월 무실적 / 이전 미정산 이월 대상 (${pastUnsettledTotal.toLocaleString()}원)</span>`;
         } else {
             settledStatusHtml = `<span style="color: #E65100; font-weight: 700;"><i class="fa-solid fa-clock"></i> 정산 대기 (미정산)</span>`;
+            if (pastUnsettledList.length > 0) {
+                settledStatusHtml += `<div style="font-size: 11px; color: #E65100; margin-top: 3px; font-weight: 500;">(+ 이전 미정산 ${pastUnsettledList.length}건 이월 합산 대기)</div>`;
+            }
         }
 
         const stmtPrintDate = document.getElementById('stmtPrintDate');
@@ -2048,24 +2109,96 @@ document.addEventListener('DOMContentLoaded', () => {
                 </table>
 
                 <h4 style="font-size: 14px; font-weight: 700; margin: 15px 0 8px 0; color: #1565C0;">3. 정산 금액 요약 산출</h4>
-                <div style="background: #F8F9FA; padding: 15px; border-radius: 6px; border: 1px solid #E9ECEF;">
+                <div style="background: #F8F9FA; padding: 15px; border-radius: 6px; border: 1px solid #E9ECEF; margin-bottom: 15px;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                        <span>(+) 총 렌트 매출:</span>
+                        <span>(+) 당월 렌트 매출:</span>
                         <strong>${grossRevenue.toLocaleString()}</strong>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: var(--accent-color);">
                         <span>(-) 위탁 관리 수수료 (${feeRate}%):</span>
                         <strong>- ${feeAmount.toLocaleString()}</strong>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; color: #C62828;">
-                        <span>(-) 차주 정비/공제 비용:</span>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: #C62828;">
+                        <span>(-) 당월 차주 정비/공제 비용:</span>
                         <strong>- ${totalExpenses.toLocaleString()}</strong>
                     </div>
-                    <div style="display: flex; justify-content: space-between; border-top: 2px dashed #CBD5E1; padding-top: 10px; font-size: 16px; font-weight: 700; color: #1565C0;">
-                        <span>최종 차주 입금 배당금:</span>
+                    <div style="display: flex; justify-content: space-between; border-top: 1px solid #CBD5E1; padding-top: 6px; margin-bottom: 6px; font-weight: 600; color: #1E293B;">
+                        <span>(=) 당월 배당금 산출액:</span>
                         <span>${netOwnerPayout.toLocaleString()}</span>
                     </div>
+                    ${hasPastUnsettled ? `
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: #E65100; font-weight: 600;">
+                            <span>(+) 이전 미정산 이월 합계:</span>
+                            <span>+ ${displayPastTotal.toLocaleString()}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-top: 2px dashed #CBD5E1; padding-top: 10px; font-size: 16px; font-weight: 700; color: #1565C0;">
+                            <span>최종 차주 입금 배당금 (이전 미정산 포함):</span>
+                            <span id="stmtFinalPayoutDisplay">${(netOwnerPayout + displayPastTotal).toLocaleString()}</span>
+                        </div>
+                    ` : `
+                        <div style="display: flex; justify-content: space-between; border-top: 2px dashed #CBD5E1; padding-top: 10px; font-size: 16px; font-weight: 700; color: #1565C0;">
+                            <span>최종 차주 입금 배당금:</span>
+                            <span>${netOwnerPayout.toLocaleString()}</span>
+                        </div>
+                    `}
                 </div>
+
+                ${(pastUnsettledList.length > 0 || (isCompleted && pastSettledMonths.length > 0)) ? `
+                    <h4 style="font-size: 14px; font-weight: 700; margin: 15px 0 8px 0; color: #E65100;">
+                        <i class="fa-solid fa-clock-rotate-left"></i> 4. 이전 미정산 이월 상세 내역
+                    </h4>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px;">
+                        <thead>
+                            <tr style="background: #FFF3E0; border-bottom: 1px solid #FFE0B2;">
+                                <th style="padding: 6px; text-align: left;">미정산 대상 월</th>
+                                <th style="padding: 6px; text-align: right;">렌트 매출</th>
+                                <th style="padding: 6px; text-align: right;">수수료</th>
+                                <th style="padding: 6px; text-align: right;">공제 비용</th>
+                                <th style="padding: 6px; text-align: right;">미정산 배당금</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${pastUnsettledList.length > 0 ? pastUnsettledList.map(p => `
+                                <tr style="border-bottom: 1px solid #EEE;">
+                                    <td style="padding: 6px; font-weight: 600;">${p.month}월</td>
+                                    <td style="padding: 6px; text-align: right;">${p.grossRevenue.toLocaleString()}</td>
+                                    <td style="padding: 6px; text-align: right;">${p.feeAmount.toLocaleString()}</td>
+                                    <td style="padding: 6px; text-align: right;">${p.totalExpenses.toLocaleString()}</td>
+                                    <td style="padding: 6px; text-align: right; font-weight: 700; color: #E65100;">${p.netPayout.toLocaleString()}</td>
+                                </tr>
+                            `).join('') : `
+                                <tr>
+                                    <td colspan="5" style="padding: 8px; text-align: center; color: #2E7D32;">
+                                        정산 완료 시 포함 처리된 이전 월: <strong>${pastSettledMonths.join(', ')}월</strong> (총 ${displayPastTotal.toLocaleString()}원)
+                                    </td>
+                                </tr>
+                            `}
+                            ${pastUnsettledList.length > 0 ? `
+                                <tr style="font-weight: 700; background: #FFF8E1;">
+                                    <td colspan="4" style="padding: 8px;">이전 미정산 합계</td>
+                                    <td style="padding: 8px; text-align: right; color: #E65100;">${pastUnsettledTotal.toLocaleString()}</td>
+                                </tr>
+                            ` : ''}
+                        </tbody>
+                    </table>
+                ` : ''}
+
+                ${(!isCompleted && pastUnsettledList.length > 0) ? `
+                    <div style="background: #FFF8E1; border: 1px solid #FFE082; padding: 12px 15px; border-radius: 6px; margin-top: 15px; display: flex; align-items: center; justify-content: space-between;" data-html2canvas-ignore="true">
+                        <div>
+                            <div style="font-weight: 700; color: #B78103; font-size: 13px;">
+                                <i class="fa-solid fa-circle-exclamation"></i> 이전 미정산 내역 함께 정산
+                            </div>
+                            <div style="font-size: 11px; color: #795548; margin-top: 2px;">
+                                이전 ${pastUnsettledList.length}건의 미정산액(${pastUnsettledTotal.toLocaleString()}원)을 당월 정산 완료 시 함께 완료 처리합니다.
+                            </div>
+                        </div>
+                        <label style="display: flex; align-items: center; gap: 6px; font-weight: 700; color: #E65100; cursor: pointer; white-space: nowrap; user-select: none;">
+                            <input type="checkbox" id="includePastSettlementCheck" checked style="width: 17px; height: 17px; cursor: pointer;">
+                            함께 정산 완료
+                        </label>
+                    </div>
+                ` : ''}
             `;
 
             stmtContentSheet.querySelectorAll('.stmt-view-receipt-btn').forEach(btn => {
@@ -2084,7 +2217,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 confirmStmtBtn.disabled = (userRole === 'owner');
 
                 confirmStmtBtn.onclick = () => {
-                    if (confirm(`${car.ownerName} 차주님의 ${targetMonth}월 정산 완료 상태를 취소하고 [미정산 (대기)] 상태로 되돌리시겠습니까?`)) {
+                    let cancelMsg = `${car.ownerName} 차주님의 ${targetMonth}월 정산 완료 상태를 취소하고 [미정산 (대기)] 상태로 되돌리시겠습니까?`;
+                    if (pastSettledMonths.length > 0) {
+                        cancelMsg += `\n\n함께 정산 완료 처리되었던 이전 미정산 월(${pastSettledMonths.join(', ')}월)도 함께 미정산 상태로 복원됩니다.`;
+                    }
+
+                    if (confirm(cancelMsg)) {
                         const targetPlateSettleId = car.plateNumber ? `settle_${targetMonth.replace('-', '_')}_${car.plateNumber}` : '';
                         const updates = {};
                         if (existingSettlement && existingSettlement.id) {
@@ -2093,6 +2231,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         updates[`delegated_car_settlements/${settleId}`] = null;
                         if (targetPlateSettleId) updates[`delegated_car_settlements/${targetPlateSettleId}`] = null;
 
+                        // Restore current month items
                         revs.forEach(r => {
                             if (r.id) {
                                 updates[`delegated_car_revenues/${r.id}/isSettled`] = false;
@@ -2109,22 +2248,90 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         });
 
+                        // Restore bundled past months
+                        if (pastSettledMonths.length > 0) {
+                            pastSettledMonths.forEach(pm => {
+                                const pmSettleId = `settle_${pm.replace('-', '_')}_${car.id}`;
+                                const pmPlateSettleId = car.plateNumber ? `settle_${pm.replace('-', '_')}_${car.plateNumber}` : '';
+                                updates[`delegated_car_settlements/${pmSettleId}`] = null;
+                                if (pmPlateSettleId) updates[`delegated_car_settlements/${pmPlateSettleId}`] = null;
+
+                                delegatedRevenues.forEach(r => {
+                                    const matchCar = (r.carId === car.id) || (car.plateNumber && r.carId === car.plateNumber);
+                                    if (matchCar && r.settledMonth === pm && r.id) {
+                                        updates[`delegated_car_revenues/${r.id}/isSettled`] = false;
+                                        updates[`delegated_car_revenues/${r.id}/settledMonth`] = null;
+                                        updates[`delegated_car_revenues/${r.id}/settledAt`] = null;
+                                    }
+                                });
+
+                                delegatedExpenses.forEach(e => {
+                                    const matchCar = (e.carId === car.id) || (car.plateNumber && e.carId === car.plateNumber);
+                                    if (matchCar && e.settledMonth === pm && e.id) {
+                                        updates[`delegated_car_expenses/${e.id}/isSettled`] = false;
+                                        updates[`delegated_car_expenses/${e.id}/settledMonth`] = null;
+                                        updates[`delegated_car_expenses/${e.id}/settledAt`] = null;
+                                    }
+                                });
+                            });
+                        }
+
                         db.ref().update(updates).then(() => {
                             closeModal('settlementModal');
                         });
                     }
                 };
             } else {
-                confirmStmtBtn.innerHTML = isNoActivity 
-                    ? '<i class="fa-solid fa-circle-check"></i> 무실적 마감 완료' 
-                    : '<i class="fa-solid fa-circle-check"></i> 정산 완료 처리';
-                confirmStmtBtn.style.background = isNoActivity ? '#5C5449' : 'var(--accent-color)';
+                const updateButtonState = () => {
+                    const includePastCheck = document.getElementById('includePastSettlementCheck');
+                    const isChecked = includePastCheck ? includePastCheck.checked : false;
+
+                    if (pastUnsettledList.length > 0 && isChecked) {
+                        confirmStmtBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> 정산 완료 처리 (이전 미정산 포함)';
+                        confirmStmtBtn.style.background = 'var(--accent-color)';
+                    } else if (isNoActivity) {
+                        confirmStmtBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> 무실적 마감 완료';
+                        confirmStmtBtn.style.background = '#5C5449';
+                    } else {
+                        confirmStmtBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> 정산 완료 처리';
+                        confirmStmtBtn.style.background = 'var(--accent-color)';
+                    }
+                };
+
+                updateButtonState();
+
+                const includePastCheckEl = stmtContentSheet ? stmtContentSheet.querySelector('#includePastSettlementCheck') : null;
+                if (includePastCheckEl) {
+                    includePastCheckEl.addEventListener('change', () => {
+                        updateButtonState();
+                        const finalDisplayEl = document.getElementById('stmtFinalPayoutDisplay');
+                        if (finalDisplayEl) {
+                            const isChecked = includePastCheckEl.checked;
+                            const finalAmt = isChecked ? (netOwnerPayout + pastUnsettledTotal) : netOwnerPayout;
+                            finalDisplayEl.textContent = finalAmt.toLocaleString();
+                        }
+                    });
+                }
+
                 confirmStmtBtn.disabled = (userRole === 'owner');
 
                 confirmStmtBtn.onclick = () => {
-                    const confirmMsg = isNoActivity 
-                        ? `${car.ownerName} 차주님의 ${targetMonth}월(실적 없음)을 [무실적 마감 완료] 처리하시겠습니까?`
-                        : `${car.ownerName} 차주님의 ${targetMonth}월 정산을 완료 처리하시겠습니까?\n\n포함된 매출 및 공제 비용이 ${targetMonth}월 정산 완료 상태로 전환됩니다.`;
+                    const includePastCheck = document.getElementById('includePastSettlementCheck');
+                    const shouldIncludePast = includePastCheck ? includePastCheck.checked : (pastUnsettledList.length > 0);
+
+                    let confirmMsg = '';
+                    if (pastUnsettledList.length > 0 && shouldIncludePast) {
+                        const pastMonthsStr = pastUnsettledList.map(p => p.month).join(', ');
+                        const totalPay = netOwnerPayout + pastUnsettledTotal;
+                        confirmMsg = `${car.ownerName} 차주님의 ${targetMonth}월 정산과 이전 미정산 내역(${pastMonthsStr} / ${pastUnsettledTotal.toLocaleString()}원)을 함께 [정산 완료] 처리하시겠습니까?\n\n- 당월 배당금: ${netOwnerPayout.toLocaleString()}원\n- 이전 미정산 합계: ${pastUnsettledTotal.toLocaleString()}원\n- 최종 정산 합계: ${totalPay.toLocaleString()}원\n\n확인 시 당월 및 이전 미정산 내역이 모두 정산 완료 상태로 마감됩니다.`;
+                    } else if (pastUnsettledList.length > 0 && !shouldIncludePast) {
+                        confirmMsg = `${car.ownerName} 차주님의 ${targetMonth}월 정산만 단독으로 완료 처리하시겠습니까?\n(이전 미정산 내역 ${pastUnsettledList.length}건은 미정산 상태로 유지됩니다.)`;
+                    } else if (isNoActivity) {
+                        confirmMsg = `${car.ownerName} 차주님의 ${targetMonth}월(실적 없음)을 [무실적 마감 완료] 처리하시겠습니까?`;
+                    } else {
+                        confirmMsg = `${car.ownerName} 차주님의 ${targetMonth}월 정산을 완료 처리하시겠습니까?\n\n포함된 매출 및 공제 비용이 ${targetMonth}월 정산 완료 상태로 전환됩니다.`;
+                    }
+
                     if (confirm(confirmMsg)) {
                         const nowIso = new Date().toISOString();
                         const settlementObj = {
@@ -2138,6 +2345,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             feeAmount,
                             totalExpenses,
                             netOwnerPayout,
+                            includedPastUnsettledAmount: shouldIncludePast ? pastUnsettledTotal : 0,
+                            pastSettledMonths: shouldIncludePast ? pastUnsettledList.map(p => p.month) : [],
+                            totalPaidAmount: shouldIncludePast ? (netOwnerPayout + pastUnsettledTotal) : netOwnerPayout,
                             status: 'completed',
                             settledAt: nowIso
                         };
@@ -2145,6 +2355,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const updates = {};
                         updates[`delegated_car_settlements/${settleId}`] = settlementObj;
 
+                        // Current month items
                         revs.forEach(r => {
                             if (r.id) {
                                 updates[`delegated_car_revenues/${r.id}/isSettled`] = true;
@@ -2160,6 +2371,44 @@ document.addEventListener('DOMContentLoaded', () => {
                                 updates[`delegated_car_expenses/${e.id}/settledAt`] = nowIso;
                             }
                         });
+
+                        // Past unsettled items bundled
+                        if (shouldIncludePast && pastUnsettledList.length > 0) {
+                            pastUnsettledList.forEach(p => {
+                                const pastSettleId = `settle_${p.month.replace('-', '_')}_${car.id}`;
+                                updates[`delegated_car_settlements/${pastSettleId}`] = {
+                                    id: pastSettleId,
+                                    yearMonth: p.month,
+                                    carId: car.id,
+                                    carPlate: car.plateNumber || '',
+                                    ownerName: car.ownerName,
+                                    grossRevenue: p.grossRevenue,
+                                    feeRate,
+                                    feeAmount: p.feeAmount,
+                                    totalExpenses: p.totalExpenses,
+                                    netOwnerPayout: p.netPayout,
+                                    status: 'completed',
+                                    settledAt: nowIso,
+                                    bundledWithMonth: targetMonth
+                                };
+
+                                p.revs.forEach(r => {
+                                    if (r.id) {
+                                        updates[`delegated_car_revenues/${r.id}/isSettled`] = true;
+                                        updates[`delegated_car_revenues/${r.id}/settledMonth`] = p.month;
+                                        updates[`delegated_car_revenues/${r.id}/settledAt`] = nowIso;
+                                    }
+                                });
+
+                                p.exps.forEach(e => {
+                                    if (e.id) {
+                                        updates[`delegated_car_expenses/${e.id}/isSettled`] = true;
+                                        updates[`delegated_car_expenses/${e.id}/settledMonth`] = p.month;
+                                        updates[`delegated_car_expenses/${e.id}/settledAt`] = nowIso;
+                                    }
+                                });
+                            });
+                        }
 
                         db.ref().update(updates).then(() => {
                             closeModal('settlementModal');
@@ -2297,51 +2546,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Calculate All Cumulative Unsettled Payouts for Target Cars
         let totalUnsettledPayout = 0;
-        const allMonthsSet = new Set();
-        delegatedRevenues.forEach(r => {
-            const matchAnyCar = targetCars.some(c => r.carId === c.id || (c.plateNumber && r.carId === c.plateNumber));
-            if (matchAnyCar) {
-                const m = r.settledMonth || (r.startDate && r.startDate.substring(0, 7));
-                if (m && m.length >= 7 && m <= targetMonth) allMonthsSet.add(m);
-            }
-        });
-        delegatedExpenses.forEach(e => {
-            const matchAnyCar = targetCars.some(c => e.carId === c.id || (c.plateNumber && e.carId === c.plateNumber));
-            if (matchAnyCar) {
-                const m = e.settledMonth || (e.expenseDate && e.expenseDate.substring(0, 7));
-                if (m && m.length >= 7 && m <= targetMonth) allMonthsSet.add(m);
-            }
-        });
-        if (targetMonth) allMonthsSet.add(targetMonth);
-
-        allMonthsSet.forEach(m => {
-            if (m > targetMonth) return; // Strict: Never include future months in unsettled total
-            targetCars.forEach(car => {
-                const existingSettlement = getSettlementForCarMonth(car.id, m);
-                const isMonthCompleted = existingSettlement && existingSettlement.status === 'completed';
-
-                // If this month is not settled yet, accumulate to totalUnsettledPayout
-                if (!isMonthCompleted) {
-                    const carRevs = delegatedRevenues.filter(r => {
-                        const isValidStatus = !r.paymentStatus || r.paymentStatus === 'completed' || r.paymentStatus === 'paid';
-                        const matchCar = (r.carId === car.id) || (car.plateNumber && r.carId === car.plateNumber);
-                        return isValidStatus && matchCar && isItemAssignedToMonth(r, m, car.id);
-                    });
-                    const carGross = carRevs.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
-                    const feeRate = getCarFeeRate(car);
-                    const fee = carGross * (feeRate / 100);
-
-                    const carExps = delegatedExpenses.filter(e => {
-                        const isDeductible = e.deductibleFromOwner === true || e.deductibleFromOwner === 'true';
-                        const matchCar = (e.carId === car.id) || (car.plateNumber && e.carId === car.plateNumber);
-                        return isDeductible && matchCar && isItemAssignedToMonth(e, m, car.id);
-                    });
-                    const expSum = carExps.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
-
-                    const monthOwnerPayout = carGross - fee - expSum;
-                    totalUnsettledPayout += monthOwnerPayout;
-                }
-            });
+        targetCars.forEach(car => {
+            const { totalUnsettledPayout: carUnsettled } = getCarUnsettledHistory(car.id, targetMonth);
+            totalUnsettledPayout += carUnsettled;
         });
 
         const statGrossRevenue = document.getElementById('statGrossRevenue');
