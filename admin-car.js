@@ -1969,6 +1969,57 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
     let currentStmtCar = null;
     let currentStmtMonth = null;
+    let cachedMyrKrwRate = null;
+
+    // Helper: fetch live MYR to KRW trading base exchange rate
+    async function getLiveMyrToKrwRate() {
+        try {
+            const res = await fetch('https://open.er-api.com/v6/latest/MYR');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.rates && data.rates.KRW) {
+                    const now = new Date();
+                    cachedMyrKrwRate = {
+                        rate: parseFloat(data.rates.KRW),
+                        fetchedAt: now.toISOString(),
+                        timeStr: now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+                        dateStr: getLocalDateString(now)
+                    };
+                    return cachedMyrKrwRate;
+                }
+            }
+        } catch (err) {
+            console.warn('Primary exchange rate API failed, trying fallback...', err);
+        }
+
+        try {
+            const res2 = await fetch('https://api.exchangerate-api.com/v4/latest/MYR');
+            if (res2.ok) {
+                const data2 = await res2.json();
+                if (data2 && data2.rates && data2.rates.KRW) {
+                    const now = new Date();
+                    cachedMyrKrwRate = {
+                        rate: parseFloat(data2.rates.KRW),
+                        fetchedAt: now.toISOString(),
+                        timeStr: now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+                        dateStr: getLocalDateString(now)
+                    };
+                    return cachedMyrKrwRate;
+                }
+            }
+        } catch (err2) {
+            console.warn('Fallback exchange rate API failed...', err2);
+        }
+
+        const fallbackNow = new Date();
+        return cachedMyrKrwRate || {
+            rate: 330.18,
+            fetchedAt: fallbackNow.toISOString(),
+            timeStr: fallbackNow.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+            dateStr: getLocalDateString(fallbackNow),
+            isFallback: true
+        };
+    }
 
     function openSettlementStatementModal(carId, targetMonth) {
         const car = delegatedCars.find(c => c.id === carId);
@@ -2007,6 +2058,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const hasPastUnsettled = (pastUnsettledList.length > 0) || (isCompleted && pastSettledMonths.length > 0);
         const displayPastTotal = isCompleted ? pastIncludedAmount : pastUnsettledTotal;
 
+        // Exchange rate info (use historical if completed with rate, else fetch live at statement open time)
+        let currentRateData = null;
+        if (isCompleted && existingSettlement && existingSettlement.exchangeRate) {
+            currentRateData = {
+                rate: parseFloat(existingSettlement.exchangeRate),
+                fetchedAt: existingSettlement.exchangeRateFetchedAt || existingSettlement.settledAt,
+                timeStr: existingSettlement.settledAt ? formatDateTime(existingSettlement.settledAt) : '',
+                isHistorical: true
+            };
+        }
+
         const stmtContentSheet = document.getElementById('stmtContentSheet');
         const confirmStmtBtn = document.getElementById('confirmStmtBtn');
 
@@ -2020,7 +2082,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (isNoActivity && pastUnsettledList.length === 0) {
             settledStatusHtml = `<span style="color: #6B7280; font-weight: 600;"><i class="fa-solid fa-minus"></i> 실적 없음 (정산 대상 없음)</span>`;
         } else if (isNoActivity && pastUnsettledList.length > 0) {
-            settledStatusHtml = `<span style="color: #E65100; font-weight: 700;"><i class="fa-solid fa-clock"></i> 당월 무실적 / 이전 미정산 이월 대상 (${pastUnsettledTotal.toLocaleString()}원)</span>`;
+            settledStatusHtml = `<span style="color: #E65100; font-weight: 700;"><i class="fa-solid fa-clock"></i> 당월 무실적 / 이전 미정산 이월 대상 (${pastUnsettledTotal.toLocaleString()} RM)</span>`;
         } else {
             settledStatusHtml = `<span style="color: #E65100; font-weight: 700;"><i class="fa-solid fa-clock"></i> 정산 대기 (미정산)</span>`;
             if (pastUnsettledList.length > 0) {
@@ -2062,13 +2124,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <tr style="border-bottom: 1px solid #EEE;">
                                     <td style="padding: 6px;">${revRolloverBadge}${r.startDate} ~ ${r.endDate}</td>
                                     <td style="padding: 6px;">${maskRenterName(r.renterName)}</td>
-                                    <td style="padding: 6px; text-align: right;">${(parseFloat(r.amount) || 0).toLocaleString()}</td>
+                                    <td style="padding: 6px; text-align: right;">${(parseFloat(r.amount) || 0).toLocaleString()} RM</td>
                                 </tr>
                             `;
                         }).join('') : '<tr><td colspan="3" style="text-align: center; padding: 10px; color: #888;">당월 렌트 매출 내역 없음</td></tr>'}
                         <tr style="font-weight: 700; background: #E8F5E9;">
                             <td colspan="2" style="padding: 8px;">렌트 총 매출 합계</td>
-                            <td style="padding: 8px; text-align: right; color: #2E7D32;">${grossRevenue.toLocaleString()}</td>
+                            <td style="padding: 8px; text-align: right; color: #2E7D32;">${grossRevenue.toLocaleString()} RM</td>
                         </tr>
                     </tbody>
                 </table>
@@ -2097,13 +2159,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                             </button>
                                         ` : ''}
                                     </td>
-                                    <td style="padding: 6px; text-align: right;">${(parseFloat(e.amount) || 0).toLocaleString()}</td>
+                                    <td style="padding: 6px; text-align: right;">${(parseFloat(e.amount) || 0).toLocaleString()} RM</td>
                                 </tr>
                             `;
                         }).join('') : '<tr><td colspan="3" style="text-align: center; padding: 10px; color: #888;">당월 차주 공제 비용 내역 없음</td></tr>'}
                         <tr style="font-weight: 700; background: #FFEBEE;">
                             <td colspan="2" style="padding: 8px;">공제 비용 합계</td>
-                            <td style="padding: 8px; text-align: right; color: #C62828;">${totalExpenses.toLocaleString()}</td>
+                            <td style="padding: 8px; text-align: right; color: #C62828;">${totalExpenses.toLocaleString()} RM</td>
                         </tr>
                     </tbody>
                 </table>
@@ -2112,33 +2174,46 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="background: #F8F9FA; padding: 15px; border-radius: 6px; border: 1px solid #E9ECEF; margin-bottom: 15px;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
                         <span>(+) 당월 렌트 매출:</span>
-                        <strong>${grossRevenue.toLocaleString()}</strong>
+                        <strong>${grossRevenue.toLocaleString()} RM</strong>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: var(--accent-color);">
                         <span>(-) 위탁 관리 수수료 (${feeRate}%):</span>
-                        <strong>- ${feeAmount.toLocaleString()}</strong>
+                        <strong>- ${feeAmount.toLocaleString()} RM</strong>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: #C62828;">
                         <span>(-) 당월 차주 정비/공제 비용:</span>
-                        <strong>- ${totalExpenses.toLocaleString()}</strong>
+                        <strong>- ${totalExpenses.toLocaleString()} RM</strong>
                     </div>
                     <div style="display: flex; justify-content: space-between; border-top: 1px solid #CBD5E1; padding-top: 6px; margin-bottom: 6px; font-weight: 600; color: #1E293B;">
                         <span>(=) 당월 배당금 산출액:</span>
-                        <span>${netOwnerPayout.toLocaleString()}</span>
+                        <span>${netOwnerPayout.toLocaleString()} RM</span>
                     </div>
                     ${hasPastUnsettled ? `
                         <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: #E65100; font-weight: 600;">
                             <span>(+) 이전 미정산 이월 합계:</span>
-                            <span>+ ${displayPastTotal.toLocaleString()}</span>
+                            <span>+ ${displayPastTotal.toLocaleString()} RM</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; border-top: 2px dashed #CBD5E1; padding-top: 10px; font-size: 16px; font-weight: 700; color: #1565C0;">
-                            <span>최종 차주 입금 배당금 (이전 미정산 포함):</span>
-                            <span id="stmtFinalPayoutDisplay">${(netOwnerPayout + displayPastTotal).toLocaleString()}</span>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-top: 2px dashed #CBD5E1; padding-top: 10px; font-size: 16px; font-weight: 700; color: #1565C0;">
+                            <div>
+                                <span>최종 차주 입금 배당금</span>
+                                <div style="font-size: 11px; font-weight: 500; color: #64748B; margin-top: 2px;">(이전 미정산 포함)</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div><span id="stmtFinalPayoutDisplay">${(netOwnerPayout + displayPastTotal).toLocaleString()}</span> RM</div>
+                                <div id="stmtFinalPayoutKrwDisplay" style="margin-top: 4px;">
+                                    <span style="font-size: 12px; font-weight: 600; color: #64748B;"><i class="fa-solid fa-spinner fa-spin"></i> 매매기준환율 조회 중...</span>
+                                </div>
+                            </div>
                         </div>
                     ` : `
-                        <div style="display: flex; justify-content: space-between; border-top: 2px dashed #CBD5E1; padding-top: 10px; font-size: 16px; font-weight: 700; color: #1565C0;">
-                            <span>최종 차주 입금 배당금:</span>
-                            <span>${netOwnerPayout.toLocaleString()}</span>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-top: 2px dashed #CBD5E1; padding-top: 10px; font-size: 16px; font-weight: 700; color: #1565C0;">
+                            <div>최종 차주 입금 배당금:</div>
+                            <div style="text-align: right;">
+                                <div><span id="stmtFinalPayoutDisplay">${netOwnerPayout.toLocaleString()}</span> RM</div>
+                                <div id="stmtFinalPayoutKrwDisplay" style="margin-top: 4px;">
+                                    <span style="font-size: 12px; font-weight: 600; color: #64748B;"><i class="fa-solid fa-spinner fa-spin"></i> 매매기준환율 조회 중...</span>
+                                </div>
+                            </div>
                         </div>
                     `}
                 </div>
@@ -2161,22 +2236,22 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${pastUnsettledList.length > 0 ? pastUnsettledList.map(p => `
                                 <tr style="border-bottom: 1px solid #EEE;">
                                     <td style="padding: 6px; font-weight: 600;">${p.month}월</td>
-                                    <td style="padding: 6px; text-align: right;">${p.grossRevenue.toLocaleString()}</td>
-                                    <td style="padding: 6px; text-align: right;">${p.feeAmount.toLocaleString()}</td>
-                                    <td style="padding: 6px; text-align: right;">${p.totalExpenses.toLocaleString()}</td>
-                                    <td style="padding: 6px; text-align: right; font-weight: 700; color: #E65100;">${p.netPayout.toLocaleString()}</td>
+                                    <td style="padding: 6px; text-align: right;">${p.grossRevenue.toLocaleString()} RM</td>
+                                    <td style="padding: 6px; text-align: right;">${p.feeAmount.toLocaleString()} RM</td>
+                                    <td style="padding: 6px; text-align: right;">${p.totalExpenses.toLocaleString()} RM</td>
+                                    <td style="padding: 6px; text-align: right; font-weight: 700; color: #E65100;">${p.netPayout.toLocaleString()} RM</td>
                                 </tr>
                             `).join('') : `
                                 <tr>
                                     <td colspan="5" style="padding: 8px; text-align: center; color: #2E7D32;">
-                                        정산 완료 시 포함 처리된 이전 월: <strong>${pastSettledMonths.join(', ')}월</strong> (총 ${displayPastTotal.toLocaleString()}원)
+                                        정산 완료 시 포함 처리된 이전 월: <strong>${pastSettledMonths.join(', ')}월</strong> (총 ${displayPastTotal.toLocaleString()} RM)
                                     </td>
                                 </tr>
                             `}
                             ${pastUnsettledList.length > 0 ? `
                                 <tr style="font-weight: 700; background: #FFF8E1;">
                                     <td colspan="4" style="padding: 8px;">이전 미정산 합계</td>
-                                    <td style="padding: 8px; text-align: right; color: #E65100;">${pastUnsettledTotal.toLocaleString()}</td>
+                                    <td style="padding: 8px; text-align: right; color: #E65100;">${pastUnsettledTotal.toLocaleString()} RM</td>
                                 </tr>
                             ` : ''}
                         </tbody>
@@ -2190,7 +2265,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <i class="fa-solid fa-circle-exclamation"></i> 이전 미정산 내역 함께 정산
                             </div>
                             <div style="font-size: 11px; color: #795548; margin-top: 2px;">
-                                이전 ${pastUnsettledList.length}건의 미정산액(${pastUnsettledTotal.toLocaleString()}원)을 당월 정산 완료 시 함께 완료 처리합니다.
+                                이전 ${pastUnsettledList.length}건의 미정산액(${pastUnsettledTotal.toLocaleString()} RM)을 당월 정산 완료 시 함께 완료 처리합니다.
                             </div>
                         </div>
                         <label style="display: flex; align-items: center; gap: 6px; font-weight: 700; color: #E65100; cursor: pointer; white-space: nowrap; user-select: none;">
@@ -2207,6 +2282,41 @@ document.addEventListener('DOMContentLoaded', () => {
                     const expId = btn.getAttribute('data-id');
                     openReceiptViewerModal(expId);
                 });
+            });
+        }
+
+        // Real-time KRW calculation display function
+        const updateKrwDisplay = (rateData) => {
+            const krwDisplayEl = document.getElementById('stmtFinalPayoutKrwDisplay');
+            if (!krwDisplayEl || !rateData) return;
+
+            const includePastCheckEl = document.getElementById('includePastSettlementCheck');
+            const shouldInclude = includePastCheckEl ? includePastCheckEl.checked : (isCompleted ? hasPastUnsettled : false);
+            const myrAmount = shouldInclude ? (netOwnerPayout + displayPastTotal) : netOwnerPayout;
+            const krwAmount = Math.round(myrAmount * rateData.rate);
+
+            const timeLabel = rateData.isHistorical 
+                ? `정산완료 시점 기준 (${rateData.timeStr})`
+                : `명세서 열람 시점 (${rateData.timeStr})`;
+
+            krwDisplayEl.innerHTML = `
+                <div style="display: inline-flex; align-items: center; gap: 4px; background: #E8F5E9; color: #1B5E20; padding: 3px 8px; border-radius: 4px; border: 1px solid #C8E6C9;">
+                    <i class="fa-solid fa-won-sign" style="font-size: 11px;"></i>
+                    <span>약 <strong>${krwAmount.toLocaleString()}</strong>원</span>
+                </div>
+                <div style="font-size: 11px; font-weight: 400; color: #64748B; margin-top: 2px;">
+                    매매기준율: 1 MYR = <strong>${rateData.rate.toFixed(2)}</strong> KRW <span style="color: #94A3B8;">(${timeLabel})</span>
+                </div>
+            `;
+        };
+
+        // Fetch or apply exchange rate immediately upon modal open
+        if (currentRateData) {
+            updateKrwDisplay(currentRateData);
+        } else {
+            getLiveMyrToKrwRate().then(rateData => {
+                currentRateData = rateData;
+                updateKrwDisplay(rateData);
             });
         }
 
@@ -2310,6 +2420,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             const finalAmt = isChecked ? (netOwnerPayout + pastUnsettledTotal) : netOwnerPayout;
                             finalDisplayEl.textContent = finalAmt.toLocaleString();
                         }
+                        if (currentRateData) {
+                            updateKrwDisplay(currentRateData);
+                        }
                     });
                 }
 
@@ -2319,17 +2432,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     const includePastCheck = document.getElementById('includePastSettlementCheck');
                     const shouldIncludePast = includePastCheck ? includePastCheck.checked : (pastUnsettledList.length > 0);
 
+                    const activeRate = currentRateData ? currentRateData.rate : 330.18;
+                    const finalPayMyr = shouldIncludePast ? (netOwnerPayout + pastUnsettledTotal) : netOwnerPayout;
+                    const finalPayKrw = Math.round(finalPayMyr * activeRate);
+
                     let confirmMsg = '';
                     if (pastUnsettledList.length > 0 && shouldIncludePast) {
                         const pastMonthsStr = pastUnsettledList.map(p => p.month).join(', ');
-                        const totalPay = netOwnerPayout + pastUnsettledTotal;
-                        confirmMsg = `${car.ownerName} 차주님의 ${targetMonth}월 정산과 이전 미정산 내역(${pastMonthsStr} / ${pastUnsettledTotal.toLocaleString()}원)을 함께 [정산 완료] 처리하시겠습니까?\n\n- 당월 배당금: ${netOwnerPayout.toLocaleString()}원\n- 이전 미정산 합계: ${pastUnsettledTotal.toLocaleString()}원\n- 최종 정산 합계: ${totalPay.toLocaleString()}원\n\n확인 시 당월 및 이전 미정산 내역이 모두 정산 완료 상태로 마감됩니다.`;
+                        confirmMsg = `${car.ownerName} 차주님의 ${targetMonth}월 정산과 이전 미정산 내역(${pastMonthsStr} / ${pastUnsettledTotal.toLocaleString()} RM)을 함께 [정산 완료] 처리하시겠습니까?\n\n- 당월 배당금: ${netOwnerPayout.toLocaleString()} RM\n- 이전 미정산 합계: ${pastUnsettledTotal.toLocaleString()} RM\n- 최종 정산 합계: ${finalPayMyr.toLocaleString()} RM (약 ₩${finalPayKrw.toLocaleString()}원 / 매매기준율: ${activeRate.toFixed(2)}원)\n\n확인 시 당월 및 이전 미정산 내역이 모두 정산 완료 상태로 마감됩니다.`;
                     } else if (pastUnsettledList.length > 0 && !shouldIncludePast) {
-                        confirmMsg = `${car.ownerName} 차주님의 ${targetMonth}월 정산만 단독으로 완료 처리하시겠습니까?\n(이전 미정산 내역 ${pastUnsettledList.length}건은 미정산 상태로 유지됩니다.)`;
+                        confirmMsg = `${car.ownerName} 차주님의 ${targetMonth}월 정산만 단독으로 완료 처리하시겠습니까?\n\n- 당월 배당금: ${netOwnerPayout.toLocaleString()} RM (약 ₩${finalPayKrw.toLocaleString()}원 / 매매기준율: ${activeRate.toFixed(2)}원)\n(이전 미정산 내역 ${pastUnsettledList.length}건은 미정산 상태로 유지됩니다.)`;
                     } else if (isNoActivity) {
                         confirmMsg = `${car.ownerName} 차주님의 ${targetMonth}월(실적 없음)을 [무실적 마감 완료] 처리하시겠습니까?`;
                     } else {
-                        confirmMsg = `${car.ownerName} 차주님의 ${targetMonth}월 정산을 완료 처리하시겠습니까?\n\n포함된 매출 및 공제 비용이 ${targetMonth}월 정산 완료 상태로 전환됩니다.`;
+                        confirmMsg = `${car.ownerName} 차주님의 ${targetMonth}월 정산을 완료 처리하시겠습니까?\n\n- 최종 배당금: ${finalPayMyr.toLocaleString()} RM (약 ₩${finalPayKrw.toLocaleString()}원 / 매매기준율: ${activeRate.toFixed(2)}원)\n\n포함된 매출 및 공제 비용이 ${targetMonth}월 정산 완료 상태로 전환됩니다.`;
                     }
 
                     if (confirm(confirmMsg)) {
@@ -2347,7 +2463,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             netOwnerPayout,
                             includedPastUnsettledAmount: shouldIncludePast ? pastUnsettledTotal : 0,
                             pastSettledMonths: shouldIncludePast ? pastUnsettledList.map(p => p.month) : [],
-                            totalPaidAmount: shouldIncludePast ? (netOwnerPayout + pastUnsettledTotal) : netOwnerPayout,
+                            totalPaidAmount: finalPayMyr,
+                            exchangeRate: activeRate,
+                            exchangeRateFetchedAt: currentRateData ? currentRateData.fetchedAt : nowIso,
+                            krwPayoutAmount: finalPayKrw,
                             status: 'completed',
                             settledAt: nowIso
                         };
@@ -2376,6 +2495,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (shouldIncludePast && pastUnsettledList.length > 0) {
                             pastUnsettledList.forEach(p => {
                                 const pastSettleId = `settle_${p.month.replace('-', '_')}_${car.id}`;
+                                const pastPayKrw = Math.round(p.netPayout * activeRate);
                                 updates[`delegated_car_settlements/${pastSettleId}`] = {
                                     id: pastSettleId,
                                     yearMonth: p.month,
@@ -2387,6 +2507,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                     feeAmount: p.feeAmount,
                                     totalExpenses: p.totalExpenses,
                                     netOwnerPayout: p.netPayout,
+                                    exchangeRate: activeRate,
+                                    exchangeRateFetchedAt: currentRateData ? currentRateData.fetchedAt : nowIso,
+                                    krwPayoutAmount: pastPayKrw,
                                     status: 'completed',
                                     settledAt: nowIso,
                                     bundledWithMonth: targetMonth
