@@ -1971,16 +1971,21 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentStmtMonth = null;
     let cachedMyrKrwRate = null;
 
-    // Helper: fetch live MYR to KRW trading base exchange rate
+    // Helper: fetch live Hana Bank MYR to KRW trading base exchange rate
     async function getLiveMyrToKrwRate() {
+        const now = new Date();
+
+        // 1. Primary: JohorN Vercel API proxy for Hana Bank rate
         try {
-            const res = await fetch('https://open.er-api.com/v6/latest/MYR');
+            const res = await fetch('/api/exchange-rate');
             if (res.ok) {
                 const data = await res.json();
-                if (data && data.rates && data.rates.KRW) {
-                    const now = new Date();
+                if (data && data.rate) {
                     cachedMyrKrwRate = {
-                        rate: parseFloat(data.rates.KRW),
+                        provider: data.provider || '하나은행',
+                        rate: parseFloat(data.rate),
+                        degree: data.degree || null,
+                        tradedAt: data.tradedAt,
                         fetchedAt: now.toISOString(),
                         timeStr: now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
                         dateStr: getLocalDateString(now)
@@ -1989,17 +1994,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         } catch (err) {
-            console.warn('Primary exchange rate API failed, trying fallback...', err);
+            console.warn('Local Hana Bank exchange rate proxy failed, trying direct...', err);
         }
 
+        // 2. Secondary: Direct Naver Market Index API (Hana Bank)
         try {
-            const res2 = await fetch('https://api.exchangerate-api.com/v4/latest/MYR');
-            if (res2.ok) {
-                const data2 = await res2.json();
-                if (data2 && data2.rates && data2.rates.KRW) {
-                    const now = new Date();
+            const res = await fetch('https://api.stock.naver.com/marketindex/exchange/FX_MYRKRW');
+            if (res.ok) {
+                const data = await res.json();
+                const info = data.exchangeInfo || {};
+                const r = parseFloat(info.calcPrice || info.closePrice);
+                if (r) {
                     cachedMyrKrwRate = {
-                        rate: parseFloat(data2.rates.KRW),
+                        provider: (info.stockExchangeType && info.stockExchangeType.nameKor) || '하나은행',
+                        rate: r,
+                        degree: info.degreeCount || null,
+                        tradedAt: info.localTradedAt,
                         fetchedAt: now.toISOString(),
                         timeStr: now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
                         dateStr: getLocalDateString(now)
@@ -2007,16 +2017,39 @@ document.addEventListener('DOMContentLoaded', () => {
                     return cachedMyrKrwRate;
                 }
             }
-        } catch (err2) {
-            console.warn('Fallback exchange rate API failed...', err2);
+        } catch (err) {
+            console.warn('Direct Naver API failed, trying fallback global FX...', err);
         }
 
-        const fallbackNow = new Date();
+        // 3. Tertiary: Fallback global API
+        try {
+            const res = await fetch('https://open.er-api.com/v6/latest/MYR');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.rates && data.rates.KRW) {
+                    cachedMyrKrwRate = {
+                        provider: '글로벌 외환',
+                        rate: parseFloat(data.rates.KRW),
+                        degree: null,
+                        tradedAt: data.time_last_update_utc,
+                        fetchedAt: now.toISOString(),
+                        timeStr: now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+                        dateStr: getLocalDateString(now)
+                    };
+                    return cachedMyrKrwRate;
+                }
+            }
+        } catch (err) {
+            console.warn('Fallback global API failed...', err);
+        }
+
         return cachedMyrKrwRate || {
-            rate: 330.18,
-            fetchedAt: fallbackNow.toISOString(),
-            timeStr: fallbackNow.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-            dateStr: getLocalDateString(fallbackNow),
+            provider: '하나은행',
+            rate: 328.97,
+            degree: null,
+            fetchedAt: now.toISOString(),
+            timeStr: now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+            dateStr: getLocalDateString(now),
             isFallback: true
         };
     }
@@ -2295,9 +2328,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const myrAmount = shouldInclude ? (netOwnerPayout + displayPastTotal) : netOwnerPayout;
             const krwAmount = Math.round(myrAmount * rateData.rate);
 
+            const providerName = rateData.provider || '하나은행';
+            const degreeInfo = rateData.degree ? ` (${rateData.degree}회차)` : '';
             const timeLabel = rateData.isHistorical 
-                ? `정산완료 시점 기준 (${rateData.timeStr})`
-                : `명세서 열람 시점 (${rateData.timeStr})`;
+                ? `정산완료 당시 기준 (${rateData.timeStr})`
+                : `${providerName}${degreeInfo} 고시 (${rateData.timeStr})`;
 
             krwDisplayEl.innerHTML = `
                 <div style="display: inline-flex; align-items: center; gap: 4px; background: #E8F5E9; color: #1B5E20; padding: 3px 8px; border-radius: 4px; border: 1px solid #C8E6C9;">
@@ -2432,20 +2467,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     const includePastCheck = document.getElementById('includePastSettlementCheck');
                     const shouldIncludePast = includePastCheck ? includePastCheck.checked : (pastUnsettledList.length > 0);
 
-                    const activeRate = currentRateData ? currentRateData.rate : 330.18;
+                    const activeRate = currentRateData ? currentRateData.rate : 328.97;
+                    const providerName = currentRateData?.provider || '하나은행';
                     const finalPayMyr = shouldIncludePast ? (netOwnerPayout + pastUnsettledTotal) : netOwnerPayout;
                     const finalPayKrw = Math.round(finalPayMyr * activeRate);
 
                     let confirmMsg = '';
                     if (pastUnsettledList.length > 0 && shouldIncludePast) {
                         const pastMonthsStr = pastUnsettledList.map(p => p.month).join(', ');
-                        confirmMsg = `${car.ownerName} 차주님의 ${targetMonth}월 정산과 이전 미정산 내역(${pastMonthsStr} / ${pastUnsettledTotal.toLocaleString()} RM)을 함께 [정산 완료] 처리하시겠습니까?\n\n- 당월 배당금: ${netOwnerPayout.toLocaleString()} RM\n- 이전 미정산 합계: ${pastUnsettledTotal.toLocaleString()} RM\n- 최종 정산 합계: ${finalPayMyr.toLocaleString()} RM (약 ₩${finalPayKrw.toLocaleString()}원 / 매매기준율: ${activeRate.toFixed(2)}원)\n\n확인 시 당월 및 이전 미정산 내역이 모두 정산 완료 상태로 마감됩니다.`;
+                        confirmMsg = `${car.ownerName} 차주님의 ${targetMonth}월 정산과 이전 미정산 내역(${pastMonthsStr} / ${pastUnsettledTotal.toLocaleString()} RM)을 함께 [정산 완료] 처리하시겠습니까?\n\n- 당월 배당금: ${netOwnerPayout.toLocaleString()} RM\n- 이전 미정산 합계: ${pastUnsettledTotal.toLocaleString()} RM\n- 최종 정산 합계: ${finalPayMyr.toLocaleString()} RM (약 ₩${finalPayKrw.toLocaleString()}원 / ${providerName} 매매기준율: ${activeRate.toFixed(2)}원)\n\n확인 시 당월 및 이전 미정산 내역이 모두 정산 완료 상태로 마감됩니다.`;
                     } else if (pastUnsettledList.length > 0 && !shouldIncludePast) {
-                        confirmMsg = `${car.ownerName} 차주님의 ${targetMonth}월 정산만 단독으로 완료 처리하시겠습니까?\n\n- 당월 배당금: ${netOwnerPayout.toLocaleString()} RM (약 ₩${finalPayKrw.toLocaleString()}원 / 매매기준율: ${activeRate.toFixed(2)}원)\n(이전 미정산 내역 ${pastUnsettledList.length}건은 미정산 상태로 유지됩니다.)`;
+                        confirmMsg = `${car.ownerName} 차주님의 ${targetMonth}월 정산만 단독으로 완료 처리하시겠습니까?\n\n- 당월 배당금: ${netOwnerPayout.toLocaleString()} RM (약 ₩${finalPayKrw.toLocaleString()}원 / ${providerName} 매매기준율: ${activeRate.toFixed(2)}원)\n(이전 미정산 내역 ${pastUnsettledList.length}건은 미정산 상태로 유지됩니다.)`;
                     } else if (isNoActivity) {
                         confirmMsg = `${car.ownerName} 차주님의 ${targetMonth}월(실적 없음)을 [무실적 마감 완료] 처리하시겠습니까?`;
                     } else {
-                        confirmMsg = `${car.ownerName} 차주님의 ${targetMonth}월 정산을 완료 처리하시겠습니까?\n\n- 최종 배당금: ${finalPayMyr.toLocaleString()} RM (약 ₩${finalPayKrw.toLocaleString()}원 / 매매기준율: ${activeRate.toFixed(2)}원)\n\n포함된 매출 및 공제 비용이 ${targetMonth}월 정산 완료 상태로 전환됩니다.`;
+                        confirmMsg = `${car.ownerName} 차주님의 ${targetMonth}월 정산을 완료 처리하시겠습니까?\n\n- 최종 배당금: ${finalPayMyr.toLocaleString()} RM (약 ₩${finalPayKrw.toLocaleString()}원 / ${providerName} 매매기준율: ${activeRate.toFixed(2)}원)\n\n포함된 매출 및 공제 비용이 ${targetMonth}월 정산 완료 상태로 전환됩니다.`;
                     }
 
                     if (confirm(confirmMsg)) {
@@ -2465,6 +2501,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             pastSettledMonths: shouldIncludePast ? pastUnsettledList.map(p => p.month) : [],
                             totalPaidAmount: finalPayMyr,
                             exchangeRate: activeRate,
+                            exchangeRateProvider: providerName,
+                            exchangeRateDegree: currentRateData ? currentRateData.degree : null,
                             exchangeRateFetchedAt: currentRateData ? currentRateData.fetchedAt : nowIso,
                             krwPayoutAmount: finalPayKrw,
                             status: 'completed',
